@@ -1,0 +1,13 @@
+[formatter.terraform]
+command = "terraform"
+options = ["fmt"]
+includes = ["*.tf", "*.tfvars"]
+
+[formatter.yaml]
+command = "yamlfmt"
+includes = ["*.yaml", "*.yml"]
+
+[formatter.markdown]
+command = "bun"
+options = ["--bun", "run", "markdownlint-cli2", "--fix"]
+includes = ["*.md"]
