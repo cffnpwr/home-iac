@@ -34,6 +34,7 @@ Terraformを実行する前に以下の環境変数を設定しておく必要�
 | `AWS_ACCESS_KEY_ID` | R2 APIトークンのアクセスキーID（S3バックエンド用） |
 | `AWS_SECRET_ACCESS_KEY` | R2 APIトークンのシークレットアクセスキー（S3バックエンド用） |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare provider用のAPIトークン |
+| `VULTR_API_KEY` | Vultr provider用のAPIキー |
 
 ### Initial setup
 
@@ -63,6 +64,40 @@ Bucketができるまでリモートのstateは使えないため、初回はロ
 
    ```sh
    mise run tf init -migrate-state
+   ```
+
+### Cluster setup
+
+クラスタの初回構築は次の手順で行います。
+
+1. RPi4用のイメージのURLを確定させます。
+   URLはImage Factoryに登録したschematicのIDから決まるため、schematicだけを先に作成し、表示される`urls.disk_image`を参照します。
+
+   ```sh
+   mise run tf apply -target=module.rpi4.data.talos_image_factory_urls.this
+   mise run tf state show module.rpi4.data.talos_image_factory_urls.this
+   ```
+
+2. イメージをダウンロード・展開し、SDカードへ書き込みます。
+
+   ```sh
+   curl -LO <手順1で得たURL>
+   xz -d metal-arm64.raw.xz
+   sudo dd if=metal-arm64.raw of=<SDカードのデバイス> conv=fsync bs=4M
+   ```
+
+3. SDカードをRPi4に挿して起動します。
+   RPi4はschematicのカーネル引数に設定した静的IPアドレスで起動し、machine configの適用を待ちます。
+4. `terraform apply`でRPi4へmachine configを適用してクラスタをbootstrapし、Vultr上にworkerを作成します。
+
+   ```sh
+   mise run tf apply
+   ```
+
+5. talosconfigを取得します。
+
+   ```sh
+   mise run tf output -raw talosconfig > talosconfig
    ```
 
 ### Plan & Apply

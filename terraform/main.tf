@@ -1,0 +1,80 @@
+locals {
+  talos_cluster_name     = "cffnpwr-home"
+  rpi4_address           = "192.168.0.129"
+  talos_cluster_endpoint = "https://${local.rpi4_address}:6443"
+
+  talos_common_config_patches = [
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeSpanConfig"
+      enabled    = true
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "ResolverConfig"
+      hostDNS = {
+        # NOTE: CiliumのeBPF Host Routingと併用するとDNSが解決できない
+        forwardKubeDNSToHost = false
+      }
+    }),
+  ]
+}
+
+resource "talos_machine_secrets" "this" {
+  talos_version = local.talos_version
+}
+
+data "talos_client_configuration" "this" {
+  cluster_name         = local.talos_cluster_name
+  client_configuration = talos_machine_secrets.this.client_configuration
+  endpoints            = [local.rpi4_address]
+  nodes                = [local.rpi4_address]
+}
+
+module "inline_manifests" {
+  source = "./modules/inline-manifests"
+
+  kubernetes_version   = local.kubernetes_version
+  cilium_chart_version = local.cilium_chart_version
+  cilium_values        = file("${path.module}/../kubernetes/platform/cilium/values.yaml")
+  argocd_chart_version = local.argocd_chart_version
+  argocd_values        = file("${path.module}/../kubernetes/platform/argocd/values.yaml")
+}
+
+module "rpi4" {
+  source = "./modules/rpi4"
+
+  cluster_name         = local.talos_cluster_name
+  cluster_endpoint     = local.talos_cluster_endpoint
+  machine_secrets      = talos_machine_secrets.this.machine_secrets
+  client_configuration = talos_machine_secrets.this.client_configuration
+  talos_version        = local.talos_version
+  kubernetes_version   = local.kubernetes_version
+  config_patches       = local.talos_common_config_patches
+  inline_manifests     = module.inline_manifests.inline_manifests
+  address              = local.rpi4_address
+  prefix_length        = 24
+  gateway              = "192.168.0.1"
+  nameservers          = ["1.1.1.1", "1.0.0.1"]
+  hostname             = "cpwr-rpi4"
+}
+
+module "vultr" {
+  source = "./modules/vultr"
+
+  cluster_name       = local.talos_cluster_name
+  cluster_endpoint   = local.talos_cluster_endpoint
+  machine_secrets    = talos_machine_secrets.this.machine_secrets
+  talos_version      = local.talos_version
+  kubernetes_version = local.kubernetes_version
+  config_patches     = local.talos_common_config_patches
+  region             = "nrt"
+  plan               = "vc2-2c-4gb"
+  hostname           = "cpwr-vltr"
+  node_taints = {
+    dedicated = "netbird:NoSchedule"
+  }
+  inbound_rules = {
+    kubespan = { protocol = "udp", port = "51820" }
+  }
+}
