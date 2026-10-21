@@ -32,10 +32,12 @@ run = "terraform"
 
 [tasks.lint]
 description = "Terraform・YAML・Markdownを検査する"
+# NOTE: 実バックエンドで初期化済みの`.terraform`を使うと`init -backend=false`がR2の認証情報を要求するため、検査用のDataDirを指定
+env = { TF_DATA_DIR = "{{config_root}}/terraform/.terraform/lint" }
 run = [
   "treefmt --ci",
-  "terraform -chdir=terraform init -backend=false",
-  "terraform -chdir=terraform validate",
+  "mise run tf init -backend=false",
+  "mise run tf validate",
   "tflint --recursive --config \"$MISE_PROJECT_ROOT/.tflint.hcl\"",
   "yamllint .",
   "bun --bun run markdownlint-cli2 '**/*.md'",
