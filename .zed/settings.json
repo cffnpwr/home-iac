@@ -1,0 +1,11 @@
+{
+  "lsp": {
+    "vtsls": {
+      "settings": {
+        "typescript": {
+          "tsdk": "terraform/modules/vultr/scripts/node_modules/typescript/lib",
+        },
+      },
+    },
+  },
+}

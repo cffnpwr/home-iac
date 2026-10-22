@@ -32,7 +32,7 @@ dir = "{{config_root}}/terraform"
 run = "terraform"
 
 [tasks.lint]
-description = "Terraform・YAML・Markdownを検査する"
+description = "Terraform・YAML・Markdown・TypeScriptを検査する"
 # NOTE: 実バックエンドで初期化済みの`.terraform`を使うと`init -backend=false`がR2の認証情報を要求するため、検査用のDataDirを指定
 env = { TF_DATA_DIR = "{{config_root}}/terraform/.terraform/lint" }
 run = [
@@ -42,4 +42,6 @@ run = [
   "tflint --recursive --config \"$MISE_PROJECT_ROOT/.tflint.hcl\"",
   "yamllint .",
   "bun --bun run markdownlint-cli2 '**/*.md'",
+  "bun install --frozen-lockfile --cwd \"$MISE_PROJECT_ROOT/terraform/modules/vultr/scripts\"",
+  "bun run --cwd \"$MISE_PROJECT_ROOT/terraform/modules/vultr/scripts\" eslint .",
 ]
