@@ -1,4 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>cffnpwr/renovate-config"]
+  "extends": ["github>cffnpwr/renovate-config"],
+  "ignorePaths": [
+    // NOTE: `mise lock`で生成されるためignore
+    ".mise/locks/**"
+  ]
 }
