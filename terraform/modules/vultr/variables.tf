@@ -14,6 +14,21 @@ variable "machine_secrets" {
   sensitive   = true
 }
 
+variable "client_configuration" {
+  type = object({
+    ca_certificate     = string
+    client_certificate = string
+    client_key         = string
+  })
+  description = "Talos APIへ接続するためのクライアント設定"
+  sensitive   = true
+}
+
+variable "talos_endpoint" {
+  type        = string
+  description = "Talos APIを中継するcontrol planeのアドレス"
+}
+
 variable "talos_version" {
   type        = string
   description = "Talosのバージョン"
@@ -39,14 +54,25 @@ variable "plan" {
   description = "インスタンスのVultrのプランID"
 }
 
-variable "hostname" {
+variable "hostname_prefix" {
   type        = string
-  description = "ノードのホスト名"
+  description = "ノードのホスト名の接頭辞"
+}
+
+variable "talosconfig" {
+  type        = string
+  description = "Nodeの待ち合わせと削除で、talos_endpointからkubeconfigを取得するためのtalosconfig"
+  sensitive   = true
+}
+
+variable "node_labels" {
+  type        = map(string)
+  description = "ノードに付けるラベル"
 }
 
 variable "node_taints" {
   type        = map(string)
-  description = "ノードに付けるtaint（KubeNodeConfigのtaintsの形式。キーがtaintのキー、値が`<値>:<effect>`）"
+  description = "ノードに付けるtaint"
 }
 
 variable "inbound_rules" {

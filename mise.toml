@@ -6,7 +6,6 @@ npm.package_manager = "bun"
 [tools]
 bun = "1.4.3"
 uv = "0.13.1"
-python = "3.14.8"
 terraform = "1.16.6"
 tflint = "0.64.0"
 "aqua:suzuki-shunsuke/tfcmt" = "4.14.19"
@@ -21,6 +20,7 @@ yamllint = "1.38.0"
 markdownlint-cli2 = "0.23.3"
 yamlfmt = "0.21.0"
 "aqua:numtide/treefmt" = "2.6.0"
+python = "3.14.8"
 
 [tasks.fmt]
 description = "Terraform・YAML・Markdownを整形する"
@@ -32,7 +32,7 @@ dir = "{{config_root}}/terraform"
 run = "terraform"
 
 [tasks.lint]
-description = "Terraform・YAML・Markdownを検査する"
+description = "Terraform・YAML・Markdown・TypeScriptを検査する"
 # NOTE: 実バックエンドで初期化済みの`.terraform`を使うと`init -backend=false`がR2の認証情報を要求するため、検査用のDataDirを指定
 env = { TF_DATA_DIR = "{{config_root}}/terraform/.terraform/lint" }
 run = [
@@ -42,4 +42,6 @@ run = [
   "tflint --recursive --config \"$MISE_PROJECT_ROOT/.tflint.hcl\"",
   "yamllint .",
   "bun --bun run markdownlint-cli2 '**/*.md'",
+  "bun install --frozen-lockfile --cwd \"$MISE_PROJECT_ROOT/terraform/modules/vultr/scripts\"",
+  "bun run --cwd \"$MISE_PROJECT_ROOT/terraform/modules/vultr/scripts\" eslint .",
 ]

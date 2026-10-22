@@ -57,22 +57,31 @@ module "rpi4" {
   gateway              = "192.168.0.1"
   nameservers          = ["1.1.1.1", "1.0.0.1"]
   hostname             = "cpwr-rpi4"
+  node_labels = {
+    "topology.kubernetes.io/zone" = "home"
+  }
 }
 
 module "vultr" {
   source = "./modules/vultr"
 
-  cluster_name       = local.talos_cluster_name
-  cluster_endpoint   = local.talos_cluster_endpoint
-  machine_secrets    = talos_machine_secrets.this.machine_secrets
-  talos_version      = local.talos_version
-  kubernetes_version = local.kubernetes_version
-  config_patches     = local.talos_common_config_patches
-  region             = "nrt"
-  plan               = "vc2-2c-4gb"
-  hostname           = "cpwr-vltr"
+  cluster_name         = local.talos_cluster_name
+  cluster_endpoint     = local.talos_cluster_endpoint
+  machine_secrets      = talos_machine_secrets.this.machine_secrets
+  client_configuration = talos_machine_secrets.this.client_configuration
+  talos_endpoint       = local.rpi4_address
+  talos_version        = local.talos_version
+  kubernetes_version   = local.kubernetes_version
+  config_patches       = local.talos_common_config_patches
+  region               = "nrt"
+  plan                 = "vc2-2c-4gb"
+  hostname_prefix      = "cpwr-vltr"
+  talosconfig          = data.talos_client_configuration.this.talos_config
+  node_labels = {
+    "topology.kubernetes.io/zone" = "vultr"
+  }
   node_taints = {
-    dedicated = "netbird:NoSchedule"
+    edge = "vultr:NoSchedule"
   }
   inbound_rules = {
     kubespan = { protocol = "udp", port = "51820" }

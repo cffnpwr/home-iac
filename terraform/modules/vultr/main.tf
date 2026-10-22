@@ -3,6 +3,20 @@ locals {
     v4 = "0.0.0.0"
     v6 = "::"
   }
+  hostname = "${var.hostname_prefix}-${random_id.hostname_suffix.hex}"
+  # NOTE: 起動に使うISOもディスクとして列挙される
+  install_disk_selector = "disk.transport == \"virtio\" && !disk.cdrom"
+}
+
+resource "random_id" "hostname_suffix" {
+  byte_length = 4
+  # NOTE: 以下のいずれかが更新されたときインスタンスを入れ替える
+  keepers = {
+    node_taints           = jsonencode(var.node_taints)
+    installer             = data.talos_image_factory_urls.this.urls.installer
+    install_disk_selector = local.install_disk_selector
+    region                = var.region
+  }
 }
 
 resource "talos_image_factory_schematic" "this" {}
@@ -25,11 +39,12 @@ data "talos_machine_configuration" "this" {
       apiVersion = "v1alpha1"
       kind       = "HostnameConfig"
       auto       = { "$patch" = "delete" }
-      hostname   = var.hostname
+      hostname   = local.hostname
     }),
     yamlencode({
       apiVersion = "v1alpha1"
       kind       = "KubeNodeConfig"
+      labels     = var.node_labels
       taints     = var.node_taints
     }),
     yamlencode({
@@ -40,8 +55,7 @@ data "talos_machine_configuration" "this" {
       }
       provisioning = {
         diskSelector = {
-          # NOTE: 起動に使うISOもディスクとして列挙される
-          match = "disk.transport == \"virtio\" && !disk.cdrom"
+          match = local.install_disk_selector
         }
       }
     }),
@@ -50,7 +64,7 @@ data "talos_machine_configuration" "this" {
 
 # NOTE: VultrはISOの登録時にImage Factoryのリダイレクトをたどれないためリダイレクト先を渡す
 data "external" "iso_url" {
-  program = ["bun", "${path.module}/scripts/resolve-redirect.ts"]
+  program = ["bun", "${path.module}/scripts/src/resolve-redirect.ts"]
   query = {
     url = data.talos_image_factory_urls.this.urls.iso
   }
@@ -96,6 +110,82 @@ resource "vultr_instance" "this" {
   plan              = var.plan
   iso_id            = vultr_iso_private.this.id
   firewall_group_id = vultr_firewall_group.this.id
-  # NOTE: Talos APIを公開しないため、machine configはapplyせずVultrのuser-dataから読ませる
+  hostname          = local.hostname
+  # NOTE: user-dataは初回の起動（インストール）でだけ読まれる。参加後の設定更新はtalos_machine_configuration_applyが担う
   user_data = data.talos_machine_configuration.this.machine_configuration
+
+  lifecycle {
+    # NOTE: random_idのkeepersが変わるとホスト名が変わり、新しいインスタンスを作ってから古いインスタンスを消す
+    create_before_destroy = true
+
+    # NOTE: create_before_destroyのリソースではdestroy-time provisionerが実行されないため、古いNodeの削除はactionで行う
+    action_trigger {
+      events  = [before_destroy]
+      actions = [action.local_command.delete_node]
+    }
+  }
+}
+
+resource "talos_machine_configuration_apply" "this" {
+  client_configuration        = var.client_configuration
+  machine_configuration_input = data.talos_machine_configuration.this.machine_configuration
+  node                        = vultr_instance.this.main_ip
+  # NOTE: Talos APIは公開していないため、control planeのapidがKubeSpan経由で中継する
+  endpoint = var.talos_endpoint
+  # NOTE: 入れ替えで古いインスタンスを消す前に、古いノードをcordon・drainする
+  on_destroy = {
+    reset    = true
+    graceful = true
+    reboot   = false
+  }
+
+  lifecycle {
+    create_before_destroy = true
+    # NOTE: nodeはRequiresReplaceではないため、インスタンスの置換に合わせて古いノード宛てのresetを走らせるには置換が要る
+    replace_triggered_by = [vultr_instance.this]
+  }
+}
+
+# NOTE: 古いノードのdrainとインスタンスの削除を、新しいノードがReadyになった後に行わせるための待ち合わせ。
+# create_before_destroyにより、古いtalos_machine_configuration_applyとvultr_instanceの削除はこのリソースの作成の後になる
+resource "terraform_data" "node_ready" {
+  triggers_replace = vultr_instance.this.id
+  input            = vultr_instance.this.hostname
+
+  depends_on = [talos_machine_configuration_apply.this]
+
+  lifecycle {
+    action_trigger {
+      events  = [after_create]
+      actions = [action.local_command.wait_node_ready]
+      # NOTE: 失敗時に作り直させ、次のapplyでも古いノードを消す前にReadyを待たせる
+      on_failure = taint
+    }
+  }
+}
+
+# NOTE: destroy時のactionのconfigはplan時に既知である必要があるため、作成後に変わらないtalosconfigを渡し、kubeconfigはスクリプトがその場で取得する。
+# talosconfigは引数・環境変数に置かず、エラー時の診断やプロセス一覧に出ないstdinで渡す
+action "local_command" "wait_node_ready" {
+  config {
+    command   = "bun"
+    arguments = ["${path.module}/scripts/src/kube-node.ts", "wait-ready"]
+    stdin = jsonencode({
+      node_name      = caller.input
+      talosconfig    = var.talosconfig
+      talos_endpoint = var.talos_endpoint
+    })
+  }
+}
+
+action "local_command" "delete_node" {
+  config {
+    command   = "bun"
+    arguments = ["${path.module}/scripts/src/kube-node.ts", "delete"]
+    stdin = jsonencode({
+      node_name      = caller.hostname
+      talosconfig    = var.talosconfig
+      talos_endpoint = var.talos_endpoint
+    })
+  }
 }

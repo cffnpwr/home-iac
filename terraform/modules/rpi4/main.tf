@@ -65,6 +65,7 @@ data "talos_machine_configuration" "this" {
     yamlencode({
       apiVersion = "v1alpha1"
       kind       = "KubeNodeConfig"
+      labels     = var.node_labels
       taints = {
         "node-role.kubernetes.io/control-plane" = { "$patch" = "delete" }
       }

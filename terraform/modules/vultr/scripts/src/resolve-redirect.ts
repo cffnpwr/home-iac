@@ -1,5 +1,5 @@
 // NOTE: Terraformのplanが応答の無い接続で止まり続けないための上限
-const FETCH_TIMEOUT_MS = 30_000;
+const FETCH_TIMEOUT = Temporal.Duration.from({ seconds: 30 });
 
 const query: unknown = await Bun.stdin.json();
 
@@ -19,7 +19,7 @@ if (url === null) {
 
 const response = await fetch(url, {
   redirect: "manual",
-  signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  signal: AbortSignal.timeout(FETCH_TIMEOUT.total("milliseconds")),
 });
 await response.body?.cancel();
 

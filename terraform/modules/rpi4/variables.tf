@@ -68,3 +68,8 @@ variable "hostname" {
   type        = string
   description = "ノードのホスト名"
 }
+
+variable "node_labels" {
+  type        = map(string)
+  description = "ノードに付けるラベル"
+}
