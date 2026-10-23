@@ -12,5 +12,32 @@ output "inline_manifests" {
       }),
       data.helm_template.argocd.manifest,
     ])
+
+    argocd-root = yamlencode({
+      apiVersion = "argoproj.io/v1alpha1"
+      kind       = "Application"
+      metadata = {
+        name      = "root"
+        namespace = data.helm_template.argocd.namespace
+      }
+      spec = {
+        project = "default"
+        source = {
+          repoURL        = var.argocd_root_application_source.repo_url
+          targetRevision = "main"
+          path           = var.argocd_root_application_source.path
+        }
+        destination = {
+          server    = "https://kubernetes.default.svc"
+          namespace = data.helm_template.argocd.namespace
+        }
+        syncPolicy = {
+          automated = {
+            prune    = true
+            selfHeal = true
+          }
+        }
+      }
+    })
   }
 }

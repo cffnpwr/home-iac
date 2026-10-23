@@ -39,6 +39,10 @@ module "inline_manifests" {
   cilium_values        = file("${path.module}/../kubernetes/platform/cilium/values.yaml")
   argocd_chart_version = local.argocd_chart_version
   argocd_values        = file("${path.module}/../kubernetes/platform/argocd/values.yaml")
+  argocd_root_application_source = {
+    repo_url = "https://github.com/cffnpwr/home-iac.git"
+    path     = "kubernetes/apps"
+  }
 }
 
 module "rpi4" {

@@ -22,3 +22,11 @@ variable "argocd_values" {
   type        = string
   description = "ArgoCD helmチャートのvalues（YAML）"
 }
+
+variable "argocd_root_application_source" {
+  type = object({
+    repo_url = string
+    path     = string
+  })
+  description = "ArgoCDのroot Applicationが同期するGitリポジトリのURLとディレクトリ"
+}
