@@ -2,8 +2,9 @@ output "inline_manifests" {
   description = "Talosのinline manifestとして埋め込むマニフェスト"
   value = {
     cilium = data.helm_template.cilium.manifest
-    # NOTE: helm templateはリリース先のNamespaceを出力しない
+
     argocd = join("---\n", [
+      # NOTE: Argo CDのnamespaceの作成
       yamlencode({
         apiVersion = "v1"
         kind       = "Namespace"
