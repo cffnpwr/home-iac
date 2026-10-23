@@ -43,6 +43,10 @@ module "inline_manifests" {
     repo_url = "https://github.com/cffnpwr/home-iac.git"
     path     = "kubernetes/apps"
   }
+  sealed_secrets_key = {
+    cert_pem        = tls_self_signed_cert.sealed_secrets.cert_pem
+    private_key_pem = tls_private_key.sealed_secrets.private_key_pem
+  }
 }
 
 module "rpi4" {

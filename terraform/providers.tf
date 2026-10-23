@@ -10,4 +10,6 @@ provider "random" {}
 
 provider "talos" {}
 
+provider "tls" {}
+
 provider "vultr" {}
