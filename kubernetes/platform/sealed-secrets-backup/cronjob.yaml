@@ -20,7 +20,7 @@ spec:
               effect: NoSchedule
           containers:
             - name: backup
-              image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:f499d6a9687a6f7359e48fc165961bc072c440798d0f880c7f59dbb25f22d840
+              image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:9c71fd0c06703c7392fbb24d0e8de3fe6685bc0b5d7951e9520ed877ded34aed
               command: [/bin/sh, -c]
               args:
                 - |
