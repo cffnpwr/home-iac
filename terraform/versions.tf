@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/external"
       version = "2.4.2"
     }
+    github = {
+      source  = "integrations/github"
+      version = "6.13.0"
+    }
     helm = {
       source  = "hashicorp/helm"
       version = "3.3.0"

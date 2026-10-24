@@ -35,6 +35,10 @@ Terraformを実行する前に以下の環境変数を設定しておく必要�
 | `AWS_SECRET_ACCESS_KEY` | R2 APIトークンのシークレットアクセスキー（S3バックエンド用） |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare provider用のAPIトークン |
 | `VULTR_API_KEY` | Vultr provider用のAPIキー |
+| `TF_VAR_github_app_client_id` | 鍵の退避Jobがrepository_dispatchを送信するときに使うGitHub AppのClient ID |
+| `TF_VAR_github_app_private_key` | 鍵の退避Jobがrepository_dispatchを送信するときに使うGitHub Appの秘密鍵（PEM） |
+
+GitHub providerは`GITHUB_TOKEN`環境変数のトークンを使い、未設定なら`gh auth token`のトークンを使います。
 
 ### Initial setup
 

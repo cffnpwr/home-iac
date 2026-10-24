@@ -1,0 +1,126 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: sealed-secrets-backup
+  namespace: sealed-secrets
+spec:
+  template:
+    serviceAccountName: sealed-secrets-sensor
+    container:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          memory: 128Mi
+  dependencies:
+    - name: key-added
+      eventSourceName: sealed-secrets
+      eventName: key-added
+  triggers:
+    - template:
+        name: sealed-secrets-backup
+        k8s:
+          operation: create
+          source:
+            resource:
+              apiVersion: batch/v1
+              kind: Job
+              metadata:
+                generateName: sealed-secrets-backup-
+              spec:
+                backoffLimit: 3
+                ttlSecondsAfterFinished: 86400
+                template:
+                  spec:
+                    serviceAccountName: sealed-secrets-backup
+                    restartPolicy: Never
+                    # NOTE: Vultrノードへのスケジューリングの許可
+                    tolerations:
+                      - key: edge
+                        operator: Exists
+                        effect: NoSchedule
+                    containers:
+                      - name: backup
+                        image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:9c71fd0c06703c7392fbb24d0e8de3fe6685bc0b5d7951e9520ed877ded34aed
+                        command: [/bin/sh, /opt/sealed-secrets-backup/backup.sh]
+                        env:
+                          # NOTE: Sensorのparametersが、イベントが示す鍵のSecret名で値を置換
+                          - name: TRIGGER_NAME
+                            value: ""
+                          - name: RECIPIENTS_FILE
+                            value: /etc/sealed-secrets-backup/recipients.txt
+                          - name: WORK_DIR
+                            value: /work
+                          - name: GITHUB_APP_CLIENT_ID
+                            valueFrom:
+                              secretKeyRef:
+                                name: sealed-secrets-backup-github-app
+                                key: client-id
+                          - name: GITHUB_APP_PRIVATE_KEY_FILE
+                            value: /etc/sealed-secrets-backup-github-app/private-key
+                          - name: RCLONE_CONFIG_R2_TYPE
+                            value: s3
+                          - name: RCLONE_CONFIG_R2_PROVIDER
+                            value: Cloudflare
+                          - name: RCLONE_CONFIG_R2_REGION
+                            value: auto
+                          - name: RCLONE_CONFIG_R2_ENDPOINT
+                            value: https://086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com
+                          # NOTE: rcloneによるバケットの確認・作成の停止
+                          - name: RCLONE_CONFIG_R2_NO_CHECK_BUCKET
+                            value: "true"
+                          - name: RCLONE_CONFIG_R2_ACCESS_KEY_ID
+                            valueFrom:
+                              secretKeyRef:
+                                name: sealed-secrets-backup-r2
+                                key: access-key-id
+                          - name: RCLONE_CONFIG_R2_SECRET_ACCESS_KEY
+                            valueFrom:
+                              secretKeyRef:
+                                name: sealed-secrets-backup-r2
+                                key: secret-access-key
+                        resources:
+                          requests:
+                            cpu: 10m
+                            memory: 64Mi
+                          limits:
+                            memory: 256Mi
+                        volumeMounts:
+                          - name: script
+                            mountPath: /opt/sealed-secrets-backup
+                            readOnly: true
+                          - name: recipients
+                            mountPath: /etc/sealed-secrets-backup
+                            readOnly: true
+                          - name: github-app
+                            mountPath: /etc/sealed-secrets-backup-github-app
+                            readOnly: true
+                          - name: work
+                            mountPath: /work
+                    volumes:
+                      - name: script
+                        configMap:
+                          name: sealed-secrets-backup-script
+                      - name: recipients
+                        configMap:
+                          name: sealed-secrets-backup-recipients
+                      - name: github-app
+                        secret:
+                          secretName: sealed-secrets-backup-github-app
+                          items:
+                            - key: private-key
+                              path: private-key
+                      # NOTE: GitHubのトークンをノードのディスクに残さないためのtmpfsの作業用ディレクトリ
+                      - name: work
+                        emptyDir:
+                          medium: Memory
+          # NOTE: Jobに鍵の内容を渡さないための鍵のSecret名だけを受け渡す
+          parameters:
+            - src:
+                dependencyName: key-added
+                dataKey: body.metadata.name
+              dest: spec.template.spec.containers.0.env.0.value
+      retryStrategy:
+        steps: 3
+        duration: 10s

@@ -1,0 +1,102 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: sealed-secrets-key-cleanup
+  namespace: sealed-secrets
+spec:
+  template:
+    serviceAccountName: sealed-secrets-sensor
+    container:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          memory: 128Mi
+  dependencies:
+    - name: sealedsecret-updated
+      eventSourceName: sealed-secrets
+      eventName: sealedsecret-updated
+  triggers:
+    # NOTE: 同期ごとに複数作られるJobのうち、全SealedSecretの適用後に実行されたJobが古い鍵を削除
+    - template:
+        name: sealed-secrets-key-cleanup
+        k8s:
+          operation: create
+          source:
+            resource:
+              apiVersion: batch/v1
+              kind: Job
+              metadata:
+                generateName: sealed-secrets-key-cleanup-
+              spec:
+                backoffLimit: 3
+                ttlSecondsAfterFinished: 86400
+                template:
+                  spec:
+                    serviceAccountName: sealed-secrets-key-cleanup
+                    restartPolicy: Never
+                    # NOTE: Vultrノードへのスケジューリングの許可
+                    tolerations:
+                      - key: edge
+                        operator: Exists
+                        effect: NoSchedule
+                    containers:
+                      - name: cleanup
+                        image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:9c71fd0c06703c7392fbb24d0e8de3fe6685bc0b5d7951e9520ed877ded34aed
+                        command: [/bin/sh, /opt/sealed-secrets-key-cleanup/cleanup.sh]
+                        env:
+                          # NOTE: Sensorのparametersが、イベントが示すSealedSecret名で値を置換
+                          - name: TRIGGER_NAME
+                            value: ""
+                          - name: WORK_DIR
+                            value: /work
+                          - name: RCLONE_CONFIG_R2_TYPE
+                            value: s3
+                          - name: RCLONE_CONFIG_R2_PROVIDER
+                            value: Cloudflare
+                          - name: RCLONE_CONFIG_R2_REGION
+                            value: auto
+                          - name: RCLONE_CONFIG_R2_ENDPOINT
+                            value: https://086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com
+                          # NOTE: rcloneによるバケットの確認・作成の停止
+                          - name: RCLONE_CONFIG_R2_NO_CHECK_BUCKET
+                            value: "true"
+                          - name: RCLONE_CONFIG_R2_ACCESS_KEY_ID
+                            valueFrom:
+                              secretKeyRef:
+                                name: sealed-secrets-backup-r2
+                                key: access-key-id
+                          - name: RCLONE_CONFIG_R2_SECRET_ACCESS_KEY
+                            valueFrom:
+                              secretKeyRef:
+                                name: sealed-secrets-backup-r2
+                                key: secret-access-key
+                        resources:
+                          requests:
+                            cpu: 10m
+                            memory: 64Mi
+                          limits:
+                            memory: 256Mi
+                        volumeMounts:
+                          - name: script
+                            mountPath: /opt/sealed-secrets-key-cleanup
+                            readOnly: true
+                          - name: work
+                            mountPath: /work
+                    volumes:
+                      - name: script
+                        configMap:
+                          name: sealed-secrets-key-cleanup-script
+                      # NOTE: 秘密鍵をノードのディスクに残さないためのtmpfsの作業用ディレクトリ
+                      - name: work
+                        emptyDir:
+                          medium: Memory
+          parameters:
+            - src:
+                dependencyName: sealedsecret-updated
+                dataKey: body.metadata.name
+              dest: spec.template.spec.containers.0.env.0.value
+      retryStrategy:
+        steps: 3
+        duration: 10s
