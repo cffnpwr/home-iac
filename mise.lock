@@ -186,9 +186,9 @@ url = "https://github.com/bitnami/sealed-secrets/releases/download/v0.40.0/kubes
 url_api = "https://api.github.com/repos/bitnami/sealed-secrets/releases/assets/555346330"
 
 [[tools.markdownlint-cli2]]
-version = "0.23.3"
+version = "0.24.0"
 backend = "npm:markdownlint-cli2"
-specifiers = ["0.23.3"]
+specifiers = ["0.24.0"]
 
 [[tools.python]]
 version = "3.14.8"
