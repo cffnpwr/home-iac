@@ -26,6 +26,10 @@ terraform {
       source  = "siderolabs/talos"
       version = "0.12.0"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "4.4.2"
+    }
     vultr = {
       source  = "vultr/vultr"
       version = "2.33.2"

@@ -7,5 +7,12 @@
         },
       },
     },
+    "dockerfile-language-server": {
+      "settings": {
+        "docker.languageserver.formatter": {
+          "ignoreMultilineInstructions": true,
+        },
+      },
+    },
   },
 }

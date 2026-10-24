@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sealed-secrets-backup-recipients
+  namespace: sealed-secrets
+data:
+  recipients.txt: |-
+    age1yubikey1qd8xhgwq7wjnzw5ykpprydcnkqkdjzw8t6y9ynvpseltf2rl3gx9y9h2yh9
+    age1tag1qwe384k3k976vrz38gucxv0uvfp32vp5506fnmz9mpte9r0r778uzx7ddvu

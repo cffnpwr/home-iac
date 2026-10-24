@@ -1,0 +1,8 @@
+# NOTE: kubesealの既定のcontroller名
+fullnameOverride: sealed-secrets-controller
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+  limits:
+    memory: 128Mi

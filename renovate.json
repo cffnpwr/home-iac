@@ -4,5 +4,9 @@
   "ignorePaths": [
     // NOTE: `mise lock`で生成されるためignore
     ".mise/locks/**"
-  ]
+  ],
+  "argocd": {
+    // NOTE: argocd managerには既定のファイルパターンが無い
+    "managerFilePatterns": ["/^kubernetes/apps/.+\\.yaml$/"]
+  }
 }
