@@ -8,5 +8,9 @@
   "argocd": {
     // NOTE: argocd managerには既定のファイルパターンが無い
     "managerFilePatterns": ["/^kubernetes/apps/.+\\.yaml$/"]
+  },
+  "kubernetes": {
+    // NOTE: kubernetes managerには既定のファイルパターンが無い
+    "managerFilePatterns": ["/^kubernetes/platform/.+\\.yaml$/"]
   }
 }
