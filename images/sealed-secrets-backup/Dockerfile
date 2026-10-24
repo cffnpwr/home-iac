@@ -58,6 +58,8 @@ COPY --from=age-plugin-yubikey --link /usr/local/bin/age-plugin-yubikey /usr/loc
 COPY --from=age --link /usr/local/bin/age /usr/local/bin/
 # NOTE: クラスタのKubernetes 1.36系に合わせる
 COPY --from=registry.k8s.io/kubectl:v1.36.5@sha256:0667e3f3e6ef435d7cd4c16684244703ebd67314c17511c2a9f87ea44f6cdf6b --link /bin/kubectl /usr/local/bin/
+# NOTE: クラスタのsealed-secrets controller 0.40.0に合わせる
+COPY --from=docker.io/bitnami/sealed-secrets-kubeseal:0.40.0@sha256:3401dfa2e51877380ede1364ca0a02442c1db1c00adf52a33f1c67815750805d --link /usr/local/bin/kubeseal /usr/local/bin/
 COPY --from=rclone/rclone:1.75.2@sha256:2687085f718d3c628f7fdfb77c52a1d344332aed543110bb88088f2c70d43eb5 --link /usr/local/bin/rclone /usr/local/bin/
 
 USER 1001:1001
