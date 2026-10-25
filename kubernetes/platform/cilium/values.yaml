@@ -36,3 +36,17 @@ hubble:
       method: cronJob
 # NOTE: cilium-agentは設定を起動時に読むため、ConfigMapの更新でPodを入れ替える
 rollOutCiliumPods: true
+operator:
+  # NOTE: chartの既定のtolerationsに、Vultrノードへのスケジューリングの許可を追加
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+    - key: node-role.kubernetes.io/master
+      operator: Exists
+    - key: node.kubernetes.io/not-ready
+      operator: Exists
+    - key: node.cloudprovider.kubernetes.io/uninitialized
+      operator: Exists
+    - key: edge
+      operator: Exists
+      effect: NoSchedule
