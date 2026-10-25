@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: sealed-secrets
+  namespace: sealed-secrets
+spec:
+  template:
+    serviceAccountName: sealed-secrets-eventsource
+    container:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          memory: 128Mi
+  resource:
+    # NOTE: controllerが鍵の作成時にログしか出さないため鍵のSecretの作成を監視
+    key-added:
+      namespace: sealed-secrets
+      group: ""
+      version: v1
+      resource: secrets
+      eventTypes:
+        - ADD
+      # NOTE: 起動時に既存の鍵ごとにADDを出して取りこぼしを回収するためafterStartは省略
+      filter:
+        labels:
+          - key: sealedsecrets.bitnami.com/sealed-secrets-key
+            value: active
+    # NOTE: 全namespaceのSealedSecretを監視するためnamespaceは省略
+    sealedsecret-updated:
+      group: bitnami.com
+      version: v1alpha1
+      resource: sealedsecrets
+      eventTypes:
+        - UPDATE

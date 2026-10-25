@@ -7,12 +7,31 @@ output "sealed_secrets_cert" {
   value = tls_self_signed_cert.sealed_secrets.cert_pem
 }
 
-output "sealed_secrets_backup_r2_access_key_id" {
-  value = cloudflare_account_token.sealed_secrets_backup.id
+# NOTE: sealed_secretsの属性名は、各SealedSecretのファイルのパスを、リポジトリルートからの相対パスで表したもの
+output "sealed_secrets" {
+  value = {
+    "kubernetes/platform/sealed-secrets-backup/sealed-secrets-backup-r2.yaml" = {
+      namespace = "sealed-secrets"
+      name      = "sealed-secrets-backup-r2"
+      data = {
+        access-key-id = cloudflare_account_token.sealed_secrets_backup.id
+        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
+        secret-access-key = sha256(cloudflare_account_token.sealed_secrets_backup.value)
+      }
+    }
+    "kubernetes/platform/sealed-secrets-backup/sealed-secrets-backup-github-app.yaml" = {
+      namespace = "sealed-secrets"
+      name      = "sealed-secrets-backup-github-app"
+      data = {
+        client-id   = var.github_app_client_id
+        private-key = var.github_app_private_key
+      }
+    }
+  }
+  sensitive = true
 }
 
-output "sealed_secrets_backup_r2_secret_access_key" {
-  # NOTE: R2のSecret Access KeyはAPIトークンの値のSHA-256ハッシュ値
-  value     = sha256(cloudflare_account_token.sealed_secrets_backup.value)
+output "sealed_secrets_data_hmac_key" {
+  value     = random_bytes.sealed_secrets_data_hmac_key.hex
   sensitive = true
 }

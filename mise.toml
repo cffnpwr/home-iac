@@ -13,10 +13,12 @@ talosctl = "1.14.4"
 kubectl = "1.37.1"
 helm = "4.3.1"
 kubeseal = "0.40.0"
+yq = "4.54.1"
 age = "1.3.2"
 age-plugin-yubikey = { version = "0.5.1", os = ["macos"] }
 "github:remko/age-plugin-se" = { version = "0.2.1", os = ["macos"] }
 yamllint = "1.38.0"
+shellcheck = "0.11.0"
 markdownlint-cli2 = "0.24.0"
 yamlfmt = "0.21.0"
 "aqua:numtide/treefmt" = "2.6.0"
@@ -32,7 +34,7 @@ dir = "{{config_root}}/terraform"
 run = "terraform"
 
 [tasks.lint]
-description = "Terraform・YAML・Markdown・TypeScriptを検査する"
+description = "Terraform・YAML・Markdown・TypeScript・シェルスクリプトを検査する"
 # NOTE: 実バックエンドで初期化済みの`.terraform`を使うと`init -backend=false`がR2の認証情報を要求するため、検査用のDataDirを指定
 env = { TF_DATA_DIR = "{{config_root}}/terraform/.terraform/lint" }
 run = [
@@ -41,6 +43,8 @@ run = [
   "mise run tf validate",
   "tflint --recursive --config \"$MISE_PROJECT_ROOT/.tflint.hcl\"",
   "yamllint .",
+  # NOTE: gitignoreされた作業用・依存・状態のディレクトリを、shellcheckの対象から除外
+  "find . \\( -name .git -o -name .jj -o -name .tmp -o -name .terraform -o -name node_modules \\) -prune -o -name '*.sh' -type f -exec shellcheck {} +",
   "bun --bun run markdownlint-cli2 '**/*.md'",
   "bun install --frozen-lockfile --cwd \"$MISE_PROJECT_ROOT/terraform/modules/vultr/scripts\"",
   "bun run --cwd \"$MISE_PROJECT_ROOT/terraform/modules/vultr/scripts\" eslint .",

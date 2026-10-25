@@ -15,3 +15,8 @@ resource "tls_self_signed_cert" "sealed_secrets" {
   allowed_uses          = ["encipher_only"]
   is_ca_certificate     = true
 }
+
+# NOTE: 改竄検知に使うHMACの鍵
+resource "random_bytes" "sealed_secrets_data_hmac_key" {
+  length = 32
+}

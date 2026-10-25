@@ -43,11 +43,11 @@ FROM debian:trixie-slim@sha256:62bd423aeee912639ca8ee681c2b762cb3e25137e0a92b20b
 
 LABEL org.opencontainers.image.source=https://github.com/cffnpwr/home-iac
 
-# NOTE: age-plugin-yubikeyはlibpcsclite.so.1を動的リンクする
+# NOTE: libpcsclite1はage-plugin-yubikey用、curl・jq・opensslはrepository_dispatchの送信用
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
   apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates libpcsclite1
+  && apt-get install -y --no-install-recommends ca-certificates curl jq libpcsclite1 openssl
 
 # NOTE: kubectlがホームディレクトリにキャッシュを書く
 RUN groupadd --system --gid 1001 sealed-secrets-backup \

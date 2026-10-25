@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - argo-events-rbac.yaml
+  - cleanup-rbac.yaml
+  - eventbus.yaml
+  - eventsource.yaml
+  - networkpolicy.yaml
+  - rbac.yaml
+  - recipients.yaml
+  - sensor-backup.yaml
+  - sensor-cleanup.yaml
+configMapGenerator:
+  - name: sealed-secrets-backup-script
+    namespace: sealed-secrets
+    files:
+      - backup.sh
+  - name: sealed-secrets-key-cleanup-script
+    namespace: sealed-secrets
+    files:
+      - cleanup.sh
+# NOTE: Sensor内のJobの雛形のConfigMap名をkustomizeが書き換えないためハッシュを無効化
+generatorOptions:
+  disableNameSuffixHash: true

@@ -1,0 +1,26 @@
+# NOTE: EventSourceとSensorが既定で使う、同じnamespaceの`default`のEventBus
+apiVersion: argoproj.io/v1alpha1
+kind: EventBus
+metadata:
+  name: default
+  namespace: sealed-secrets
+spec:
+  jetstream:
+    # NOTE: argo-events chartのconfigs.jetstream.versionsにあるバージョンだけ指定可能
+    version: 2.10.29
+    replicas: 3
+    # NOTE: 鍵のSecret全体を含むイベントを、streamに長く残さないための保持期間
+    streamConfig: |
+      maxAge: 30m
+    containerTemplate:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
+    # NOTE: Vultrノードへのスケジューリングの許可
+    tolerations:
+      - key: edge
+        operator: Exists
+        effect: NoSchedule
