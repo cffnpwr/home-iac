@@ -43,7 +43,7 @@ spec:
                         effect: NoSchedule
                     containers:
                       - name: cleanup
-                        image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:9c71fd0c06703c7392fbb24d0e8de3fe6685bc0b5d7951e9520ed877ded34aed
+                        image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:91b2271a3ee0623d904d6c82ccf90dea27ed4ef8b41bb5eaeb9341656522a48b
                         command: [/bin/sh, /opt/sealed-secrets-key-cleanup/cleanup.sh]
                         env:
                           # NOTE: Sensorのparametersが、イベントが示すSealedSecret名で値を置換
