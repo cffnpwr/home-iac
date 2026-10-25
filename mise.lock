@@ -234,21 +234,21 @@ url_api = "https://api.github.com/repos/siderolabs/talos/releases/assets/6475477
 provenance = "cosign"
 
 [[tools.terraform]]
-version = "1.16.6"
+version = "1.17.0"
 backend = "aqua:hashicorp/terraform"
-specifiers = ["1.16.6"]
+specifiers = ["1.17.0"]
 
 [tools.terraform."platforms.linux-arm64"]
-checksum = "sha256:a750b5a11038f165846b2658c40c88cd7070aa67a61bab431a14ba27928ea9ea"
-url = "https://releases.hashicorp.com/terraform/1.16.6/terraform_1.16.6_linux_arm64.zip"
+checksum = "sha256:f32478134ffc6d710eec474bbd316652cdddc0f4e336973a3745e8d3a3309cdf"
+url = "https://releases.hashicorp.com/terraform/1.17.0/terraform_1.17.0_linux_arm64.zip"
 
 [tools.terraform."platforms.linux-x64"]
-checksum = "sha256:38034b38d03096399a7a1264a14561a8029b2b496fd1f169452656e53968f1b7"
-url = "https://releases.hashicorp.com/terraform/1.16.6/terraform_1.16.6_linux_amd64.zip"
+checksum = "sha256:c168cab7c637a8769fdb90089ddd19de701bc6ff8aca64dc2e2185fe46f59f67"
+url = "https://releases.hashicorp.com/terraform/1.17.0/terraform_1.17.0_linux_amd64.zip"
 
 [tools.terraform."platforms.macos-arm64"]
-checksum = "sha256:85e1bc78ab45bdc5f82a7bac3929e37d072834a584d22583a2498dc67bb624cd"
-url = "https://releases.hashicorp.com/terraform/1.16.6/terraform_1.16.6_darwin_arm64.zip"
+checksum = "sha256:7472a54cca911d46c0e399a5ebbce44444912d0d4dad7495f37f1fa51e7ca6b7"
+url = "https://releases.hashicorp.com/terraform/1.17.0/terraform_1.17.0_darwin_arm64.zip"
 
 [[tools.tflint]]
 version = "0.64.0"

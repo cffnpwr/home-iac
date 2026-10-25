@@ -6,7 +6,7 @@ npm.package_manager = "bun"
 [tools]
 bun = "1.4.4"
 uv = "0.13.5"
-terraform = "1.16.6"
+terraform = "1.17.0"
 tflint = "0.64.0"
 "aqua:suzuki-shunsuke/tfcmt" = "4.14.19"
 talosctl = "1.14.4"
