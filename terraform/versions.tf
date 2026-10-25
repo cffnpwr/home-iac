@@ -42,8 +42,6 @@ terraform {
 }
 
 locals {
-  talos_version        = "v1.14.4"
-  kubernetes_version   = "1.36.5"
-  cilium_chart_version = "1.20.3"
-  argocd_chart_version = "10.10.5"
+  talos_version      = "v1.14.4"
+  kubernetes_version = "1.36.5"
 }
