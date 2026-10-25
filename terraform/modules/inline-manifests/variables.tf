@@ -3,24 +3,28 @@ variable "kubernetes_version" {
   description = "Kubernetesのバージョン"
 }
 
-variable "cilium_chart_version" {
-  type        = string
-  description = "Cilium helm chartのバージョン"
+variable "cilium_chart" {
+  type = object({
+    repository   = string
+    chart        = string
+    version      = string
+    release_name = string
+    namespace    = string
+    values       = string
+  })
+  description = "Cilium helm chartのリポジトリ・chart名・バージョン・リリース名・namespace・values（YAML）"
 }
 
-variable "argocd_chart_version" {
-  type        = string
-  description = "ArgoCD helm chartのバージョン"
-}
-
-variable "cilium_values" {
-  type        = string
-  description = "Cilium helmチャートのvalues（YAML）"
-}
-
-variable "argocd_values" {
-  type        = string
-  description = "ArgoCD helmチャートのvalues（YAML）"
+variable "argocd_chart" {
+  type = object({
+    repository   = string
+    chart        = string
+    version      = string
+    release_name = string
+    namespace    = string
+    values       = string
+  })
+  description = "ArgoCD helm chartのリポジトリ・chart名・バージョン・リリース名・namespace・values（YAML）"
 }
 
 variable "argocd_root_application_source" {

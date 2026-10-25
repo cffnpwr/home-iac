@@ -1,0 +1,27 @@
+# NOTE: 初回はTalosのinline manifestで導入し、以降の更新はこのApplicationで同期
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cilium
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://helm.cilium.io
+      chart: cilium
+      targetRevision: 1.20.3
+      helm:
+        # NOTE: Terraformが初回導入のhelm_templateのリリース名として参照するため明示
+        releaseName: cilium
+        valueFiles:
+          - $values/kubernetes/platform/cilium/values.yaml
+    - repoURL: https://github.com/cffnpwr/home-iac.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

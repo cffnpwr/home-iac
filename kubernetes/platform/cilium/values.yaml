@@ -34,3 +34,5 @@ hubble:
     auto:
       # NOTE: 既定のhelmはテンプレート描画のたびに証明書を生成し、描画結果が変わる
       method: cronJob
+# NOTE: cilium-agentは設定を起動時に読むため、ConfigMapの更新でPodを入れ替える
+rollOutCiliumPods: true
