@@ -26,8 +26,9 @@ cgroup:
     enabled: false
   hostRoot: /sys/fs/cgroup
 bpf:
-  # NOTE: eBPF Host Routingの前提条件
   masquerade: true
+  # NOTE: ルーティングテーブルを経由しないeBPF Host Routingが、KubeSpanの経路を迂回するため無効化
+  hostLegacyRouting: true
 hubble:
   tls:
     auto:
