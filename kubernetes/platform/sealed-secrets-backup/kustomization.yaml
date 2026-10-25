@@ -10,6 +10,8 @@ resources:
   - recipients.yaml
   - sensor-backup.yaml
   - sensor-cleanup.yaml
+  - sealed-secrets-backup-github-app.yaml
+  - sealed-secrets-backup-r2.yaml
 configMapGenerator:
   - name: sealed-secrets-backup-script
     namespace: sealed-secrets
