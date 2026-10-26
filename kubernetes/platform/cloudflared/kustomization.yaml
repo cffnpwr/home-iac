@@ -3,3 +3,4 @@ kind: Kustomization
 # NOTE: トンネルのトークンのSealedSecretは、封入し直すworkflowがresourcesに追加
 resources:
   - daemonset.yaml
+  - cloudflared-tunnel-token.yaml
