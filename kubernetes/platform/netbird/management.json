@@ -45,7 +45,8 @@
           "issuer": "{{ .NETBIRD_ACCESS_ISSUER }}",
           "clientID": "{{ .NETBIRD_ACCESS_CLIENT_ID }}",
           "clientSecret": "{{ .NETBIRD_ACCESS_CLIENT_SECRET }}",
-          "redirectURI": "https://netbird.cffnpwr.dev/oauth2/callback"
+          "redirectURI": "https://netbird.cffnpwr.dev/oauth2/callback",
+          "userNameKey": "email"
         }
       }
     ]
