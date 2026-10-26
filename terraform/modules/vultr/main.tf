@@ -141,8 +141,9 @@ resource "talos_machine_configuration_apply" "this" {
 
   lifecycle {
     create_before_destroy = true
-    # NOTE: nodeはRequiresReplaceではないため、インスタンスの置換に合わせて古いノード宛てのresetを走らせるには置換が要る
-    replace_triggered_by = [vultr_instance.this]
+    # NOTE: インスタンスの置換に合わせて古いノード宛てのresetを走らせるには置換が必要。
+    #       稼働中のノードをresetするため、置換でだけ変わるidを参照
+    replace_triggered_by = [vultr_instance.this.id]
   }
 }
 
