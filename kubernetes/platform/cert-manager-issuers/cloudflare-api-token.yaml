@@ -1,0 +1,15 @@
+kind: SealedSecret
+apiVersion: bitnami.com/v1alpha1
+metadata:
+  name: cloudflare-api-token
+  namespace: cert-manager
+  annotations:
+    home-iac/cert-sha256: 1075837bdc565fd7eab5c1cdffa7e30b075b96df33757af974b241b20cf63525
+    home-iac/data-hmac-sha256: a1f853cc057bdaa20561540bdd4aa17f2d0daa8840e6166b4850ef300941429f
+spec:
+  template:
+    metadata:
+      name: cloudflare-api-token
+      namespace: cert-manager
+  encryptedData:
+    api-token: AgAxD0FKT2ZfQw0+GeFFLiekBBzBH3kysexvbywNpbvU2EHSb2YZkXglrSQDv+jTjnK1lEnnz9iGtcyvqKjxDYEQ9Q//EY/n63kLzf3JIwEjxHc3sZjiyuK3QK4oO30SzfOu1q3I56ledArvJwQwcFQ6x3aYL2Ebx+Lc/J4wIvqF1wwZXxbbzv/8OWbHaOEMwvLEKs6TzsLwk0zvZgWrUmtbBxADT/A2m8jlE4O3TrJWgjMnlxe53dnVxBQbYzuX3IOaY3ba7G7kfGD4pj/8/2o1oVtlmoTt+m3bEoNQfZv/LOKCFlB8D0qfovZAhaCBR+c+jPHH2zWK6Ed/yICv3ykj7vaEQEDUbOHlopocUHpD0MdKlOQXa00Sc0DbjF0vD572r/jpC8hxBSdENm31ZDhYtWcncmwq7HzhB8ftabVmq2TbQT1oAw78V4x3NjhUxsXI2l+0qsGEcqV0G9sgHiwiYktiSqmGQf336eC6Hw/ioB5h/NHSVQjXzn2OhJ1zUet5qfL+K5y9MIYrBFtxYOD6TLE2Vf6YB4qyhPld5JAv7qZ+qom7cQ6kZunB7pMj4DZSIqE8+dKU0PXYnDrHqcRtMdpS6ih5zWN+x7Kt66KPZj15Biu7xuQHnxcT3e/lgNWH3fJfGogHkycmbP4kcZUIhKn0kN7GuTkyWBvr/zkX5l5/AopX2eSeCaRB86nljor5VfLWATd32aRd+WuHEBqvHk/fj0ZQ3NXlcJ6pIBXAeP9LCFDW2GKA/z4+QkWr7QWi9X2K+w==
