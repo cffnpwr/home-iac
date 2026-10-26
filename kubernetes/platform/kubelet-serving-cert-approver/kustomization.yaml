@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - https://github.com/alex1989hu/kubelet-serving-cert-approver//deploy/ha?ref=v0.12.1
+patches:
+  - target:
+      kind: Deployment
+      name: kubelet-serving-cert-approver
+    patch: |-
+      # NOTE: Vultrノードへのスケジューリングを許可
+      - op: add
+        path: /spec/template/spec/tolerations/-
+        value:
+          key: edge
+          operator: Exists
+          effect: NoSchedule
+      - op: add
+        path: /spec/strategy
+        value:
+          type: RollingUpdate
+          rollingUpdate:
+            maxSurge: 0
+            maxUnavailable: 1

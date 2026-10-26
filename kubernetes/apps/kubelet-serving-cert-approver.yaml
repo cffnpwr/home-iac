@@ -1,0 +1,19 @@
+# NOTE: kubeletがserverTLSBootstrapで発行するサービング証明書のCSRを承認
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubelet-serving-cert-approver
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/cffnpwr/home-iac.git
+    targetRevision: main
+    path: kubernetes/platform/kubelet-serving-cert-approver
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kubelet-serving-cert-approver
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
