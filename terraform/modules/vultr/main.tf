@@ -64,7 +64,7 @@ data "talos_machine_configuration" "this" {
 
 # NOTE: VultrはISOの登録時にImage Factoryのリダイレクトをたどれないためリダイレクト先を渡す
 data "external" "iso_url" {
-  program = ["bun", "${path.module}/scripts/src/resolve-redirect.ts"]
+  program = ["go", "run", "-C", "${path.module}/scripts", "./cmd/resolve-redirect"]
   query = {
     url = data.talos_image_factory_urls.this.urls.iso
   }
@@ -186,8 +186,8 @@ resource "terraform_data" "iso_detached" {
 # talosconfigは引数・環境変数に置かず、エラー時の診断やプロセス一覧に出ないstdinで渡す
 action "local_command" "wait_node_ready" {
   config {
-    command   = "bun"
-    arguments = ["${path.module}/scripts/src/kube-node.ts", "wait-ready"]
+    command   = "go"
+    arguments = ["run", "-C", "${path.module}/scripts", "./cmd/kube-node", "wait-ready"]
     stdin = jsonencode({
       node_name      = caller.input
       talosconfig    = var.talosconfig
@@ -198,8 +198,8 @@ action "local_command" "wait_node_ready" {
 
 action "local_command" "delete_node" {
   config {
-    command   = "bun"
-    arguments = ["${path.module}/scripts/src/kube-node.ts", "delete"]
+    command   = "go"
+    arguments = ["run", "-C", "${path.module}/scripts", "./cmd/kube-node", "delete"]
     stdin = jsonencode({
       node_name      = caller.hostname
       talosconfig    = var.talosconfig
@@ -211,8 +211,8 @@ action "local_command" "delete_node" {
 # NOTE: Vultr APIのキーは、Terraformの実行環境の環境変数VULTR_API_KEYをスクリプトが読む
 action "local_command" "detach_iso" {
   config {
-    command   = "bun"
-    arguments = ["${path.module}/scripts/src/kube-node.ts", "detach-iso"]
+    command   = "go"
+    arguments = ["run", "-C", "${path.module}/scripts", "./cmd/kube-node", "detach-iso"]
     stdin = jsonencode({
       node_name      = caller.input
       instance_id    = caller.triggers_replace

@@ -8,6 +8,11 @@ command = "yamlfmt"
 includes = ["*.yaml", "*.yml"]
 
 [formatter.markdown]
-command = "bun"
-options = ["--bun", "run", "markdownlint-cli2", "--fix"]
+command = "rumdl"
+options = ["fmt"]
 includes = ["*.md"]
+
+[formatter.go]
+command = "golangci-lint"
+options = ["fmt"]
+includes = ["*.go"]
