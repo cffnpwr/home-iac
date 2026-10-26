@@ -27,6 +27,13 @@ output "sealed_secrets" {
         private-key = var.github_app_private_key
       }
     }
+    "kubernetes/platform/cloudflared/cloudflared-tunnel-token.yaml" = {
+      namespace = "cloudflared"
+      name      = "cloudflared-tunnel-token"
+      data = {
+        token = data.cloudflare_zero_trust_tunnel_cloudflared_token.home.token
+      }
+    }
   }
   sensitive = true
 }
