@@ -10,10 +10,21 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "home" {
   tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.home.id
 
   config = {
-    # NOTE: ingressは1つ以上必須のため、どの公開ルートにも一致しないリクエストへの404を末尾に配置
-    ingress = [{
-      service = "http_status:404"
-    }]
+    ingress = [
+      {
+        hostname = local.netbird_dashboard_hostname
+        path     = "^/(api|oauth2)(/|$)"
+        service  = "http://netbird-management.netbird.svc.cluster.local"
+      },
+      {
+        hostname = local.netbird_dashboard_hostname
+        service  = "http://netbird-dashboard.netbird.svc.cluster.local"
+      },
+      # NOTE: 公開ルートに一致しないリクエストに404を返す、ingressの末尾に必須のルール
+      {
+        service = "http_status:404"
+      },
+    ]
   }
 }
 

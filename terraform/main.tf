@@ -125,6 +125,8 @@ module "vultr" {
     edge = "vultr:NoSchedule"
   }
   inbound_rules = {
-    kubespan = { protocol = "udp", port = "51820" }
+    kubespan     = { protocol = "udp", port = "51820" }
+    netbird_tls  = { protocol = "tcp", port = "443" }
+    netbird_stun = { protocol = "udp", port = "3478" }
   }
 }

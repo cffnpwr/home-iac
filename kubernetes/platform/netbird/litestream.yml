@@ -1,0 +1,22 @@
+dbs:
+  - path: /var/lib/netbird/store.db
+    replica:
+      type: s3
+      bucket: home-iac-netbird-backup
+      path: store.db
+      endpoint: https://086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com
+      region: auto
+  - path: /var/lib/netbird/events.db
+    replica:
+      type: s3
+      bucket: home-iac-netbird-backup
+      path: events.db
+      endpoint: https://086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com
+      region: auto
+  - path: /var/lib/netbird/idp.db
+    replica:
+      type: s3
+      bucket: home-iac-netbird-backup
+      path: idp.db
+      endpoint: https://086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com
+      region: auto

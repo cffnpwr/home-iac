@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# NOTE: netbird-secretsのSealedSecretは、封入し直すworkflowがresourcesに追加
+resources:
+  - namespace.yaml
+  - management.yaml
+  - signal.yaml
+  - relay.yaml
+  - dashboard.yaml
+  - gateway.yaml
+configMapGenerator:
+  - name: netbird-management
+    namespace: netbird
+    files:
+      - management.json
+  - name: netbird-litestream
+    namespace: netbird
+    files:
+      - litestream.yml
