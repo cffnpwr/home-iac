@@ -1,0 +1,14 @@
+autoscaleEnabled: false
+tolerations:
+  # NOTE: Vultrノードへのスケジューリングを許可
+  - key: edge
+    operator: Exists
+    effect: NoSchedule
+# NOTE: 接続するプロキシがgatewayだけのため、chartの既定値（requests 2048Mi）から下げる
+resources:
+  # TODO: 実測後に見直す
+  requests:
+    cpu: 10m
+    memory: 100Mi
+  limits:
+    memory: 512Mi
