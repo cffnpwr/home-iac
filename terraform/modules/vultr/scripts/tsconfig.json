@@ -1,4 +1,0 @@
-{
-  "extends": "@cffnpwr/tsconfig/bun",
-  "include": ["src", "*.config.ts"],
-}

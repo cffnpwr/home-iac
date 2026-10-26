@@ -11,3 +11,8 @@ includes = ["*.yaml", "*.yml"]
 command = "rumdl"
 options = ["fmt"]
 includes = ["*.md"]
+
+[formatter.go]
+command = "golangci-lint"
+options = ["fmt"]
+includes = ["*.go"]

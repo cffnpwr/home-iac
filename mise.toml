@@ -1,10 +1,8 @@
 [settings]
 lockfile = true
 lockfile_platforms = ["macos-arm64", "linux-x64", "linux-arm64"]
-npm.package_manager = "bun"
 
 [tools]
-bun = "1.4.4"
 uv = "0.13.5"
 terraform = "1.17.0"
 tflint = "0.65.0"
@@ -22,10 +20,12 @@ shellcheck = "0.11.0"
 rumdl = "0.3.0"
 yamlfmt = "0.21.0"
 "aqua:numtide/treefmt" = "2.6.0"
+go = "1.27.3"
+golangci-lint = "2.15.0"
 python = "3.14.8"
 
 [tasks.fmt]
-description = "Terraform・YAML・Markdownを整形する"
+description = "Terraform・YAML・Markdown・Goを整形する"
 run = "treefmt"
 
 [tasks.tf]
@@ -34,7 +34,7 @@ dir = "{{config_root}}/terraform"
 run = "terraform"
 
 [tasks.lint]
-description = "Terraform・YAML・Markdown・TypeScript・シェルスクリプトを検査する"
+description = "Terraform・YAML・Markdown・Go・シェルスクリプトを検査する"
 # NOTE: 実バックエンドで初期化済みの`.terraform`を使うと`init -backend=false`がR2の認証情報を要求するため、検査用のDataDirを指定
 env = { TF_DATA_DIR = "{{config_root}}/terraform/.terraform/lint" }
 run = [
@@ -44,8 +44,7 @@ run = [
   "tflint --recursive --config \"$MISE_PROJECT_ROOT/.tflint.hcl\"",
   "yamllint .",
   # NOTE: gitignoreされた作業用・依存・状態のディレクトリを、shellcheckの対象から除外
-  "find . \\( -name .git -o -name .jj -o -name .tmp -o -name .terraform -o -name node_modules \\) -prune -o -name '*.sh' -type f -exec shellcheck {} +",
+  "find . \\( -name .git -o -name .jj -o -name .tmp -o -name .terraform \\) -prune -o -name '*.sh' -type f -exec shellcheck {} +",
   "rumdl check .",
-  "bun install --frozen-lockfile --cwd \"$MISE_PROJECT_ROOT/terraform/modules/vultr/scripts\"",
-  "bun run --cwd \"$MISE_PROJECT_ROOT/terraform/modules/vultr/scripts\" eslint .",
+  "cd \"$MISE_PROJECT_ROOT/terraform/modules/vultr/scripts\" && golangci-lint run",
 ]
