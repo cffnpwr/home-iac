@@ -106,11 +106,18 @@ module "vultr" {
   talos_endpoint       = local.rpi4_address
   talos_version        = local.talos_version
   kubernetes_version   = local.kubernetes_version
-  config_patches       = local.talos_common_config_patches
-  region               = "nrt"
-  plan                 = "vc2-2c-4gb"
-  hostname_prefix      = "cpwr-vltr"
-  talosconfig          = data.talos_client_configuration.this.talos_config
+  config_patches = concat(local.talos_common_config_patches, [
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "UserVolumeConfig"
+      name       = "local-path-provisioner"
+      volumeType = "directory"
+    }),
+  ])
+  region          = "nrt"
+  plan            = "vc2-2c-4gb"
+  hostname_prefix = "cpwr-vltr"
+  talosconfig     = data.talos_client_configuration.this.talos_config
   node_labels = {
     "topology.kubernetes.io/zone" = "vultr"
   }
