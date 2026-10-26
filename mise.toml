@@ -19,7 +19,7 @@ age-plugin-yubikey = { version = "0.5.1", os = ["macos"] }
 "github:remko/age-plugin-se" = { version = "0.2.1", os = ["macos"] }
 yamllint = "1.38.0"
 shellcheck = "0.11.0"
-markdownlint-cli2 = "0.24.0"
+rumdl = "0.3.0"
 yamlfmt = "0.21.0"
 "aqua:numtide/treefmt" = "2.6.0"
 python = "3.14.8"
@@ -45,7 +45,7 @@ run = [
   "yamllint .",
   # NOTE: gitignoreされた作業用・依存・状態のディレクトリを、shellcheckの対象から除外
   "find . \\( -name .git -o -name .jj -o -name .tmp -o -name .terraform -o -name node_modules \\) -prune -o -name '*.sh' -type f -exec shellcheck {} +",
-  "bun --bun run markdownlint-cli2 '**/*.md'",
+  "rumdl check .",
   "bun install --frozen-lockfile --cwd \"$MISE_PROJECT_ROOT/terraform/modules/vultr/scripts\"",
   "bun run --cwd \"$MISE_PROJECT_ROOT/terraform/modules/vultr/scripts\" eslint .",
 ]
