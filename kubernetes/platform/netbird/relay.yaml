@@ -62,10 +62,10 @@ spec:
               containerPort: 9000
             - name: metrics
               containerPort: 9090
+          # NOTE: TCPソケットへの接続可能性でヘルスチェック
           readinessProbe:
-            httpGet:
-              path: /health
-              port: health
+            tcpSocket:
+              port: http
           resources:
             # TODO: 実測後に見直す
             requests:
