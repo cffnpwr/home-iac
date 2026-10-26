@@ -82,6 +82,14 @@ data "talos_machine_configuration" "this" {
     }),
     yamlencode({
       apiVersion = "v1alpha1"
+      kind       = "KubeAPIServerConfig"
+      extraArgs = {
+        # NOTE: ClusterIPではなくEndpointSliceから接続先を選ぶ
+        enable-aggregator-routing = "true"
+      }
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
       kind       = "UnattendedInstallConfig"
       installer = {
         image = data.talos_image_factory_urls.this.urls.installer

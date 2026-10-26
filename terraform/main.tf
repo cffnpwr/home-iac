@@ -17,6 +17,14 @@ locals {
         forwardKubeDNSToHost = false
       }
     }),
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeletConfig"
+      config = {
+        # NOTE: metrics-serverがkubeletのサービング証明書を検証できるよう、クラスタのCAで署名された証明書をCSRで要求
+        serverTLSBootstrap = true
+      }
+    }),
   ]
 }
 
