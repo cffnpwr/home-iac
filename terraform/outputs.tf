@@ -27,6 +27,13 @@ output "sealed_secrets" {
         private-key = var.github_app_private_key
       }
     }
+    "kubernetes/platform/cert-manager-issuers/cloudflare-api-token.yaml" = {
+      namespace = "cert-manager"
+      name      = "cloudflare-api-token"
+      data = {
+        api-token = cloudflare_account_token.cert_manager.value
+      }
+    }
     "kubernetes/platform/cloudflared/cloudflared-tunnel-token.yaml" = {
       namespace = "cloudflared"
       name      = "cloudflared-tunnel-token"
