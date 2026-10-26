@@ -165,6 +165,23 @@ resource "terraform_data" "node_ready" {
   }
 }
 
+# NOTE: ISOを付けたままのインスタンスは再起動時にISOから起動するため、インストール後のReadyを待ってから外す。
+# 古いノードのdrainをISOを外した後の再起動より後にするため、talos_machine_configuration_applyにも依存させる
+resource "terraform_data" "iso_detached" {
+  triggers_replace = vultr_instance.this.id
+  input            = vultr_instance.this.hostname
+
+  depends_on = [talos_machine_configuration_apply.this, terraform_data.node_ready]
+
+  lifecycle {
+    action_trigger {
+      events     = [after_create]
+      actions    = [action.local_command.detach_iso]
+      on_failure = taint
+    }
+  }
+}
+
 # NOTE: destroy時のactionのconfigはplan時に既知である必要があるため、作成後に変わらないtalosconfigを渡し、kubeconfigはスクリプトがその場で取得する。
 # talosconfigは引数・環境変数に置かず、エラー時の診断やプロセス一覧に出ないstdinで渡す
 action "local_command" "wait_node_ready" {
@@ -185,6 +202,20 @@ action "local_command" "delete_node" {
     arguments = ["${path.module}/scripts/src/kube-node.ts", "delete"]
     stdin = jsonencode({
       node_name      = caller.hostname
+      talosconfig    = var.talosconfig
+      talos_endpoint = var.talos_endpoint
+    })
+  }
+}
+
+# NOTE: Vultr APIのキーは、Terraformの実行環境の環境変数VULTR_API_KEYをスクリプトが読む
+action "local_command" "detach_iso" {
+  config {
+    command   = "bun"
+    arguments = ["${path.module}/scripts/src/kube-node.ts", "detach-iso"]
+    stdin = jsonencode({
+      node_name      = caller.input
+      instance_id    = caller.triggers_replace
       talosconfig    = var.talosconfig
       talos_endpoint = var.talos_endpoint
     })
