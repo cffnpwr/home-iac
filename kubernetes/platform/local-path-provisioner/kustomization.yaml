@@ -1,0 +1,70 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - https://github.com/rancher/local-path-provisioner//deploy?ref=v0.0.37
+images:
+  - name: docker.io/rancher/local-path-provisioner
+    newTag: v0.0.37
+    digest: sha256:e757967a5ec338f6a9b371c5a9688bedaa8c3578ea3dd4db329ea0084be0a86f
+patches:
+  - patch: |-
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: local-path-storage
+        labels:
+          # NOTE: hostPathを使うhelper Podの作成を許可
+          pod-security.kubernetes.io/enforce: privileged
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: local-path-provisioner
+        namespace: local-path-storage
+      spec:
+        template:
+          spec:
+            containers:
+              - name: local-path-provisioner
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 32Mi
+                  limits:
+                    memory: 128Mi
+  - patch: |-
+      kind: ConfigMap
+      apiVersion: v1
+      metadata:
+        name: local-path-config
+        namespace: local-path-storage
+      data:
+        # NOTE: TalosのUserVolumeConfigがbind mountするディレクトリ
+        config.json: |-
+          {
+            "nodePathMap": [
+              {
+                "node": "DEFAULT_PATH_FOR_NON_LISTED_NODES",
+                "paths": ["/var/mnt/local-path-provisioner"]
+              }
+            ]
+          }
+        helperPod.yaml: |-
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: helper-pod
+          spec:
+            priorityClassName: system-node-critical
+            tolerations:
+              - key: node.kubernetes.io/disk-pressure
+                operator: Exists
+                effect: NoSchedule
+              # NOTE: Vultrノードでのボリュームの作成・削除を許可
+              - key: edge
+                operator: Exists
+                effect: NoSchedule
+            containers:
+              - name: helper-pod
+                image: docker.io/library/busybox:1.38.0@sha256:fd7dc98638c8e305f4dc34e979f1c0fdfdcaeb0fbf8fcff77ae834b6da3d7e6e
+                imagePullPolicy: IfNotPresent

@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: netbird-relay
+  namespace: netbird
+spec:
+  selector:
+    app.kubernetes.io/name: netbird-relay
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      appProtocol: kubernetes.io/ws
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netbird-relay
+  namespace: netbird
+spec:
+  # NOTE: hostPortが同じノードで重複するため、古いPodを消してから新しいPodを作る
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: netbird-relay
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: netbird-relay
+    spec:
+      nodeSelector:
+        topology.kubernetes.io/zone: vultr
+      tolerations:
+        - key: edge
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: relay
+          image: netbirdio/relay:0.81.4@sha256:178d300e12dc0c6b1680dfcbac15eb963650fec3f244e906457290e6b735991c
+          env:
+            - name: NB_LISTEN_ADDRESS
+              value: :80
+            # NOTE: TLSはgatewayが終端するため、managementがピアに通知するアドレスのschemeを明示
+            - name: NB_EXPOSED_ADDRESS
+              value: rels://nb.cffnpwr.dev:443
+            - name: NB_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: netbird-secrets
+                  key: relay-auth-secret
+            - name: NB_ENABLE_STUN
+              value: "true"
+          ports:
+            - name: http
+              containerPort: 80
+            - name: stun
+              containerPort: 3478
+              hostPort: 3478
+              protocol: UDP
+            - name: health
+              containerPort: 9000
+            - name: metrics
+              containerPort: 9090
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: health
+          resources:
+            # TODO: 実測後に見直す
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
