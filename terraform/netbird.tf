@@ -1,8 +1,8 @@
 locals {
   netbird_dashboard_hostname = "netbird.${data.cloudflare_zone.cffnpwr_dev.name}"
   netbird_peer_hostname      = "nb.${data.cloudflare_zone.cffnpwr_dev.name}"
-  # NOTE: netbirdの組み込みIdP（Dex）のissuer + コネクタのコールバック
-  netbird_access_redirect_uri = "https://${local.netbird_dashboard_hostname}/oauth2/callback/cloudflare-access"
+  # NOTE: netbirdの組み込みIdP（Dex）が外部IdPに渡す、issuer + /callbackのコールバック
+  netbird_access_redirect_uri = "https://${local.netbird_dashboard_hostname}/oauth2/callback"
 }
 
 resource "cloudflare_dns_record" "netbird_dashboard" {
