@@ -3,3 +3,4 @@ kind: Kustomization
 # NOTE: CloudflareのAPIトークンのSealedSecretは、封入し直すworkflowがresourcesに追加
 resources:
   - cluster-issuer.yaml
+  - cloudflare-api-token.yaml

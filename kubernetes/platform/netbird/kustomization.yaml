@@ -8,6 +8,7 @@ resources:
   - relay.yaml
   - dashboard.yaml
   - gateway.yaml
+  - netbird-secrets.yaml
 configMapGenerator:
   - name: netbird-management
     namespace: netbird
