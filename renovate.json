@@ -5,12 +5,20 @@
     // NOTE: `mise lock`で生成されるためignore
     ".mise/locks/**"
   ],
-  "argocd": {
-    // NOTE: argocd managerには既定のファイルパターンが無い
-    "managerFilePatterns": ["/^kubernetes/apps/.+\\.yaml$/"]
-  },
+  "customManagers": [
+    {
+      // NOTE: ApplicationSetのパラメーターのchartはArgo CDのマニフェストではないため、argocd managerの対象外
+      "customType": "jsonata",
+      "fileFormat": "yaml",
+      "managerFilePatterns": ["/^kubernetes/apps/[^/]+/app\\.yaml$/"],
+      "matchStrings": [
+        "chart.{ \"depName\": name, \"currentValue\": version, \"registryUrl\": repoURL }"
+      ],
+      "datasourceTemplate": "helm"
+    }
+  ],
   "kubernetes": {
     // NOTE: kubernetes managerには既定のファイルパターンが無い
-    "managerFilePatterns": ["/^kubernetes/platform/.+\\.yaml$/"]
+    "managerFilePatterns": ["/^kubernetes/apps/.+\\.yaml$/"]
   }
 }

@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+namespace: cert-manager
+chart:
+  repoURL: https://charts.jetstack.io
+  name: cert-manager
+  version: v1.21.3
+syncOptions:
+  - CreateNamespace=true

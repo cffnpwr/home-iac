@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ApplicationSetのパラメーター",
+  "description": "`kubernetes/apps/applicationset.yaml`のApplicationSetが、`kubernetes/apps/<name>/app.yaml`から<name>のApplicationを生成するときのパラメーター。型はArgo CDのApplicationのCRDに合わせる",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["namespace"],
+  "properties": {
+    "namespace": {
+      "description": "同期先のnamespace。クラスタスコープのリソースだけを同期する場合も指定する",
+      "type": "string",
+      "minLength": 1
+    },
+    "chart": {
+      "description": "同期するHelm chart。省略した場合はapp.yamlのディレクトリを同期",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repoURL", "name", "version"],
+      "properties": {
+        "repoURL": {
+          "description": "Helm chartのリポジトリのURL",
+          "type": "string"
+        },
+        "name": {
+          "description": "Helm chartの名前",
+          "type": "string"
+        },
+        "version": {
+          "description": "Helm chartのバージョン",
+          "type": "string"
+        },
+        "releaseName": {
+          "description": "Helmのリリース名。省略した場合はApplicationの名前を使用",
+          "type": "string"
+        }
+      }
+    },
+    "syncOptions": {
+      "description": "同期のオプション",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "retry": {
+      "description": "同期に失敗したときの再試行",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "description": "再試行の最大回数。0の場合は再試行しない",
+          "type": "integer"
+        },
+        "refresh": {
+          "description": "再試行で、最初のリビジョンの代わりに最新のリビジョンを使うか",
+          "type": "boolean"
+        },
+        "backoff": {
+          "description": "再試行の間隔",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "duration": {
+              "description": "最初の待ち時間。単位を省略した場合は秒（例: 30s・2m・1h）",
+              "type": "string"
+            },
+            "factor": {
+              "description": "失敗するたびに待ち時間に掛ける係数",
+              "type": "integer"
+            },
+            "maxDuration": {
+              "description": "待ち時間の上限",
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

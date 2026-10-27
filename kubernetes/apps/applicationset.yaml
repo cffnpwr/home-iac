@@ -1,0 +1,63 @@
+# NOTE: kubernetes/apps/<name>/app.yamlのパラメーターから、<name>のApplicationを生成
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: apps
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - git:
+        repoURL: https://github.com/cffnpwr/home-iac.git
+        revision: main
+        files:
+          - path: kubernetes/apps/*/app.yaml
+  template:
+    metadata:
+      name: "{{ .path.basename }}"
+    spec:
+      project: default
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{ .namespace }}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+  # NOTE: パラメーターの有無で変わる項目の付与
+  #       chartがあればHelm chartを、無ければapp.yamlのディレクトリをKustomizeで同期
+  #
+  # NOTE: `.path`には`.path.path = kubernetes/apps/<name>`・`.path.basename = <name>`が入る
+  templatePatch: |-
+    spec:
+      {{- if .chart }}
+      sources:
+        - repoURL: {{ .chart.repoURL }}
+          chart: {{ .chart.name }}
+          targetRevision: {{ .chart.version }}
+          helm:
+            {{- if .chart.releaseName }}
+            releaseName: {{ .chart.releaseName }}
+            {{- end }}
+            valueFiles:
+              - $values/{{ .path.path }}/values.yaml
+            # NOTE: values.yamlを置かないchartの同期のため
+            ignoreMissingValueFiles: true
+        - repoURL: https://github.com/cffnpwr/home-iac.git
+          targetRevision: main
+          ref: values
+      {{- else }}
+      source:
+        repoURL: https://github.com/cffnpwr/home-iac.git
+        targetRevision: main
+        path: {{ .path.path }}
+      {{- end }}
+      {{- if or .syncOptions .retry }}
+      syncPolicy:
+        {{- if .syncOptions }}
+        syncOptions: {{ toJson .syncOptions }}
+        {{- end }}
+        {{- if .retry }}
+        retry: {{ toJson .retry }}
+        {{- end }}
+      {{- end }}

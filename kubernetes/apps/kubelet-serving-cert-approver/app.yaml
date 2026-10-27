@@ -1,0 +1,3 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+# NOTE: kubeletがserverTLSBootstrapで発行するサービング証明書のCSRを承認
+namespace: kubelet-serving-cert-approver
