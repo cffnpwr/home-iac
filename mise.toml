@@ -45,6 +45,7 @@ run = [
   "tflint --recursive --config \"$MISE_PROJECT_ROOT/.tflint.hcl\"",
   "yamllint .",
   "check-jsonschema --schemafile kubernetes/schemas/app.schema.json kubernetes/apps/*/app.yaml",
+  "sh kubernetes/scripts/check-helm-values.sh",
   # NOTE: gitignoreされた作業用・依存・状態のディレクトリを、shellcheckの対象から除外
   "find . \\( -name .git -o -name .jj -o -name .tmp -o -name .terraform \\) -prune -o -name '*.sh' -type f -exec shellcheck {} +",
   "rumdl check .",
