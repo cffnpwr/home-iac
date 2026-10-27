@@ -1,0 +1,5 @@
+# NOTE: 同期するリソースはすべてクラスタスコープで、namespaceは適用されない
+namespace: kube-system
+syncOptions:
+  # NOTE: Gateway APIの公式の導入手順と同じserver-side applyで適用
+  - ServerSideApply=true

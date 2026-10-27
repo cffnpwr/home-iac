@@ -1,0 +1,8 @@
+# NOTE: 初回はTalosのinline manifestで導入し、以降の更新はこのApplicationで同期
+namespace: argocd
+chart:
+  repoURL: https://argoproj.github.io/argo-helm
+  name: argo-cd
+  version: 10.10.5
+  # NOTE: Terraformが初回導入のhelm_templateのリリース名として参照するため明示
+  releaseName: argocd

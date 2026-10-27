@@ -29,17 +29,17 @@ locals {
 }
 
 locals {
-  # NOTE: 初回導入と以降のArgo CDの同期で描画を揃えるため、chartの指定をApplicationから取得
+  # NOTE: 初回導入と以降のArgo CDの同期で描画を揃えるため、chartの指定をApplicationSetのパラメーターから取得
   helm_applications = {
-    for name in ["cilium", "argocd"] : name => yamldecode(file("${path.module}/../kubernetes/apps/${name}.yaml")).spec
+    for name in ["cilium", "argocd"] : name => yamldecode(file("${path.module}/../kubernetes/apps/${name}/app.yaml"))
   }
   helm_charts = {
-    for name, spec in local.helm_applications : name => {
-      repository   = spec.sources[0].repoURL
-      chart        = spec.sources[0].chart
-      version      = spec.sources[0].targetRevision
-      release_name = spec.sources[0].helm.releaseName
-      namespace    = spec.destination.namespace
+    for name, app in local.helm_applications : name => {
+      repository   = app.chart.repoURL
+      chart        = app.chart.name
+      version      = app.chart.version
+      release_name = app.chart.releaseName
+      namespace    = app.namespace
     }
   }
 }
@@ -60,10 +60,10 @@ module "inline_manifests" {
 
   kubernetes_version = local.kubernetes_version
   cilium_chart = merge(local.helm_charts.cilium, {
-    values = file("${path.module}/../kubernetes/platform/cilium/values.yaml")
+    values = file("${path.module}/../kubernetes/apps/cilium/values.yaml")
   })
   argocd_chart = merge(local.helm_charts.argocd, {
-    values = file("${path.module}/../kubernetes/platform/argocd/values.yaml")
+    values = file("${path.module}/../kubernetes/apps/argocd/values.yaml")
   })
   argocd_root_application_source = {
     repo_url = "https://github.com/cffnpwr/home-iac.git"

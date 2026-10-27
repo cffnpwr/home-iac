@@ -10,7 +10,7 @@ output "sealed_secrets_cert" {
 # NOTE: sealed_secretsの属性名は、各SealedSecretのファイルのパスを、リポジトリルートからの相対パスで表したもの
 output "sealed_secrets" {
   value = {
-    "kubernetes/platform/sealed-secrets-backup/sealed-secrets-backup-r2.yaml" = {
+    "kubernetes/apps/sealed-secrets-backup/sealed-secrets-backup-r2.yaml" = {
       namespace = "sealed-secrets"
       name      = "sealed-secrets-backup-r2"
       data = {
@@ -19,7 +19,7 @@ output "sealed_secrets" {
         secret-access-key = sha256(cloudflare_account_token.sealed_secrets_backup.value)
       }
     }
-    "kubernetes/platform/sealed-secrets-backup/sealed-secrets-backup-github-app.yaml" = {
+    "kubernetes/apps/sealed-secrets-backup/sealed-secrets-backup-github-app.yaml" = {
       namespace = "sealed-secrets"
       name      = "sealed-secrets-backup-github-app"
       data = {
@@ -27,14 +27,14 @@ output "sealed_secrets" {
         private-key = var.github_app_private_key
       }
     }
-    "kubernetes/platform/cert-manager-issuers/cloudflare-api-token.yaml" = {
+    "kubernetes/apps/cert-manager-issuers/cloudflare-api-token.yaml" = {
       namespace = "cert-manager"
       name      = "cloudflare-api-token"
       data = {
         api-token = cloudflare_account_token.cert_manager.value
       }
     }
-    "kubernetes/platform/netbird/netbird-secrets.yaml" = {
+    "kubernetes/apps/netbird/netbird-secrets.yaml" = {
       namespace = "netbird"
       name      = "netbird-secrets"
       data = {
@@ -50,7 +50,7 @@ output "sealed_secrets" {
         backup-secret-access-key = sha256(cloudflare_account_token.netbird_backup.value)
       }
     }
-    "kubernetes/platform/cloudflared/cloudflared-tunnel-token.yaml" = {
+    "kubernetes/apps/cloudflared/cloudflared-tunnel-token.yaml" = {
       namespace = "cloudflared"
       name      = "cloudflared-tunnel-token"
       data = {

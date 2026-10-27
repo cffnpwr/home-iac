@@ -1,0 +1,8 @@
+namespace: cert-manager
+# NOTE: CRDを作るcert-managerのApplicationの同期完了までの再試行
+retry:
+  limit: 10
+  backoff:
+    duration: 30s
+    factor: 2
+    maxDuration: 10m

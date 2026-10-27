@@ -1,0 +1,8 @@
+# NOTE: 初回はTalosのinline manifestで導入し、以降の更新はこのApplicationで同期
+namespace: kube-system
+chart:
+  repoURL: https://helm.cilium.io
+  name: cilium
+  version: 1.20.3
+  # NOTE: Terraformが初回導入のhelm_templateのリリース名として参照するため明示
+  releaseName: cilium

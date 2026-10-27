@@ -1,0 +1,8 @@
+namespace: sealed-secrets
+# NOTE: CRDを作るargo-eventsのApplicationの同期完了までの再試行
+retry:
+  limit: 10
+  backoff:
+    duration: 30s
+    factor: 2
+    maxDuration: 10m
