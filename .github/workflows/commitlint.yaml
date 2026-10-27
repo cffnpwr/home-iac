@@ -9,7 +9,7 @@ concurrency:
 permissions: {}
 jobs:
   commitlint:
-    uses: cffnpwr/actions/.github/workflows/commitlint.yaml@df1c02472324c26d70a6004153208a4e306c01d0 # main
+    uses: cffnpwr/actions/.github/workflows/commitlint.yaml@ef40fe019800df82bc8a2b0ddfafe5c46e64101b # main
     permissions:
       contents: read
       actions: read
