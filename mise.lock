@@ -192,6 +192,12 @@ checksum = "sha256:ec8a34b19ff8f1c1dee6fa09e13111b3007aa9ad08de1da28bd65cdc1eaec
 url = "https://github.com/bitnami/sealed-secrets/releases/download/v0.40.0/kubeseal-0.40.0-darwin-arm64.tar.gz"
 url_api = "https://api.github.com/repos/bitnami/sealed-secrets/releases/assets/555346330"
 
+[[tools."pypi:check-jsonschema"]]
+version = "0.38.2"
+backend = "pypi:check-jsonschema"
+specifiers = ["0.38.2"]
+uv = { path = ".mise/locks/pypi-check-jsonschema/0.38.2", digest = "sha256:13558d0f9bd5f2f193b705f0e724fc9d814da377e3412459b1ab0400a89dbd3e" }
+
 [[tools.python]]
 version = "3.14.8"
 backend = "core:python"

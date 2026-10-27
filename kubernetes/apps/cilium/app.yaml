@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
 # NOTE: 初回はTalosのinline manifestで導入し、以降の更新はこのApplicationで同期
 namespace: kube-system
 chart:

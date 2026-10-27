@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
 namespace: sealed-secrets
 # NOTE: CRDを作るargo-eventsのApplicationの同期完了までの再試行
 retry:
