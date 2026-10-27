@@ -4,6 +4,6 @@ namespace: kube-system
 chart:
   repoURL: https://helm.cilium.io
   name: cilium
-  version: 1.20.3
+  version: 1.20.4
   # NOTE: Terraformが初回導入のhelm_templateのリリース名として参照するため明示
   releaseName: cilium
