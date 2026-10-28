@@ -5,10 +5,12 @@
       "interfaces": ["{{ .Interface }}"],
       "dhcp-socket-type": "raw"
     },
-    "control-socket": {
-      "socket-type": "unix",
-      "socket-name": "/kea/control/sockets/kea4-ctrl-socket"
-    },
+    "control-sockets": [
+      {
+        "socket-type": "unix",
+        "socket-name": "/kea/control/sockets/kea4-ctrl-socket"
+      }
+    ],
     "lease-database": {
       "type": "memfile",
       "persist": true,
