@@ -15,6 +15,10 @@ spec:
   template:
     metadata:
       name: "{{ .path.basename }}"
+      annotations:
+        # NOTE: Argo CDのclient-side applyはargocd-controllerのUpdate操作として記録されるため、
+        #       server-side applyへの移行で既定のkubectl-client-side-applyの代わりに移行
+        argocd.argoproj.io/client-side-apply-migration-manager: argocd-controller
     spec:
       project: default
       destination:
@@ -46,18 +50,25 @@ spec:
         - repoURL: https://github.com/cffnpwr/home-iac.git
           targetRevision: main
           ref: values
+        {{- if .talosBootstrap }}
+        # NOTE: Talosのinline manifestが作成したリソースから、talosのmanagedFieldsのエントリを削除するPostSync hook
+        #       Application間でクラスタスコープのリソース名が重複しないよう、Application名を接頭辞に付与
+        - repoURL: https://github.com/cffnpwr/home-iac.git
+          targetRevision: main
+          path: kubernetes/hooks/talos-managed-fields-cleanup
+          kustomize:
+            namePrefix: {{ .path.basename }}-
+            namespace: {{ .namespace }}
+        {{- end }}
       {{- else }}
       source:
         repoURL: https://github.com/cffnpwr/home-iac.git
         targetRevision: main
         path: {{ .path.path }}
       {{- end }}
-      {{- if or .syncOptions .retry }}
       syncPolicy:
-        {{- if .syncOptions }}
-        syncOptions: {{ toJson .syncOptions }}
-        {{- end }}
+        # NOTE: すべてのApplicationをserver-side applyで同期
+        syncOptions: {{ prepend (default (list) .syncOptions) "ServerSideApply=true" | toJson }}
         {{- if .retry }}
         retry: {{ toJson .retry }}
         {{- end }}
-      {{- end }}

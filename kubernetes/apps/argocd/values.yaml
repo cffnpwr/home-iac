@@ -1,1 +1,4 @@
-{}
+configs:
+  params:
+    # NOTE: server-side applyで同期するため、diffもserver-side applyのdry-runで計算
+    controller.diff.server.side: true

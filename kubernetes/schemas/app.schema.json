@@ -5,6 +5,9 @@
   "type": "object",
   "additionalProperties": false,
   "required": ["namespace"],
+  "dependentRequired": {
+    "talosBootstrap": ["chart"]
+  },
   "properties": {
     "namespace": {
       "description": "同期先のnamespace。クラスタスコープのリソースだけを同期する場合も指定する",
@@ -34,6 +37,10 @@
           "type": "string"
         }
       }
+    },
+    "talosBootstrap": {
+      "description": "Talosのinline manifestで初回導入するか。trueの場合、同期後にtalosのmanagedFieldsのエントリを削除する。chartを指定したApplicationでのみ有効",
+      "type": "boolean"
     },
     "syncOptions": {
       "description": "同期のオプション",
