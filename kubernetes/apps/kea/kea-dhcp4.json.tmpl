@@ -1,0 +1,89 @@
+{{- /* NOTE: kea-ha-peersが、自宅のノードから検出したピアでKeaの設定を生成 */ -}}
+{
+  "Dhcp4": {
+    "interfaces-config": {
+      "interfaces": ["{{ .Interface }}"],
+      "dhcp-socket-type": "raw"
+    },
+    "control-socket": {
+      "socket-type": "unix",
+      "socket-name": "/kea/control/sockets/kea4-ctrl-socket"
+    },
+    "lease-database": {
+      "type": "memfile",
+      "persist": true,
+      "name": "/kea/leases/dhcp4.leases",
+      "lfc-interval": 3600
+    },
+    "valid-lifetime": 86400,
+    "renew-timer": 43200,
+    "rebind-timer": 75600,
+    "hooks-libraries": [
+      {
+        "library": "/usr/local/lib/kea/hooks/libdhcp_lease_cmds.so"
+      }
+      {{- /* NOTE: HAはprimaryとstandbyの2台が必要なため、自分だけのときはHAを構成しない */}}
+      {{- if ge (len .Peers) 2 }},
+      {
+        "library": "/usr/local/lib/kea/hooks/libdhcp_ha.so",
+        "parameters": {
+          "high-availability": [
+            {
+              "this-server-name": "{{ .Self }}",
+              "mode": "hot-standby",
+              "heartbeat-delay": 10000,
+              "max-response-delay": 60000,
+              "max-ack-delay": 5000,
+              "max-unacked-clients": 10,
+              {{- /* NOTE: 各サーバーは、自ノードのcilium_hostのアドレスであるurlで待ち受け */}}
+              "peers": [
+                {{- range $i, $peer := .Peers }}
+                {{- if $i }},{{ end }}
+                {
+                  "name": "{{ $peer.Address }}",
+                  "url": "http://{{ $peer.Address }}:18000/",
+                  "role": "{{ $peer.Role }}",
+                  "auto-failover": true
+                }
+                {{- end }}
+              ]
+            }
+          ]
+        }
+      }
+      {{- end }}
+    ],
+    "subnet4": [
+      {
+        "id": 1,
+        "subnet": "{{ .Subnet }}",
+        "pools": [
+          {
+            "pool": "192.168.1.0 - 192.168.1.254"
+          }
+        ],
+        "option-data": [
+          {
+            "name": "routers",
+            "data": "192.168.0.1"
+          },
+          {
+            "name": "domain-name-servers",
+            "data": "1.1.1.1, 1.0.0.1"
+          }
+        ]
+      }
+    ],
+    "loggers": [
+      {
+        "name": "kea-dhcp4",
+        "output-options": [
+          {
+            "output": "stdout"
+          }
+        ],
+        "severity": "INFO"
+      }
+    ]
+  }
+}
