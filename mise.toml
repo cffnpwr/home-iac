@@ -24,6 +24,7 @@ yamlfmt = "0.21.0"
 go = "1.27.3"
 golangci-lint = "2.15.0"
 python = "3.14.8"
+k9s = "0.51.0"
 
 [tasks.fmt]
 description = "Terraform・YAML・Markdown・Goを整形する"

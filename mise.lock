@@ -83,16 +83,6 @@ version = "0.2.1"
 backend = "github:remko/age-plugin-se"
 specifiers = ["0.2.1"]
 
-[tools."github:remko/age-plugin-se"."platforms.linux-arm64"]
-checksum = "sha256:a074feef0aa9615eaf18172def462fe58efdd9982e8913c2c929e1385fd7267d"
-url = "https://github.com/remko/age-plugin-se/releases/download/v0.2.1/age-plugin-se-v0.2.1-aarch64-linux.tgz"
-url_api = "https://api.github.com/repos/remko/age-plugin-se/releases/assets/333525905"
-
-[tools."github:remko/age-plugin-se"."platforms.linux-x64"]
-checksum = "sha256:feb31e615f46f9b852b289d40827c5b96e2151d72b47687b3722d3edae260838"
-url = "https://github.com/remko/age-plugin-se/releases/download/v0.2.1/age-plugin-se-v0.2.1-x86_64-linux.tgz"
-url_api = "https://api.github.com/repos/remko/age-plugin-se/releases/assets/333525944"
-
 [tools."github:remko/age-plugin-se"."platforms.macos-arm64"]
 checksum = "sha256:d88104198f99441ce4b699227eacdb6e72ab67c65b2a31273aa3ccc96ef81f47"
 url = "https://github.com/remko/age-plugin-se/releases/download/v0.2.1/age-plugin-se-v0.2.1-macos.zip"
@@ -154,6 +144,28 @@ url = "https://get.helm.sh/helm-v4.3.1-linux-amd64.tar.gz"
 [tools.helm."platforms.macos-arm64"]
 checksum = "sha256:6b4e61c8cd27d99e5a801e63ff25dd5c70b36875c2cd659d3e9ce6b76fc23198"
 url = "https://get.helm.sh/helm-v4.3.1-darwin-arm64.tar.gz"
+
+[[tools.k9s]]
+version = "0.51.0"
+backend = "aqua:derailed/k9s"
+specifiers = ["0.51.0"]
+
+[tools.k9s."platforms.linux-arm64"]
+checksum = "sha256:3ee05c82e5f9198928a4e86133608ba6a2c10a2244d6a7789e820f78319d640c"
+checksum_source = "mise-versions"
+url = "https://github.com/derailed/k9s/releases/download/v0.51.0/k9s_Linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/derailed/k9s/releases/assets/440226045"
+
+[tools.k9s."platforms.linux-x64"]
+checksum = "sha256:c3752ad51a5a4015a113819c4eeb6e55a4d0e4b8e652494797532f6fc8161dd7"
+checksum_source = "mise-versions"
+url = "https://github.com/derailed/k9s/releases/download/v0.51.0/k9s_Linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/derailed/k9s/releases/assets/440224321"
+
+[tools.k9s."platforms.macos-arm64"]
+checksum = "sha256:9b8c0e8f461e5d33aeee43a67f5ef4aff646a008a786887b8266cbb153c610cc"
+url = "https://github.com/derailed/k9s/releases/download/v0.51.0/k9s_Darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/derailed/k9s/releases/assets/440224326"
 
 [[tools.kubectl]]
 version = "1.37.1"
