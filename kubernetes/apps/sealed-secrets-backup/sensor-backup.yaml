@@ -42,7 +42,7 @@ spec:
                         effect: NoSchedule
                     containers:
                       - name: backup
-                        image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:30650e71d41a0ae75e877ce510da20a6b405b7da08e396e29e49edc8f56fbcee
+                        image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:55add353a190d360799771ca499ac52dfb8c215a79c27bb2b7e3f257904eb0f5
                         command: [/bin/sh, /opt/sealed-secrets-backup/backup.sh]
                         env:
                           # NOTE: Sensorのparametersが、イベントが示す鍵のSecret名で値を置換
