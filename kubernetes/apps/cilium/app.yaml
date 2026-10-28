@@ -7,3 +7,4 @@ chart:
   version: 1.20.4
   # NOTE: Terraformが初回導入のhelm_templateのリリース名として参照するため明示
   releaseName: cilium
+talosBootstrap: true

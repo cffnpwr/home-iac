@@ -50,6 +50,16 @@ spec:
         - repoURL: https://github.com/cffnpwr/home-iac.git
           targetRevision: main
           ref: values
+        {{- if .talosBootstrap }}
+        # NOTE: Talosのinline manifestが作成したリソースから、talosのmanagedFieldsのエントリを削除するPostSync hook
+        #       Application間でクラスタスコープのリソース名が重複しないよう、Application名を接頭辞に付与
+        - repoURL: https://github.com/cffnpwr/home-iac.git
+          targetRevision: main
+          path: kubernetes/hooks/talos-managed-fields-cleanup
+          kustomize:
+            namePrefix: {{ .path.basename }}-
+            namespace: {{ .namespace }}
+        {{- end }}
       {{- else }}
       source:
         repoURL: https://github.com/cffnpwr/home-iac.git

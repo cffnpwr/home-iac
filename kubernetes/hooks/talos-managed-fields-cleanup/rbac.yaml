@@ -1,0 +1,45 @@
+# NOTE: 全リソースへのpatch権限を常設しないため、すべてPostSync hookとして作成し、成功後に削除
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: talos-managed-fields-cleanup
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    # NOTE: Jobより前に作成
+    argocd.argoproj.io/sync-wave: "-1"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: talos-managed-fields-cleanup
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    # NOTE: Jobより前に作成
+    argocd.argoproj.io/sync-wave: "-1"
+rules:
+  - apiGroups: [argoproj.io]
+    resources: [applications]
+    verbs: [list]
+  # NOTE: Talosのinline manifestが作成するリソースの種類は、chartの内容によって変わる
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: [get, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: talos-managed-fields-cleanup
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    # NOTE: Jobより前に作成
+    argocd.argoproj.io/sync-wave: "-1"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: talos-managed-fields-cleanup
+subjects:
+  - kind: ServiceAccount
+    name: talos-managed-fields-cleanup

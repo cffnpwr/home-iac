@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: talos-managed-fields-cleanup
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      serviceAccountName: talos-managed-fields-cleanup
+      restartPolicy: Never
+      containers:
+        - name: cleanup
+          image: ghcr.io/cffnpwr/home-iac/talos-managed-fields-cleanup:main@sha256:f34df2adee85e4eb71c4d4b6f996fba44c02722439076ef4a55b056e7304b730
+          command: [/bin/sh, /opt/talos-managed-fields-cleanup/cleanup.sh]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - name: script
+              mountPath: /opt/talos-managed-fields-cleanup
+              readOnly: true
+      volumes:
+        - name: script
+          configMap:
+            name: talos-managed-fields-cleanup-script
