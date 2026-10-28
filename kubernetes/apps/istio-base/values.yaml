@@ -1,0 +1,3 @@
+base:
+  # NOTE: Argo CDとistiodによる書き換えの繰り返しを防ぐために同じ値を指定
+  validationFailurePolicy: Fail
