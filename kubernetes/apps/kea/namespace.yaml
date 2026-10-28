@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kea
+  labels:
+    # NOTE: DHCPのraw socketとHAの待ち受けに使うhostNetworkを許可
+    pod-security.kubernetes.io/enforce: privileged

@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kea-dhcp4
+  namespace: kea
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kea-dhcp4
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kea-dhcp4
+    spec:
+      serviceAccountName: kea-dhcp4
+      # NOTE: クラスタのLANに接続した自宅のノードにだけ配置
+      nodeSelector:
+        topology.kubernetes.io/zone: home
+      # NOTE: LANのブロードキャストをraw socketで受け、HAのピアとcilium_hostのアドレスで通信
+      hostNetwork: true
+      securityContext:
+        # NOTE: Keaが作る制御ソケットはroot:rootの0770のため、kea-ha-peersから接続できるようrootグループを付与
+        supplementalGroups: [0]
+      initContainers:
+        # NOTE: sidecarがKeaの起動前に設定を書き出してPeerの増減時に更新
+        - name: kea-ha-peers
+          restartPolicy: Always
+          # TODO: GHCRへの公開後、digestで固定する
+          image: ghcr.io/cffnpwr/home-iac/kea-ha-peers:main
+          args:
+            - -node-name=$(NODE_NAME)
+            - -label-selector=topology.kubernetes.io/zone=home
+            - -subnet=192.168.0.0/23
+            - -template=/etc/kea-ha-peers/kea-dhcp4.json.tmpl
+            - -config=/kea/config/generated/kea-dhcp4.json
+            - -control-socket=/kea/control/sockets/kea4-ctrl-socket
+            - run
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          # NOTE: 最初の設定を書き出すまでKeaを起動しない
+          startupProbe:
+            exec:
+              command:
+                - /usr/local/bin/kea-ha-peers
+                - -config=/kea/config/generated/kea-dhcp4.json
+                - check
+            periodSeconds: 2
+            failureThreshold: 150
+          volumeMounts:
+            - name: template
+              mountPath: /etc/kea-ha-peers
+              readOnly: true
+            - name: generated-config
+              mountPath: /kea/config/generated
+            - name: control
+              mountPath: /kea/control
+          resources:
+            # TODO: 実測後に見直す
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+      containers:
+        - name: kea-dhcp4
+          image: jonasal/kea-dhcp4:3.2.1-alpine@sha256:43da5fd0ee9457fc927ce394a50140942c0c501a6d31cbffdba775b2b5a3d280
+          args:
+            - -c
+            - /kea/config/generated/kea-dhcp4.json
+          env:
+            # NOTE: 制御ソケットの配置先ディレクトリ
+            - name: KEA_CONTROL_SOCKET_DIR
+              value: /kea/control/sockets
+          ports:
+            - name: dhcp
+              containerPort: 67
+              protocol: UDP
+            # NOTE: HAのdedicated listenerは、peersのうち自分のurlのポートで待ち受け
+            - name: ha
+              containerPort: 18000
+          volumeMounts:
+            - name: generated-config
+              mountPath: /kea/config/generated
+              readOnly: true
+            - name: control
+              mountPath: /kea/control
+            - name: leases
+              mountPath: /kea/leases
+          resources:
+            # TODO: 実測後に見直す
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+      volumes:
+        - name: template
+          configMap:
+            name: kea-dhcp4-template
+        - name: generated-config
+          emptyDir: {}
+        - name: control
+          emptyDir: {}
+        - name: leases
+          emptyDir: {}

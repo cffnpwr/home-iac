@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kea-dhcp4
+  namespace: kea
+---
+# NOTE: kea-ha-peersが、自宅のノードのCiliumNodeからHAのピアとDHCPのインターフェイスを検出
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kea-dhcp4
+rules:
+  - apiGroups: ["cilium.io"]
+    resources: ["ciliumnodes"]
+    verbs: ["list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kea-dhcp4
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kea-dhcp4
+subjects:
+  - kind: ServiceAccount
+    name: kea-dhcp4
+    namespace: kea
