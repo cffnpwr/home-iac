@@ -4,6 +4,6 @@ namespace: argocd
 chart:
   repoURL: https://argoproj.github.io/argo-helm
   name: argo-cd
-  version: 10.10.5
+  version: 10.11.1
   # NOTE: Terraformが初回導入のhelm_templateのリリース名として参照するため明示
   releaseName: argocd
