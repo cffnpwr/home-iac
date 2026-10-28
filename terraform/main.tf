@@ -87,7 +87,7 @@ module "rpi4" {
   config_patches       = local.talos_common_config_patches
   inline_manifests     = module.inline_manifests.inline_manifests
   address              = local.rpi4_address
-  prefix_length        = 24
+  prefix_length        = 23
   gateway              = "192.168.0.1"
   nameservers          = ["1.1.1.1", "1.0.0.1"]
   hostname             = "cpwr-rpi4"
