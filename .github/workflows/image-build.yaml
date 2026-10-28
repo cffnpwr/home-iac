@@ -1,0 +1,82 @@
+name: Image build
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "images/**"
+      - ".github/workflows/image-build.yaml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "images/**"
+      - ".github/workflows/image-build.yaml"
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow_ref }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions: {}
+jobs:
+  list:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      images: ${{ steps.list.outputs.images }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # NOTE: 変更されたファイルを求めるため、比較元のcommitまでの履歴を取得する
+          fetch-depth: 0
+          filter: blob:none
+          persist-credentials: false
+      - id: list
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          WORKFLOW: .github/workflows/image-build.yaml
+        run: |-
+          case "$EVENT_NAME" in
+            push) range="$BEFORE..$GITHUB_SHA" ;;
+            pull_request) range="$BASE_SHA...$HEAD_SHA" ;;
+            *) range="" ;;
+          esac
+
+          # NOTE: 比較元が無い場合（workflow_dispatch・force push等）とworkflowの変更時は、全イメージをビルドする
+          if [[ -n $range ]] && changed=$(git diff --name-only "$range") && ! grep -qxF "$WORKFLOW" <<<"$changed"; then
+            mapfile -t names < <(sed -n 's|^images/\([^/]*\)/.*|\1|p' <<<"$changed" | sort -u)
+          else
+            names=()
+            for dir in images/*/; do
+              names+=("$(basename "$dir")")
+            done
+          fi
+
+          # NOTE: 削除されたイメージのディレクトリはビルドの対象外
+          images=()
+          for name in "${names[@]}"; do
+            if [[ -f images/$name/Dockerfile ]]; then
+              images+=("$name")
+            fi
+          done
+          echo "images=$(jq -cn '$ARGS.positional' --args "${images[@]}")" >> "$GITHUB_OUTPUT"
+  build:
+    needs: list
+    if: needs.list.outputs.images != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        name: ${{ fromJSON(needs.list.outputs.images) }}
+    permissions:
+      contents: read
+      packages: write
+    uses: cffnpwr/actions/.github/workflows/docker-build.yaml@e0d225ed55dfad2e27688e9bdf9b82940c085251 # main
+    with:
+      image: ghcr.io/cffnpwr/home-iac/${{ matrix.name }}
+      context: images/${{ matrix.name }}
+      # NOTE: pull_requestではビルドの確認だけを行い、GHCRへはpushしない
+      push: ${{ github.event_name != 'pull_request' }}
