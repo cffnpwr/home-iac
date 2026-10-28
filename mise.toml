@@ -50,4 +50,5 @@ run = [
   "find . \\( -name .git -o -name .jj -o -name .tmp -o -name .terraform \\) -prune -o -name '*.sh' -type f -exec shellcheck {} +",
   "rumdl check .",
   "cd \"$MISE_PROJECT_ROOT/terraform/modules/vultr/scripts\" && golangci-lint run",
+  "cd \"$MISE_PROJECT_ROOT/images/kea-ha-peers\" && golangci-lint run",
 ]
