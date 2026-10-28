@@ -41,6 +41,10 @@ RUN tar -xzf age.tar.gz -C /usr/local/bin --strip-components=1 age/age
 
 FROM debian:trixie-slim@sha256:62bd423aeee912639ca8ee681c2b762cb3e25137e0a92b20be455898a9f034ad AS runtime
 
+ARG USER="sealed-secrets-backup"
+ARG UID="1001"
+ARG GID="1001"
+
 LABEL org.opencontainers.image.source=https://github.com/cffnpwr/home-iac
 
 # NOTE: libpcsclite1はage-plugin-yubikey用、curl・jq・opensslはrepository_dispatchの送信用
@@ -50,9 +54,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   && apt-get install -y --no-install-recommends ca-certificates curl jq libpcsclite1 openssl
 
 # NOTE: kubectlがホームディレクトリにキャッシュを書く
-RUN groupadd --system --gid 1001 sealed-secrets-backup \
-  && useradd --system --uid 1001 --gid 1001 --create-home sealed-secrets-backup
-WORKDIR /home/sealed-secrets-backup
+RUN groupadd --system --gid ${GID} ${USER} \
+  && useradd --system --uid ${UID} --gid ${GID} --create-home ${USER}
+WORKDIR /home/${USER}
 
 COPY --from=age-plugin-yubikey --link /usr/local/bin/age-plugin-yubikey /usr/local/bin/
 COPY --from=age --link /usr/local/bin/age /usr/local/bin/
@@ -62,4 +66,4 @@ COPY --from=registry.k8s.io/kubectl:v1.36.5@sha256:0667e3f3e6ef435d7cd4c16684244
 COPY --from=docker.io/bitnami/sealed-secrets-kubeseal:0.40.0@sha256:3401dfa2e51877380ede1364ca0a02442c1db1c00adf52a33f1c67815750805d --link /usr/local/bin/kubeseal /usr/local/bin/
 COPY --from=rclone/rclone:1.75.2@sha256:2687085f718d3c628f7fdfb77c52a1d344332aed543110bb88088f2c70d43eb5 --link /usr/local/bin/rclone /usr/local/bin/
 
-USER 1001:1001
+USER ${UID}:${GID}
