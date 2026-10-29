@@ -3,6 +3,10 @@ locals {
   rpi4_address           = "192.168.0.129"
   talos_cluster_endpoint = "https://${local.rpi4_address}:6443"
 
+  home_gateway_address      = "192.168.0.1"
+  home_subnet_prefix_length = 23
+  nameservers               = ["1.1.1.1", "1.0.0.1"]
+
   talos_common_config_patches = [
     yamlencode({
       apiVersion = "v1alpha1"
@@ -104,9 +108,9 @@ module "rpi4" {
   config_patches       = local.talos_common_config_patches
   inline_manifests     = module.inline_manifests.inline_manifests
   address              = local.rpi4_address
-  prefix_length        = 23
-  gateway              = "192.168.0.1"
-  nameservers          = ["1.1.1.1", "1.0.0.1"]
+  prefix_length        = local.home_subnet_prefix_length
+  gateway              = local.home_gateway_address
+  nameservers          = local.nameservers
   hostname             = "cpwr-rpi4"
   node_labels = {
     "topology.kubernetes.io/zone" = "home"
