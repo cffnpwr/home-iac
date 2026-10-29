@@ -3,4 +3,4 @@ namespace: sealed-secrets
 chart:
   repoURL: https://bitnami.github.io/sealed-secrets
   name: sealed-secrets
-  version: 2.20.0
+  version: 2.22.0
