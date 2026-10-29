@@ -185,27 +185,27 @@ checksum = "sha256:fd65982c97ddad3106754b69ffa196d0e543aa591930ae52aed1adfb92f8c
 url = "https://dl.k8s.io/v1.37.1/bin/darwin/arm64/kubectl"
 
 [[tools.kubeseal]]
-version = "0.41.1"
+version = "0.41.2"
 backend = "aqua:bitnami/sealed-secrets"
-specifiers = ["0.41.1"]
+specifiers = ["0.41.2"]
 
 [tools.kubeseal."platforms.linux-arm64"]
-checksum = "sha256:7dca73dbf926a7885201676b77cc266d13a77098462ca2bd32a80caad4642649"
+checksum = "sha256:8a73c0b252f6c0e8752a7a749da51f55a6e99dc5603e3bd29ed3c00ff9e82db2"
 checksum_source = "mise-versions"
-url = "https://github.com/bitnami/sealed-secrets/releases/download/v0.41.1/kubeseal-0.41.1-linux-arm64.tar.gz"
-url_api = "https://api.github.com/repos/bitnami/sealed-secrets/releases/assets/669082275"
+url = "https://github.com/bitnami/sealed-secrets/releases/download/v0.41.2/kubeseal-0.41.2-linux-arm64.tar.gz"
+url_api = "https://api.github.com/repos/bitnami/sealed-secrets/releases/assets/678156095"
 
 [tools.kubeseal."platforms.linux-x64"]
-checksum = "sha256:f981491f7fe60eff263596be2b73e7c03367362d236701f8e35d09c827abb274"
+checksum = "sha256:666b5db6788ad1dedb56e2d97064e1cc3779aa77bbd6f4b56b62beeb1941ed79"
 checksum_source = "mise-versions"
-url = "https://github.com/bitnami/sealed-secrets/releases/download/v0.41.1/kubeseal-0.41.1-linux-amd64.tar.gz"
-url_api = "https://api.github.com/repos/bitnami/sealed-secrets/releases/assets/669082273"
+url = "https://github.com/bitnami/sealed-secrets/releases/download/v0.41.2/kubeseal-0.41.2-linux-amd64.tar.gz"
+url_api = "https://api.github.com/repos/bitnami/sealed-secrets/releases/assets/678156109"
 
 [tools.kubeseal."platforms.macos-arm64"]
-checksum = "sha256:32f9bf892b327ba6671fc967c0809d48267300afb7402758dd36f0f7d71e636d"
+checksum = "sha256:4f9ce57bb69c419f1a94e88e0d2d5755b395f7926e34d99bf91bc8e084e27ae4"
 checksum_source = "mise-versions"
-url = "https://github.com/bitnami/sealed-secrets/releases/download/v0.41.1/kubeseal-0.41.1-darwin-arm64.tar.gz"
-url_api = "https://api.github.com/repos/bitnami/sealed-secrets/releases/assets/669082382"
+url = "https://github.com/bitnami/sealed-secrets/releases/download/v0.41.2/kubeseal-0.41.2-darwin-arm64.tar.gz"
+url_api = "https://api.github.com/repos/bitnami/sealed-secrets/releases/assets/678156090"
 
 [[tools."pypi:check-jsonschema"]]
 version = "0.38.2"
