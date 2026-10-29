@@ -49,6 +49,54 @@
         "type": "string"
       }
     },
+    "ignoreDifferences": {
+      "description": "差分の比較から除外するリソースのフィールド",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind"],
+        "properties": {
+          "group": {
+            "description": "リソースのAPIグループ。コアAPIグループの場合は省略",
+            "type": "string"
+          },
+          "kind": {
+            "description": "リソースの種類",
+            "type": "string"
+          },
+          "name": {
+            "description": "リソースの名前。省略した場合は同じ種類のすべてのリソース",
+            "type": "string"
+          },
+          "namespace": {
+            "description": "リソースのnamespace",
+            "type": "string"
+          },
+          "jsonPointers": {
+            "description": "除外するフィールドのJSON Pointer",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "jqPathExpressions": {
+            "description": "除外するフィールドのjqのパス式",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "managedFieldsManagers": {
+            "description": "除外するフィールドを変更するmanagerの名前",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
     "retry": {
       "description": "同期に失敗したときの再試行",
       "type": "object",
