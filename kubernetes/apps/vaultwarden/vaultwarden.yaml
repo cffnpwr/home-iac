@@ -80,7 +80,7 @@ spec:
             - name: IP_HEADER
               value: CF-Connecting-IP
             - name: EXPERIMENTAL_CLIENT_FEATURE_FLAGS
-              value: ssh-key-vault-item,ssh-agent
+              value: ssh-agent-v2
             - name: SSO_ENABLED
               value: "true"
             # TODO: Accessがemail_verifiedを送り、既存のアカウントとSSOを紐付けられることを確認した後にtrueにする
