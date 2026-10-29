@@ -50,6 +50,27 @@ output "sealed_secrets" {
         backup-secret-access-key = sha256(cloudflare_account_token.netbird_backup.value)
       }
     }
+    "kubernetes/apps/vaultwarden/vaultwarden-r2.yaml" = {
+      namespace = "vaultwarden"
+      name      = "vaultwarden-r2"
+      data = {
+        db-access-key-id = cloudflare_account_token.vaultwarden_db.id
+        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
+        db-secret-access-key = sha256(cloudflare_account_token.vaultwarden_db.value)
+        data-access-key-id   = cloudflare_account_token.vaultwarden_data.id
+        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
+        data-secret-access-key = sha256(cloudflare_account_token.vaultwarden_data.value)
+      }
+    }
+    "kubernetes/apps/vaultwarden/vaultwarden-sso.yaml" = {
+      namespace = "vaultwarden"
+      name      = "vaultwarden-sso"
+      data = {
+        sso_authority     = "https://${data.cloudflare_zero_trust_organization.this.auth_domain}/cdn-cgi/access/sso/oidc/${cloudflare_zero_trust_access_application.vaultwarden.saas_app.client_id}"
+        sso_client_id     = cloudflare_zero_trust_access_application.vaultwarden.saas_app.client_id
+        sso_client_secret = cloudflare_zero_trust_access_application.vaultwarden.saas_app.client_secret
+      }
+    }
     "kubernetes/apps/cloudflared/cloudflared-tunnel-token.yaml" = {
       namespace = "cloudflared"
       name      = "cloudflared-tunnel-token"
