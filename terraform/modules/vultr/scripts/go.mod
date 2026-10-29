@@ -4,7 +4,7 @@ go 1.27.3
 
 require (
 	github.com/go-playground/validator/v10 v10.30.5
-	github.com/siderolabs/talos/pkg/machinery v1.14.4
+	github.com/siderolabs/talos/pkg/machinery v1.14.5
 	k8s.io/api v0.37.1
 	k8s.io/apimachinery v0.37.1
 	k8s.io/client-go v0.37.1
