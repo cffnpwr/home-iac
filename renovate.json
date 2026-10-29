@@ -15,6 +15,16 @@
         "chart.{ \"depName\": name, \"currentValue\": version, \"registryUrl\": repoURL }"
       ],
       "datasourceTemplate": "helm"
+    },
+    {
+      // NOTE: images/vaultwardenがソースからビルドする、vaultwardenのタグとそのコミット
+      "customType": "regex",
+      "managerFilePatterns": ["/^images/vaultwarden/Dockerfile$/"],
+      "matchStrings": [
+        "ARG VAULTWARDEN_VERSION=(?<currentValue>\\S+)\\s+ARG VAULTWARDEN_COMMIT=(?<currentDigest>[0-9a-f]{40})"
+      ],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "dani-garcia/vaultwarden"
     }
   ],
   "packageRules": [
@@ -22,6 +32,12 @@
       // NOTE: Keaはマイナーバージョンが奇数のバージョンを開発版として公開するため、偶数の安定版に限定
       "matchPackageNames": ["jonasal/kea-dhcp4"],
       "allowedVersions": "/^[0-9]+\\.[0-9]*[02468]\\.[0-9]+-alpine$/"
+    },
+    {
+      // NOTE: ソースからビルドするバイナリと、web-vault等を使う公式のイメージのバージョンを揃える
+      "matchFileNames": ["images/vaultwarden/Dockerfile"],
+      "matchPackageNames": ["dani-garcia/vaultwarden", "/(^|/)vaultwarden/server$/"],
+      "groupName": "vaultwarden"
     }
   ],
   "kubernetes": {
