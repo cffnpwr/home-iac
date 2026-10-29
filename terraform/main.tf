@@ -13,7 +13,7 @@ locals {
       apiVersion = "v1alpha1"
       kind       = "ResolverConfig"
       hostDNS = {
-        # NOTE: CiliumのeBPF Host Routingと併用するとDNSが解決できない
+        # NOTE: Ciliumのbpf.masqueradeと併用するとCoreDNSが正しく動作しない
         forwardKubeDNSToHost = false
       }
     }),
