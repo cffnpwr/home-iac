@@ -66,6 +66,9 @@ spec:
         targetRevision: main
         path: {{ .path.path }}
       {{- end }}
+      {{- if .ignoreDifferences }}
+      ignoreDifferences: {{ toJson .ignoreDifferences }}
+      {{- end }}
       syncPolicy:
         # NOTE: すべてのApplicationをserver-side applyで同期
         syncOptions: {{ prepend (default (list) .syncOptions) "ServerSideApply=true" | toJson }}
