@@ -1,0 +1,12 @@
+reloader:
+  # NOTE: ApplicationのignoreDifferencesでアノテーションを無視する
+  reloadStrategy: annotations
+  deployment:
+    resources:
+      # TODO: chartの例の値。実測後に見直す
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      # NOTE: control planeとメモリを奪い合わないようにlimitsを設定
+      limits:
+        memory: 512Mi
