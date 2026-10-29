@@ -1,0 +1,9 @@
+dbs:
+  - path: /data/db.sqlite3
+    replica:
+      type: s3
+      bucket: home-iac-vaultwarden-db
+      path: db.sqlite3
+      endpoint: https://086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com
+      region: auto
+      sse-customer-key-path: /etc/litestream/sse-customer-key
