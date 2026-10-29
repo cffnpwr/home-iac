@@ -45,7 +45,7 @@ locals {
 }
 
 resource "talos_machine_secrets" "this" {
-  talos_version = local.talos_version
+  talos_version = local.talos_config_version
 }
 
 data "talos_client_configuration" "this" {
@@ -53,6 +53,21 @@ data "talos_client_configuration" "this" {
   client_configuration = talos_machine_secrets.this.client_configuration
   endpoints            = [local.rpi4_address]
   nodes                = [local.rpi4_address]
+}
+
+# NOTE: Talosのアップグレードの前にノードをdrainするためのkubeconfig。stateに残さないようephemeralで生成
+ephemeral "talos_cluster_kubeconfig" "this" {
+  cluster_name    = local.talos_cluster_name
+  endpoint        = local.talos_cluster_endpoint
+  machine_secrets = talos_machine_secrets.this.machine_secrets
+}
+
+resource "talos_cluster" "this" {
+  client_configuration = talos_machine_secrets.this.client_configuration
+  node                 = local.rpi4_address
+  kubernetes_version   = local.kubernetes_version
+
+  depends_on = [module.rpi4]
 }
 
 module "inline_manifests" {
@@ -83,7 +98,9 @@ module "rpi4" {
   machine_secrets      = talos_machine_secrets.this.machine_secrets
   client_configuration = talos_machine_secrets.this.client_configuration
   talos_version        = local.talos_version
+  talos_config_version = local.talos_config_version
   kubernetes_version   = local.kubernetes_version
+  kubeconfig           = ephemeral.talos_cluster_kubeconfig.this.kubeconfig_raw
   config_patches       = local.talos_common_config_patches
   inline_manifests     = module.inline_manifests.inline_manifests
   address              = local.rpi4_address
@@ -105,7 +122,9 @@ module "vultr" {
   client_configuration = talos_machine_secrets.this.client_configuration
   talos_endpoint       = local.rpi4_address
   talos_version        = local.talos_version
+  talos_config_version = local.talos_config_version
   kubernetes_version   = local.kubernetes_version
+  kubeconfig           = ephemeral.talos_cluster_kubeconfig.this.kubeconfig_raw
   config_patches = concat(local.talos_common_config_patches, [
     yamlencode({
       apiVersion = "v1alpha1"

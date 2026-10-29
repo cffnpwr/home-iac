@@ -10,12 +10,16 @@ locals {
 
 resource "random_id" "hostname_suffix" {
   byte_length = 4
-  # NOTE: 以下のいずれかが更新されたときインスタンスを入れ替える
+  # NOTE: 以下のいずれかが更新されたときインスタンスを入れ替える。Talosのアップグレードはtalos_machineがその場で行う
   keepers = {
     node_taints           = jsonencode(var.node_taints)
-    installer             = data.talos_image_factory_urls.this.urls.installer
     install_disk_selector = local.install_disk_selector
     region                = var.region
+  }
+
+  lifecycle {
+    # NOTE: 以前はinstallerもkeepersに含めていた。stateに残るinstallerのkeeperが消えることで、インスタンスを入れ替えないようにする
+    ignore_changes = [keepers["installer"]]
   }
 }
 
@@ -32,7 +36,7 @@ data "talos_machine_configuration" "this" {
   cluster_endpoint   = var.cluster_endpoint
   machine_type       = "worker"
   machine_secrets    = var.machine_secrets
-  talos_version      = var.talos_version
+  talos_version      = var.talos_config_version
   kubernetes_version = var.kubernetes_version
   config_patches = concat(var.config_patches, [
     yamlencode({
@@ -111,12 +115,14 @@ resource "vultr_instance" "this" {
   iso_id            = vultr_iso_private.this.id
   firewall_group_id = vultr_firewall_group.this.id
   hostname          = local.hostname
-  # NOTE: user-dataは初回の起動（インストール）でだけ読まれる。参加後の設定更新はtalos_machine_configuration_applyが担う
+  # NOTE: user-dataは初回の起動（インストール）でだけ読まれる。参加後の設定更新はtalos_machineが担う
   user_data = data.talos_machine_configuration.this.machine_configuration
 
   lifecycle {
     # NOTE: random_idのkeepersが変わるとホスト名が変わり、新しいインスタンスを作ってから古いインスタンスを消す
     create_before_destroy = true
+    # NOTE: iso_idを変えると稼働中のインスタンスにISOが接続されるため、Talosのアップグレードで作り直したISOは新しいインスタンスにだけ使う
+    ignore_changes = [iso_id]
 
     # NOTE: create_before_destroyのリソースではdestroy-time provisionerが実行されないため、古いNodeの削除はactionで行う
     action_trigger {
@@ -126,12 +132,17 @@ resource "vultr_instance" "this" {
   }
 }
 
-resource "talos_machine_configuration_apply" "this" {
-  client_configuration        = var.client_configuration
-  machine_configuration_input = data.talos_machine_configuration.this.machine_configuration
-  node                        = vultr_instance.this.main_ip
+resource "talos_machine" "this" {
+  client_configuration  = var.client_configuration
+  machine_configuration = data.talos_machine_configuration.this.machine_configuration
+  node                  = vultr_instance.this.main_ip
   # NOTE: Talos APIは公開していないため、control planeのapidがKubeSpan経由で中継する
   endpoint = var.talos_endpoint
+  image    = data.talos_image_factory_urls.this.urls.installer
+  # NOTE: Kubernetesのコンポーネントのイメージはtalos_clusterがupgrade-k8sの手順で更新する
+  ignore_kubernetes_upgrade_drift = true
+  drain_on_upgrade                = true
+  kubeconfig_wo                   = var.kubeconfig
   # NOTE: 入れ替えで古いインスタンスを消す前に、古いノードをcordon・drainする
   on_destroy = {
     reset    = true
@@ -147,13 +158,22 @@ resource "talos_machine_configuration_apply" "this" {
   }
 }
 
+# NOTE: talos_machineへ移行したため、on_destroyのresetを実行せずにstateから外す
+removed {
+  from = talos_machine_configuration_apply.this
+
+  lifecycle {
+    destroy = false
+  }
+}
+
 # NOTE: 古いノードのdrainとインスタンスの削除を、新しいノードがReadyになった後に行わせるための待ち合わせ。
-# create_before_destroyにより、古いtalos_machine_configuration_applyとvultr_instanceの削除はこのリソースの作成の後になる
+# create_before_destroyにより、古いtalos_machineとvultr_instanceの削除はこのリソースの作成の後になる
 resource "terraform_data" "node_ready" {
   triggers_replace = vultr_instance.this.id
   input            = vultr_instance.this.hostname
 
-  depends_on = [talos_machine_configuration_apply.this]
+  depends_on = [talos_machine.this]
 
   lifecycle {
     action_trigger {
@@ -166,12 +186,12 @@ resource "terraform_data" "node_ready" {
 }
 
 # NOTE: ISOを付けたままのインスタンスは再起動時にISOから起動するため、インストール後のReadyを待ってから外す。
-# 古いノードのdrainをISOを外した後の再起動より後にするため、talos_machine_configuration_applyにも依存させる
+# 古いノードのdrainをISOを外した後の再起動より後にするため、talos_machineにも依存させる
 resource "terraform_data" "iso_detached" {
   triggers_replace = vultr_instance.this.id
   input            = vultr_instance.this.hostname
 
-  depends_on = [talos_machine_configuration_apply.this, terraform_data.node_ready]
+  depends_on = [talos_machine.this, terraform_data.node_ready]
 
   lifecycle {
     action_trigger {

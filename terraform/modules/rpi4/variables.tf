@@ -26,7 +26,12 @@ variable "client_configuration" {
 
 variable "talos_version" {
   type        = string
-  description = "Talosのバージョン"
+  description = "ノードにインストールするTalosのバージョン"
+}
+
+variable "talos_config_version" {
+  type        = string
+  description = "machine configの生成に使うTalosのバージョン"
 }
 
 variable "kubernetes_version" {
@@ -72,4 +77,11 @@ variable "hostname" {
 variable "node_labels" {
   type        = map(string)
   description = "ノードに付けるラベル"
+}
+
+variable "kubeconfig" {
+  type        = string
+  description = "Talosのアップグレードの前にノードをdrainするためのkubeconfig"
+  sensitive   = true
+  ephemeral   = true
 }

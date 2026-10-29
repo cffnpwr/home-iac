@@ -31,7 +31,12 @@ variable "talos_endpoint" {
 
 variable "talos_version" {
   type        = string
-  description = "Talosのバージョン"
+  description = "ノードにインストールするTalosのバージョン"
+}
+
+variable "talos_config_version" {
+  type        = string
+  description = "machine configの生成に使うTalosのバージョン"
 }
 
 variable "kubernetes_version" {
@@ -57,6 +62,13 @@ variable "plan" {
 variable "hostname_prefix" {
   type        = string
   description = "ノードのホスト名の接頭辞"
+}
+
+variable "kubeconfig" {
+  type        = string
+  description = "Talosのアップグレードの前にノードをdrainするためのkubeconfig"
+  sensitive   = true
+  ephemeral   = true
 }
 
 variable "talosconfig" {

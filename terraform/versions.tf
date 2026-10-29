@@ -42,6 +42,10 @@ terraform {
 }
 
 locals {
-  talos_version      = "v1.14.4"
+  # NOTE: 変更するとtalos_machineが各ノードのTalosをその場でアップグレードする
+  talos_version = "v1.14.4"
+  # NOTE: machine configの生成に使う互換性の基準。クラスタの作成時のバージョンに固定し、Talosのアップグレードでは変更しない
+  talos_config_version = "v1.14.4"
+  # NOTE: 変更するとtalos_clusterがupgrade-k8sの手順でKubernetesをアップグレードする
   kubernetes_version = "1.36.5"
 }
