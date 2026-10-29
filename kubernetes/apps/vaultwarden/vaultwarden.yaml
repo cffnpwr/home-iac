@@ -60,15 +60,6 @@ spec:
             - name: litestream-sse-customer-key
               mountPath: /etc/litestream
               readOnly: true
-        # TODO: 移行用のinitContainer。移行元のDBをR2へ複製した後に削除する
-        # NOTE: R2に複製が無いままvaultwardenが空のDBを作り、Litestreamがその空のDBを複製することを防ぐ
-        #       このコンテナが待っている間に、移行元のDBを/data/db.sqlite3に置く
-        - name: wait-for-db
-          image: litestream/litestream:0.5.17@sha256:4b02b9859a6b6b4087d8b8944e15f7e984bd7957cba322bbeee38b0e27b9656a
-          command: [sh, -c, "until [ -f /data/db.sqlite3 ]; do sleep 5; done"]
-          volumeMounts:
-            - name: data
-              mountPath: /data
       containers:
         - name: vaultwarden
           image: ghcr.io/cffnpwr/home-iac/vaultwarden:main@sha256:9e3cfcb6cb46f2883c4f85df5a9bde1c7da390303e1b19f5dc296db65bb82879
