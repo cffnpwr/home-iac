@@ -104,6 +104,36 @@ Bucketができるまでリモートのstateは使えないため、初回はロ
    mise run tf output -raw talosconfig > talosconfig
    ```
 
+### Local server setup
+
+ローカルサーバー（`cpwr-srvr`）のworkerは、ISOから手作業で起動して参加させます。
+
+1. サーバー用のISOのURLを確定させます。
+
+   ```sh
+   mise run tf apply -target=module.server.data.talos_image_factory_urls.this
+   mise run tf output -raw server_iso_url
+   ```
+
+2. ISOをダウンロードし、USBメモリへ書き込みます。
+
+   ```sh
+   curl -LO <手順1で得たURL>
+   sudo dd if=metal-amd64-secureboot.iso of=<USBメモリのデバイス> conv=fsync bs=4M
+   ```
+
+3. サーバーのUEFIの設定でSecure Bootを有効にし、Setup Modeにします。
+4. サーバーのブートメニューでUSBメモリを選び、ISOから起動します。
+   初回の起動では、ISOのブートメニュー（Escで表示）で`Enroll Secure Boot keys: auto`を選び、Secure Bootの鍵を登録します。
+   サーバーはschematicのカーネル引数に設定した静的IPアドレスで起動し、machine configの適用を待ちます。
+5. `terraform apply`でサーバーへmachine configを適用します。
+   TalosはNVMeのディスクにインストールされ、再起動後にクラスタへ参加します。
+   インストール後の再起動で再びISOから起動した場合は、USBメモリを取り外して再起動します。
+
+   ```sh
+   mise run tf apply
+   ```
+
 ### Plan & Apply
 
 1. `terraform plan`で変更内容を確認します。

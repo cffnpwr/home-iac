@@ -65,3 +65,7 @@ output "sealed_secrets_data_hmac_key" {
   value     = random_bytes.sealed_secrets_data_hmac_key.hex
   sensitive = true
 }
+
+output "server_iso_url" {
+  value = module.server.iso_url
+}
