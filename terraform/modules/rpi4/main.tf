@@ -32,7 +32,7 @@ data "talos_machine_configuration" "this" {
   cluster_endpoint   = var.cluster_endpoint
   machine_type       = "controlplane"
   machine_secrets    = var.machine_secrets
-  talos_version      = var.talos_version
+  talos_version      = var.talos_config_version
   kubernetes_version = var.kubernetes_version
   config_patches = concat(var.config_patches, [
     yamlencode({
@@ -110,15 +110,32 @@ data "talos_machine_configuration" "this" {
   ])
 }
 
-resource "talos_machine_configuration_apply" "this" {
-  client_configuration        = var.client_configuration
-  machine_configuration_input = data.talos_machine_configuration.this.machine_configuration
-  node                        = var.address
-  endpoint                    = var.address
+resource "talos_machine" "this" {
+  client_configuration  = var.client_configuration
+  machine_configuration = data.talos_machine_configuration.this.machine_configuration
+  node                  = var.address
+  endpoint              = var.address
+  image                 = data.talos_image_factory_urls.this.urls.installer
+  # NOTE: Kubernetesのコンポーネントのイメージはtalos_clusterがupgrade-k8sの手順で更新する
+  ignore_kubernetes_upgrade_drift = true
+  drain_on_upgrade                = true
+  kubeconfig_wo                   = var.kubeconfig
 }
 
-resource "talos_machine_bootstrap" "this" {
-  client_configuration = var.client_configuration
-  node                 = talos_machine_configuration_apply.this.node
-  endpoint             = talos_machine_configuration_apply.this.endpoint
+# NOTE: talos_machineへ移行したため、ノードを変更せずにstateから外す
+removed {
+  from = talos_machine_configuration_apply.this
+
+  lifecycle {
+    destroy = false
+  }
+}
+
+# NOTE: etcdのbootstrapはtalos_clusterへ移行したため、stateから外す
+removed {
+  from = talos_machine_bootstrap.this
+
+  lifecycle {
+    destroy = false
+  }
 }
