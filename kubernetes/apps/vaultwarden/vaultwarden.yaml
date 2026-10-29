@@ -1,0 +1,209 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: vaultwarden
+  namespace: vaultwarden
+spec:
+  selector:
+    app.kubernetes.io/name: vaultwarden
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      appProtocol: http
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vaultwarden
+  namespace: vaultwarden
+  annotations:
+    # NOTE: vaultwardenは設定・鍵・認証情報を起動したときにしか読まないため、Secretの変更時にPodを作り直す
+    secret.reloader.stakater.com/reload: vaultwarden-r2,vaultwarden-sso,vaultwarden-keys
+spec:
+  # NOTE: SQLiteとLitestreamは複数のレプリカに対応しない
+  replicas: 1
+  serviceName: vaultwarden
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vaultwarden
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vaultwarden
+    spec:
+      # NOTE: DBのPVを自作PCのlocal-pathに作る
+      nodeSelector:
+        kubernetes.io/hostname: cpwr-srvr
+      initContainers:
+        # NOTE: PVが失われたとき、R2の複製からDBを復元
+        - name: restore
+          image: litestream/litestream:0.5.17@sha256:4b02b9859a6b6b4087d8b8944e15f7e984bd7957cba322bbeee38b0e27b9656a
+          args: [restore, -if-db-not-exists, -if-replica-exists, /data/db.sqlite3]
+          env:
+            - name: LITESTREAM_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vaultwarden-r2
+                  key: db-access-key-id
+            - name: LITESTREAM_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vaultwarden-r2
+                  key: db-secret-access-key
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: litestream-config
+              mountPath: /etc/litestream.yml
+              subPath: litestream.yml
+            - name: litestream-sse-customer-key
+              mountPath: /etc/litestream
+              readOnly: true
+        # TODO: 移行用のinitContainer。移行元のDBをR2へ複製した後に削除する
+        # NOTE: R2に複製が無いままvaultwardenが空のDBを作り、Litestreamがその空のDBを複製することを防ぐ
+        #       このコンテナが待っている間に、移行元のDBを/data/db.sqlite3に置く
+        - name: wait-for-db
+          image: litestream/litestream:0.5.17@sha256:4b02b9859a6b6b4087d8b8944e15f7e984bd7957cba322bbeee38b0e27b9656a
+          command: [sh, -c, "until [ -f /data/db.sqlite3 ]; do sleep 5; done"]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      containers:
+        - name: vaultwarden
+          image: ghcr.io/cffnpwr/home-iac/vaultwarden:main@sha256:9e3cfcb6cb46f2883c4f85df5a9bde1c7da390303e1b19f5dc296db65bb82879
+          env:
+            - name: DOMAIN
+              value: https://vaultwarden.cffnpwr.dev
+            - name: SIGNUPS_ALLOWED
+              value: "false"
+            - name: IP_HEADER
+              value: CF-Connecting-IP
+            - name: EXPERIMENTAL_CLIENT_FEATURE_FLAGS
+              value: ssh-key-vault-item,ssh-agent
+            - name: SSO_ENABLED
+              value: "true"
+            # TODO: Accessがemail_verifiedを送り、既存のアカウントとSSOを紐付けられることを確認した後にtrueにする
+            - name: SSO_ONLY
+              value: "false"
+            - name: SSO_SIGNUPS_ALLOWED
+              value: "false"
+            - name: CONFIG_FILE
+              value: /etc/vaultwarden/config/config.json
+            # NOTE: vaultwardenは、この値に.pemを付けたファイルを読む
+            - name: RSA_KEY_FILENAME
+              value: /etc/vaultwarden/rsa-key/rsa_key
+            - name: DATA_FOLDER
+              value: /data
+            - name: TMP_FOLDER
+              value: /tmp/vaultwarden
+            # NOTE: R2はINTELLIGENT_TIERINGのストレージクラスに対応しないためSTANDARDを指定
+            - name: ATTACHMENTS_FOLDER
+              value: s3://home-iac-vaultwarden-data/attachments?endpoint=https%3A%2F%2F086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com&region=auto&default_storage_class=STANDARD
+            - name: SENDS_FOLDER
+              value: s3://home-iac-vaultwarden-data/sends?endpoint=https%3A%2F%2F086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com&region=auto&default_storage_class=STANDARD
+            - name: ICON_CACHE_FOLDER
+              value: s3://home-iac-vaultwarden-data/icon_cache?endpoint=https%3A%2F%2F086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com&region=auto&default_storage_class=STANDARD
+            # NOTE: Web Vaultが、添付ファイルの署名付きURLへ接続するためのCSPの許可
+            #       vaultwardenは、バケット名をホスト名に含むvirtual-hosted styleのURLを使う
+            - name: ALLOWED_CONNECT_SRC
+              value: https://home-iac-vaultwarden-data.086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com
+            # NOTE: S3バックエンドは、AWS SDKの既定の方法で認証情報を読む
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vaultwarden-r2
+                  key: data-access-key-id
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vaultwarden-r2
+                  key: data-secret-access-key
+          ports:
+            - name: http
+              containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /alive
+              port: http
+          resources:
+            # TODO: 実測後に見直す
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp/vaultwarden
+            - name: config
+              mountPath: /etc/vaultwarden/config
+              readOnly: true
+            - name: rsa-key
+              mountPath: /etc/vaultwarden/rsa-key
+              readOnly: true
+        - name: litestream
+          image: litestream/litestream:0.5.17@sha256:4b02b9859a6b6b4087d8b8944e15f7e984bd7957cba322bbeee38b0e27b9656a
+          args: [replicate]
+          env:
+            - name: LITESTREAM_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: vaultwarden-r2
+                  key: db-access-key-id
+            - name: LITESTREAM_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vaultwarden-r2
+                  key: db-secret-access-key
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: litestream-config
+              mountPath: /etc/litestream.yml
+              subPath: litestream.yml
+            - name: litestream-sse-customer-key
+              mountPath: /etc/litestream
+              readOnly: true
+          resources:
+            # TODO: 実測後に見直す
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: config
+          secret:
+            secretName: vaultwarden-sso
+            items:
+              - key: config.json
+                path: config.json
+        - name: rsa-key
+          secret:
+            secretName: vaultwarden-keys
+            items:
+              - key: rsa_key.pem
+                path: rsa_key.pem
+        - name: litestream-config
+          configMap:
+            name: vaultwarden-litestream
+        - name: litestream-sse-customer-key
+          secret:
+            secretName: vaultwarden-keys
+            items:
+              - key: litestream-sse-customer-key
+                path: sse-customer-key
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 1Gi
