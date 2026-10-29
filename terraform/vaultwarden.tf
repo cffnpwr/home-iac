@@ -4,6 +4,15 @@ locals {
   vaultwarden_access_redirect_uri = "https://${local.vaultwarden_hostname}/identity/connect/oidc-signin"
 }
 
+resource "cloudflare_dns_record" "vaultwarden" {
+  zone_id = data.cloudflare_zone.cffnpwr_dev.zone_id
+  name    = local.vaultwarden_hostname
+  type    = "CNAME"
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.home.id}.cfargotunnel.com"
+  proxied = true
+  ttl     = 1
+}
+
 resource "cloudflare_zero_trust_access_application" "vaultwarden" {
   account_id                = local.cloudflare_account_id
   name                      = "vaultwarden"
