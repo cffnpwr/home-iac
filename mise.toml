@@ -37,19 +37,60 @@ run = "terraform"
 
 [tasks.lint]
 description = "Terraform・YAML・Markdown・Go・シェルスクリプトを検査する"
+depends = [
+  "lint:format",
+  "lint:terraform",
+  "lint:yaml",
+  "lint:schema",
+  "lint:helm",
+  "lint:shell",
+  "lint:markdown",
+  "lint:go:vultr",
+  "lint:go:kea-ha-peers",
+]
+
+[tasks."lint:format"]
+description = "整形済みであることを検査する"
+run = "treefmt --ci"
+
+[tasks."lint:terraform"]
+description = "Terraformを検査する"
 # NOTE: 実バックエンドで初期化済みの`.terraform`を使うと`init -backend=false`がR2の認証情報を要求するため、検査用のDataDirを指定
 env = { TF_DATA_DIR = "{{config_root}}/terraform/.terraform/lint" }
 run = [
-  "treefmt --ci",
   "mise run tf init -backend=false",
   "mise run tf validate",
   "tflint --recursive --config \"$MISE_PROJECT_ROOT/.tflint.hcl\"",
-  "yamllint .",
-  "check-jsonschema --schemafile kubernetes/schemas/app.schema.json kubernetes/apps/*/app.yaml",
-  "sh kubernetes/scripts/check-helm-values.sh",
-  # NOTE: gitignoreされた作業用・依存・状態のディレクトリを、shellcheckの対象から除外
-  "find . \\( -name .git -o -name .jj -o -name .tmp -o -name .terraform \\) -prune -o -name '*.sh' -type f -exec shellcheck {} +",
-  "rumdl check .",
-  "cd \"$MISE_PROJECT_ROOT/terraform/modules/vultr/scripts\" && golangci-lint run",
-  "cd \"$MISE_PROJECT_ROOT/images/kea-ha-peers\" && golangci-lint run",
 ]
+
+[tasks."lint:yaml"]
+description = "YAMLを検査する"
+run = "yamllint ."
+
+[tasks."lint:schema"]
+description = "アプリケーション定義をJSON Schemaで検査する"
+run = "check-jsonschema --schemafile kubernetes/schemas/app.schema.json kubernetes/apps/*/app.yaml"
+
+[tasks."lint:helm"]
+description = "Helmのvaluesを検査する"
+run = "sh kubernetes/scripts/check-helm-values.sh"
+
+[tasks."lint:shell"]
+description = "シェルスクリプトを検査する"
+# NOTE: gitignoreされた作業用・依存・状態のディレクトリを、shellcheckの対象から除外
+run = "find . \\( -name .git -o -name .jj -o -name .tmp -o -name .terraform \\) -prune -o -name '*.sh' -type f -exec shellcheck {} +"
+
+[tasks."lint:markdown"]
+description = "Markdownを検査する"
+run = "rumdl check ."
+
+# NOTE: golangci-lintは既定で起動時にファイルロックを取得し、5秒以内に取得できないと失敗するため、並列実行を許可
+[tasks."lint:go:vultr"]
+description = "terraform/modules/vultr/scriptsのGoを検査する"
+dir = "{{config_root}}/terraform/modules/vultr/scripts"
+run = "golangci-lint run --allow-parallel-runners"
+
+[tasks."lint:go:kea-ha-peers"]
+description = "images/kea-ha-peersのGoを検査する"
+dir = "{{config_root}}/images/kea-ha-peers"
+run = "golangci-lint run --allow-parallel-runners"

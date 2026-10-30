@@ -30,6 +30,8 @@ provider "registry.terraform.io/hashicorp/external" {
   constraints = "2.4.2"
   hashes = [
     "h1:4UInMFuK4GNw4uf2vkUwwDtc0CajvJ88BkAE6xLKOa4=",
+    "h1:ERhVaFFS4/WRonirXUJV1DWN+cSTyEKEfs2ZnoP1BgY=",
+    "h1:QP724n6VWM/iitpILCwO079UOlzx6I0Ylh7g8Gwv1Y0=",
     "zh:0b51793be4f66934a3666339e44c01fd56e1c6a56256dfc66d1cb391584b4c2f",
     "zh:31cdd9b30e4ec63d130befc89471757ef3937b99a8f6cc006769d215365c5ba8",
     "zh:61f86de4a3166cfa5da6800eeba8e6a2e4ab6403fc3d7b396508260b45d3de7d",
@@ -50,6 +52,8 @@ provider "registry.terraform.io/hashicorp/helm" {
   version     = "3.3.0"
   constraints = "3.3.0"
   hashes = [
+    "h1:Jk/eQ65jQ7L+Db1yQqtvUFc+BPs1QwW8Qoil+TdwGdU=",
+    "h1:Qbt2+dtOJty3glPZI9jMCXq82GSAKBk/T2+wBMIdu0c=",
     "h1:Y9Z+1+RqmCYRCqlncKEKPjYkRqlNIBiK3jdEIbUn1Fc=",
     "zh:24a942352667cf49bed467c51a951f17a6c13e0cdf1c505b01b41f75a1a60d0f",
     "zh:2c057eafd1e4d8b50acdc676f9a3096e38fb7d30c3fab3d64af82fa04a2f767e",
@@ -69,7 +73,7 @@ provider "registry.terraform.io/hashicorp/helm" {
 
 provider "registry.terraform.io/hashicorp/local" {
   version     = "2.9.1"
-  constraints = ">= 2.9.1, 2.9.1"
+  constraints = "2.9.1"
   hashes = [
     "h1:OZGJN0LSSat5QIxZPxDXtVr4XpHb2oG7cVKJhSqBFIE=",
     "h1:bek0XHcE8X713/1PR+sMKZFwLnamznJdYbORghbFRn0=",
@@ -92,7 +96,7 @@ provider "registry.terraform.io/hashicorp/local" {
 
 provider "registry.terraform.io/hashicorp/random" {
   version     = "3.9.1"
-  constraints = ">= 3.9.1, 3.9.1"
+  constraints = "3.9.1"
   hashes = [
     "h1:PlW+UZ4EElQF3NQwf41KQwavFujab3Czc51zu9dyVM8=",
     "h1:g40qr7yDmIpaur4SsK5BcOda3HSo1RJ6zHVMqN4EJ+0=",
@@ -164,6 +168,8 @@ provider "registry.terraform.io/siderolabs/talos" {
   version     = "0.12.0"
   constraints = "0.12.0"
   hashes = [
+    "h1:5TOAcT0dJ9PUsJfivsym5GNtF8CFhq6NQen1CkMbjI4=",
+    "h1:MROf5tBE/arrhUXKFBDxVIV2GEp++m+ZfmeEcCBVmUA=",
     "h1:qnBh8ioMyvKfU0NHIKCqYK5yvADxz0WjnS2Jzv1+54Y=",
     "zh:0fa82a384b25a58b65523e0ea4768fa1212b1f5cfc0c9379d31162454fedcc9d",
     "zh:361543a6a5fae426bffb2930cbfd76de3d2763ca262cfc7d940a2dd6a6080043",
@@ -187,6 +193,8 @@ provider "registry.terraform.io/vultr/vultr" {
   constraints = "2.33.2"
   hashes = [
     "h1:WKPEiK7TgQ7Gm11UpQ+KIliguFedJ/1gufaZFe2Zius=",
+    "h1:isr1UgZRi798VQduSwIzZDgF7ZZJ1AUlTmnKOUDyDgc=",
+    "h1:jvurMhnyTbO2JAF9JKx79zoag0I0H/aWq/T66st7Q/0=",
     "zh:1f868da83718a7f7c874635b7356ede1bb007672934ba46e1428588b779884db",
     "zh:265eff90def8005dbf23420f49b243694bf972dae43ef55d90668a26825f731f",
     "zh:433db0ce326e5ac40a1a0a7ad1f7060007edb4e43bc3d7187578959c00e87648",
