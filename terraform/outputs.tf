@@ -50,6 +50,18 @@ output "sealed_secrets" {
         backup-secret-access-key = sha256(cloudflare_account_token.netbird_backup.value)
       }
     }
+    "kubernetes/apps/netbird/netbird-cloudflare.yaml" = {
+      namespace = "netbird"
+      name      = "netbird-cloudflare"
+      data = {
+        access-client-id     = cloudflare_zero_trust_access_application.netbird.saas_app.client_id
+        access-client-secret = cloudflare_zero_trust_access_application.netbird.saas_app.client_secret
+        access-issuer        = "https://${data.cloudflare_zero_trust_organization.this.auth_domain}/cdn-cgi/access/sso/oidc/${cloudflare_zero_trust_access_application.netbird.saas_app.client_id}"
+        backup-access-key-id = cloudflare_account_token.netbird_backup.id
+        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
+        backup-secret-access-key = sha256(cloudflare_account_token.netbird_backup.value)
+      }
+    }
     "kubernetes/apps/vaultwarden/vaultwarden-r2.yaml" = {
       namespace = "vaultwarden"
       name      = "vaultwarden-r2"
