@@ -34,22 +34,6 @@ output "sealed_secrets" {
         api-token = cloudflare_account_token.cert_manager.value
       }
     }
-    "kubernetes/apps/netbird/netbird-secrets.yaml" = {
-      namespace = "netbird"
-      name      = "netbird-secrets"
-      data = {
-        access-client-id                  = cloudflare_zero_trust_access_application.netbird.saas_app.client_id
-        access-client-secret              = cloudflare_zero_trust_access_application.netbird.saas_app.client_secret
-        access-issuer                     = "https://${data.cloudflare_zero_trust_organization.this.auth_domain}/cdn-cgi/access/sso/oidc/${cloudflare_zero_trust_access_application.netbird.saas_app.client_id}"
-        datastore-encryption-key          = random_bytes.netbird_datastore_encryption_key.base64
-        relay-auth-secret                 = random_bytes.netbird_relay_auth_secret.hex
-        idp-session-cookie-encryption-key = random_bytes.netbird_idp_session_cookie_encryption_key.base64
-        placeholder-owner-password-hash   = random_password.netbird_placeholder_owner.bcrypt_hash
-        backup-access-key-id              = cloudflare_account_token.netbird_backup.id
-        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
-        backup-secret-access-key = sha256(cloudflare_account_token.netbird_backup.value)
-      }
-    }
     "kubernetes/apps/netbird/netbird-cloudflare.yaml" = {
       namespace = "netbird"
       name      = "netbird-cloudflare"

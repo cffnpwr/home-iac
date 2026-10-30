@@ -1,6 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-# NOTE: netbird-secretsのSealedSecretは、封入し直すworkflowがresourcesに追加
+# NOTE: netbird-cloudflareのSealedSecretは、再暗号化するworkflowがresourcesに追加
 resources:
   - namespace.yaml
   - management.yaml

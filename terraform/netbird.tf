@@ -43,23 +43,6 @@ resource "cloudflare_zero_trust_access_application" "netbird" {
   }
 }
 
-resource "random_bytes" "netbird_datastore_encryption_key" {
-  length = 32
-}
-
-resource "random_bytes" "netbird_relay_auth_secret" {
-  length = 32
-}
-
-resource "random_bytes" "netbird_idp_session_cookie_encryption_key" {
-  length = 32
-}
-
-# NOTE: dashboardの初期設定画面を省略するための、ログインできないOwner
-resource "random_password" "netbird_placeholder_owner" {
-  length = 32
-}
-
 resource "cloudflare_r2_bucket" "netbird_backup" {
   account_id = local.cloudflare_account_id
   name       = "home-iac-netbird-backup"
