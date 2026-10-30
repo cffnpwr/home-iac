@@ -9,6 +9,7 @@ resources:
   - dashboard.yaml
   - gateway.yaml
   - netbird-secrets.yaml
+  - netbird-cloudflare.yaml
 configMapGenerator:
   - name: netbird-management
     namespace: netbird
