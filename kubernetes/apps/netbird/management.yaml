@@ -59,12 +59,12 @@ spec:
             - name: LITESTREAM_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: netbird-secrets
+                  name: netbird-cloudflare
                   key: backup-access-key-id
             - name: LITESTREAM_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: netbird-secrets
+                  name: netbird-cloudflare
                   key: backup-secret-access-key
           volumeMounts:
             - name: data
@@ -79,12 +79,12 @@ spec:
             - name: LITESTREAM_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: netbird-secrets
+                  name: netbird-cloudflare
                   key: backup-access-key-id
             - name: LITESTREAM_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: netbird-secrets
+                  name: netbird-cloudflare
                   key: backup-secret-access-key
           volumeMounts:
             - name: data
@@ -99,12 +99,12 @@ spec:
             - name: LITESTREAM_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: netbird-secrets
+                  name: netbird-cloudflare
                   key: backup-access-key-id
             - name: LITESTREAM_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: netbird-secrets
+                  name: netbird-cloudflare
                   key: backup-secret-access-key
           volumeMounts:
             - name: data
@@ -119,17 +119,17 @@ spec:
             - name: NETBIRD_ACCESS_ISSUER
               valueFrom:
                 secretKeyRef:
-                  name: netbird-secrets
+                  name: netbird-cloudflare
                   key: access-issuer
             - name: NETBIRD_ACCESS_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: netbird-secrets
+                  name: netbird-cloudflare
                   key: access-client-id
             - name: NETBIRD_ACCESS_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: netbird-secrets
+                  name: netbird-cloudflare
                   key: access-client-secret
             - name: NETBIRD_DATASTORE_ENCRYPTION_KEY
               valueFrom:
@@ -141,6 +141,7 @@ spec:
                 secretKeyRef:
                   name: netbird-secrets
                   key: relay-auth-secret
+            # NOTE: dashboardの初期設定画面を省略するための、ログインできないOwner
             - name: NETBIRD_PLACEHOLDER_OWNER_PASSWORD_HASH
               valueFrom:
                 secretKeyRef:
@@ -180,12 +181,12 @@ spec:
             - name: LITESTREAM_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: netbird-secrets
+                  name: netbird-cloudflare
                   key: backup-access-key-id
             - name: LITESTREAM_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: netbird-secrets
+                  name: netbird-cloudflare
                   key: backup-secret-access-key
           volumeMounts:
             - name: data

@@ -35,6 +35,10 @@ description = "terraform/でterraformを実行する"
 dir = "{{config_root}}/terraform"
 run = "terraform"
 
+[tasks."sealed-secrets:re-encrypt"]
+description = "SealedSecretを、sealed-secrets controllerの最新の鍵で再暗号化する"
+run = "sh kubernetes/scripts/re-encrypt-sealed-secrets.sh"
+
 [tasks.lint]
 description = "Terraform・YAML・Markdown・Go・シェルスクリプトを検査する"
 depends = [
