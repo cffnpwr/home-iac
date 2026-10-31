@@ -1,0 +1,34 @@
+# NOTE: Operatorが、この名前のnetbirdのnetworkと、そのルーティングピアのDeploymentを作成
+#       自宅LANのサブネットの宛先は、v1alpha1のNetworkResourceがCIDRを指定できないため、ダッシュボードで追加
+apiVersion: netbird.io/v1alpha1
+kind: NetworkRouter
+metadata:
+  name: cffnpwr-home
+  namespace: netbird
+  annotations:
+    # NOTE: CRDを作るnetbird-operatorのApplicationより先に同期する場合も、他のリソースの同期を止めない
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  # NOTE: Operatorは名前で検索するため、ダッシュボードで名前とドメインを同じにしたDNSゾーンが必要
+  dnsZoneRef:
+    name: cffnpwr-home.internal
+  workloadOverride:
+    # NOTE: Vultrのノードはtaintで除外されるため、自宅の2台に1つずつ配置
+    replicas: 2
+    podTemplate:
+      spec:
+        # NOTE: Operatorの既定の配置条件は偏りを許容するため、必須の条件で別々のノードに配置
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: networkrouter
+                    app.kubernetes.io/instance: cffnpwr-home
+        containers:
+          - name: netbird
+            env:
+              # NOTE: Operatorに渡したURLはREST API用のため、クライアントはgatewayのgRPCに接続
+              - name: NB_MANAGEMENT_URL
+                value: https://nb.cffnpwr.dev:443
