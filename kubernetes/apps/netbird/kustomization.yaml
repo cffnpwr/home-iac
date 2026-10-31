@@ -10,6 +10,7 @@ resources:
   - gateway.yaml
   - netbird-secrets.yaml
   - netbird-cloudflare.yaml
+  - netbird-mgmt-api-key.yaml
   - networkrouter.yaml
 configMapGenerator:
   - name: netbird-management
