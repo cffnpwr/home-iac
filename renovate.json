@@ -12,9 +12,19 @@
       "fileFormat": "yaml",
       "managerFilePatterns": ["/^kubernetes/apps/[^/]+/app\\.yaml$/"],
       "matchStrings": [
-        "chart.{ \"depName\": name, \"currentValue\": version, \"registryUrl\": repoURL }"
+        "chart[$contains(repoURL, \"://\")].{ \"depName\": name, \"currentValue\": version, \"registryUrl\": repoURL }"
       ],
       "datasourceTemplate": "helm"
+    },
+    {
+      // NOTE: スキームの無いrepoURLは、Argo CDがOCIのリポジトリとして扱うchart
+      "customType": "jsonata",
+      "fileFormat": "yaml",
+      "managerFilePatterns": ["/^kubernetes/apps/[^/]+/app\\.yaml$/"],
+      "matchStrings": [
+        "chart[$not($contains(repoURL, \"://\"))].{ \"depName\": repoURL & \"/\" & name, \"currentValue\": version }"
+      ],
+      "datasourceTemplate": "docker"
     },
     {
       // NOTE: images/vaultwardenがソースからビルドする、vaultwardenのタグとそのコミット
