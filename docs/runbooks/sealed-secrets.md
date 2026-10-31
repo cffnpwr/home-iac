@@ -12,7 +12,7 @@
 - 鍵が更新されたときの再暗号化では`kubectl`でクラスタに接続できる
 
 暗号化にはリポジトリの`kubernetes/apps/sealed-secrets/cert.pem`を使う。
-この証明書はsealed-secrets controllerが新しい鍵を追加したときに実行される`.github/workflows/sealed-secrets-reseal.yaml`のworkflowが更新する。
+この証明書はsealed-secrets controllerが新しい鍵を追加したときに実行される`.github/workflows/reseal-sealed-secrets.yaml`のworkflowが更新する。
 
 各手順では次の変数を使う。
 
