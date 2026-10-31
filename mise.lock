@@ -211,6 +211,7 @@ url_api = "https://api.github.com/repos/bitnami/sealed-secrets/releases/assets/6
 version = "0.39.0"
 backend = "pypi:check-jsonschema"
 specifiers = ["0.39.0"]
+uv = { path = ".mise/locks/pypi-check-jsonschema/0.39.0", digest = "sha256:fadd1ca6ed70d22bd3a2f078ca19e3bac450c03b448bcc0afefe0ab0d9bc5974" }
 
 [[tools.python]]
 version = "3.14.8"
