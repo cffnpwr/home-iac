@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+namespace: istio-system
+# NOTE: CRDを作るgateway-api・cert-managerのApplicationの同期完了までの再試行
+retry:
+  limit: 10
+  backoff:
+    duration: 30s
+    factor: 2
+    maxDuration: 10m
