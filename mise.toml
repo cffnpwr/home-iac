@@ -35,6 +35,11 @@ description = "terraform/でterraformを実行する"
 dir = "{{config_root}}/terraform"
 run = "terraform"
 
+[tasks."tf:netbird"]
+description = "terraform/netbird/でterraformを実行する"
+dir = "{{config_root}}/terraform/netbird"
+run = "terraform"
+
 [tasks."sealed-secrets:re-encrypt"]
 description = "SealedSecretを、sealed-secrets controllerの最新の鍵で再暗号化する"
 run = "sh kubernetes/scripts/re-encrypt-sealed-secrets.sh"
@@ -60,10 +65,13 @@ run = "treefmt --ci"
 [tasks."lint:terraform"]
 description = "Terraformを検査する"
 # NOTE: 実バックエンドで初期化済みの`.terraform`を使うと`init -backend=false`がR2の認証情報を要求するため、検査用のDataDirを指定
-env = { TF_DATA_DIR = "{{config_root}}/terraform/.terraform/lint" }
+#       相対パスは各rootのディレクトリを基準に解決
+env = { TF_DATA_DIR = ".terraform/lint" }
 run = [
   "mise run tf init -backend=false",
   "mise run tf validate",
+  "mise run tf:netbird init -backend=false",
+  "mise run tf:netbird validate",
   "tflint --recursive --config \"$MISE_PROJECT_ROOT/.tflint.hcl\"",
 ]
 
