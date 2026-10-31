@@ -24,7 +24,7 @@ find kubernetes -name '*.yaml' -type f | sort | while IFS= read -r path; do
     continue
   fi
 
-  echo "$path: re-encrypting"
+  echo "$path: resealing"
   kubeseal --re-encrypt --controller-name "$controller_name" --controller-namespace "$controller_namespace" --format yaml \
     < "$path" > "$reencrypted"
   # NOTE: --re-encryptがspec.template.dataを残さないため、再暗号化した暗号文だけを元のファイルに反映

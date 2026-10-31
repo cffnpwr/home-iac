@@ -127,13 +127,13 @@ sealed-secrets controllerが新しい鍵を追加すると、再暗号化するw
 古い鍵を削除するJobはすべてのSealedSecretを最新の鍵で復号できる場合だけ古い鍵を削除する。
 このため再暗号化した変更がクラスタに同期されるまで古い鍵は削除されない。
 
-1. `sealed-secrets:re-encrypt`タスクを実行する。
+1. `sealed-secrets:reseal`タスクを実行する。
    タスクは`kubernetes/`以下のすべてのSealedSecretを対象にする。
    このうち`home-iac/cert-sha256`がcontrollerの最新の証明書と一致しないファイルを再暗号化する。
    再暗号化はcontrollerが行なうためクラスタへの接続が必要である
 
    ```sh
-   mise run sealed-secrets:re-encrypt
+   mise run sealed-secrets:reseal
    ```
 
 2. 変更したファイルをコミットしmainにマージする

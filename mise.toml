@@ -45,9 +45,9 @@ run = "terraform"
 description = "Terraformのoutputの値を、cert.pemの証明書でSealedSecretに封入する"
 run = "sh kubernetes/scripts/seal-terraform-outputs.sh"
 
-[tasks."sealed-secrets:re-encrypt"]
+[tasks."sealed-secrets:reseal"]
 description = "SealedSecretを、sealed-secrets controllerの最新の鍵で再暗号化する"
-run = "sh kubernetes/scripts/re-encrypt-sealed-secrets.sh"
+run = "sh kubernetes/scripts/reseal-sealed-secrets.sh"
 
 [tasks.lint]
 description = "Terraform・YAML・Markdown・Go・シェルスクリプトを検査する"
