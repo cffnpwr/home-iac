@@ -40,6 +40,12 @@ Terraformを実行する前に以下の環境変数を設定しておく必要�
 
 GitHub providerは`GITHUB_TOKEN`環境変数のトークンを使い、未設定なら`gh auth token`のトークンを使います。
 
+netbirdのリソースを管理する`terraform/netbird/`では、次の環境変数も設定しておく必要があります。
+
+| 環境変数 | 内容 |
+| --- | --- |
+| `NB_PAT` | netbird provider用の、管理者のサービスユーザーのPAT |
+
 ### Initial setup
 
 tfstate管理用のR2 Bucketが未作成の場合は作成しておく必要があります。
@@ -134,7 +140,38 @@ Bucketができるまでリモートのstateは使えないため、初回はロ
    mise run tf apply
    ```
 
+### NetBird setup
+
+CIのjobはnetbirdのルーティングピアを経由して自宅LANのクラスタに接続します。
+ルーティングピアはArgo CDが同期する`NetworkRouter`からnetbird Operatorが作成します。
+クラスタの構築後に、次の手順でルーティングピアとCIの接続を設定します。
+
+1. netbirdのダッシュボードで、Operator用のサービスユーザーとそのPATを作成します。
+2. PATを`netbird`のnamespaceの`netbird-mgmt-api-key`というSecretの`NB_API_KEY`として、[kubesealでのSealedSecretの作成](./docs/runbooks/sealed-secrets.md)の手順で`kubernetes/apps/netbird/netbird-mgmt-api-key.yaml`に封入します。
+3. ダッシュボードで、名前とドメインがどちらも`cffnpwr-home.internal`のDNSゾーンを作成します。
+   Operatorは`NetworkRouter`の`dnsZoneRef`をDNSゾーンの名前で検索します。
+4. Operatorが`cffnpwr-home`という名前のnetworkを作成した後に、ダッシュボードでそのnetworkに自宅LANのサブネット`192.168.0.0/23`の宛先を追加し、`cffnpwr-home-lan`グループに入れます。
+   v1alpha1の`NetworkResource`はCIDRを宛先に指定できないため、この宛先はダッシュボードで管理します。
+5. netbird provider用のPATを作成し、`NB_PAT`環境変数に設定して`terraform/netbird/`をapplyします。
+   CIのグループ・ephemeralのsetup key・CIから自宅LANへのポリシーと、setup keyのGitHubのシークレットを作成します。
+
+   ```sh
+   mise run tf:netbird init
+   mise run tf:netbird apply
+   ```
+
+6. GitHubの`terraform-plan`と`terraform-apply`のenvironmentに、手順5のPATを`NB_PAT`として登録します。
+   `terraform-apply`には、`terraform-plan`と同じ`AWS_ACCESS_KEY_ID`・`AWS_SECRET_ACCESS_KEY`・`CLOUDFLARE_API_TOKEN`も登録します。
+
+クラスタを再構築した後は、手順4のサブネットの宛先を作り直します。
+`NetworkRouter`のstatusにnetworkのIDが無い場合、Operatorはnetworkを新しく作成するため、以前のnetworkの宛先は引き継がれません。
+
 ### Plan & Apply
+
+mainへのマージでは、`.github/workflows/terraform-apply.yaml`のworkflowが`terraform/`・`terraform/netbird/`の順にapplyします。
+applyの後に、SealedSecretを再暗号化するworkflowを実行します。
+CIからクラスタへ接続できない場合と、CIの接続に使うnetbirdのポリシー・setup keyを変更する場合は、手元の端末から次の手順でapplyします。
+`terraform/netbird/`では`mise run tf`の代わりに`mise run tf:netbird`を使います。
 
 1. `terraform plan`で変更内容を確認します。
 
