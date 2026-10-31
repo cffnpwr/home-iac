@@ -122,10 +122,13 @@ SealedSecretは単一の値からもSecretのマニフェストからも作成�
 
 ## 鍵が更新されたときの再暗号化
 
-sealed-secrets controllerが新しい鍵を追加すると、再暗号化するworkflowが`cert.pem`を更新するPRを作成する。
-このPRをマージした後に`kubeseal`で作成したSealedSecretを新しい鍵で再暗号化する。
+sealed-secrets controllerが新しい鍵を追加すると、再暗号化するworkflowがすべてのSealedSecretを新しい鍵で暗号化し直すPRを作成する。
+workflowはTerraformのoutputの値を`cert.pem`の証明書で暗号化する。
+その後、workflowはnetbird経由でクラスタに接続し、既存のすべてのSealedSecretをcontrollerで再暗号化する。
 古い鍵を削除するJobはすべてのSealedSecretを最新の鍵で復号できる場合だけ古い鍵を削除する。
 このため再暗号化した変更がクラスタに同期されるまで古い鍵は削除されない。
+
+workflowがクラスタに接続できない場合は`cert.pem`を更新するPRをマージした後に次の手順で手元から再暗号化する。
 
 1. `sealed-secrets:reseal`タスクを実行する。
    タスクは`kubernetes/`以下のすべてのSealedSecretを対象にする。
