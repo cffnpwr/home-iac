@@ -67,11 +67,13 @@ output "sealed_secrets" {
         sso_client_secret = cloudflare_zero_trust_access_application.vaultwarden.saas_app.client_secret
       }
     }
-    "kubernetes/apps/cloudflared/cloudflared-tunnel-token.yaml" = {
+    "kubernetes/apps/cloudflared/cloudflare-tunnel-ingress-controller.yaml" = {
       namespace = "cloudflared"
-      name      = "cloudflared-tunnel-token"
+      name      = "cloudflare-tunnel-ingress-controller"
       data = {
-        token = data.cloudflare_zero_trust_tunnel_cloudflared_token.home.token
+        api-token              = cloudflare_account_token.cloudflare_tunnel_ingress_controller.value
+        cloudflare-account-id  = local.cloudflare_account_id
+        cloudflare-tunnel-name = cloudflare_zero_trust_tunnel_cloudflared.home.name
       }
     }
   }

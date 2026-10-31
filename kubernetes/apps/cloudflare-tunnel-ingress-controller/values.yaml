@@ -1,0 +1,43 @@
+cloudflare:
+  secretRef:
+    name: cloudflare-tunnel-ingress-controller
+    apiTokenKey: api-token
+    accountIDKey: cloudflare-account-id
+    tunnelNameKey: cloudflare-tunnel-name
+cloudflared:
+  image:
+    repository: cloudflare/cloudflared
+    # NOTE: chartの既定のイメージは侵害されたeMudhraのCAを信頼したままのため、最新のイメージに差し替える
+    # TODO: chartの既定のイメージを最新のイメージに差し替えたPRがマージされたら削除
+    tag: 2026.10.5@sha256:1b1d34d0a9c0bfca9de72db8460d328db3f19edd2b96169114e3e893a97bbe53
+  replicaCount: 3
+  # NOTE: pod-template-hashで同じリビジョンのPodだけを数え、更新中も追加のPodを置けるようにする
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app: controlled-cloudflared-connector
+      matchLabelKeys:
+        - pod-template-hash
+  tolerations:
+    # NOTE: Vultrノードへのスケジューリングを許可
+    - key: edge
+      operator: Exists
+      effect: NoSchedule
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+  probes:
+    # NOTE: metrics用のポートを監視
+    liveness:
+      httpGet:
+        path: /ready
+        port: 44483
+      failureThreshold: 1
+      initialDelaySeconds: 10
+      periodSeconds: 10
