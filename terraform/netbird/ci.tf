@@ -1,7 +1,7 @@
 locals {
-  # NOTE: CIからTerraformのapply・SealedSecretの再暗号化で接続する、Talos APIとkube-apiserverのポート
+  # NOTE: CIからTerraformのplan・apply・SealedSecretの再暗号化で接続する、Talos APIとkube-apiserverのポート
   ci_cffnpwr_home_lan_ports = ["50000", "6443"]
-  ci_environments           = ["terraform-apply", "sealed-secrets-reseal"]
+  ci_environments           = ["terraform-plan", "terraform-apply", "sealed-secrets-reseal"]
 }
 
 resource "netbird_group" "ci" {
