@@ -1,0 +1,92 @@
+name: Terraform apply
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "terraform/**"
+      - "mise.toml"
+      - "mise.lock"
+      - ".github/actions/netbird/**"
+      - ".github/workflows/terraform-apply.yaml"
+  workflow_dispatch:
+# NOTE: 途中で止めたapplyはstateのロックとリソースの不整合を残すため、実行中のapplyを取り消さない
+concurrency:
+  group: ${{ github.workflow_ref }}
+  cancel-in-progress: false
+permissions: {}
+jobs:
+  apply:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    environment: terraform-apply
+    permissions:
+      contents: read
+      # NOTE: tfcmtがマージしたPRにapplyの結果をコメントするため
+      pull-requests: write
+    env:
+      TF_IN_AUTOMATION: "true"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5.2.4
+      - run: |
+          echo "TF_PLUGIN_CACHE_DIR=$HOME/.terraform.d/plugin-cache" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/.terraform.d/plugin-cache"
+      # NOTE: cacheはLint workflowがmainへのpushで保存
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: terraform-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('terraform/.terraform.lock.hcl', 'terraform/netbird/.terraform.lock.hcl') }}
+          restore-keys: terraform-${{ runner.os }}-${{ runner.arch }}-
+      - id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.UPDATE_CLIENT_ID }}
+          private-key: ${{ secrets.UPDATE_PRIVATE_KEY }}
+          permission-actions: read
+          permission-administration: write
+          permission-environments: write
+      # NOTE: クラスタのrootがTalos API・kube-apiserverに接続するため
+      - uses: $/.github/actions/netbird
+        with:
+          setup-key: ${{ secrets.NETBIRD_SETUP_KEY }}
+          wait-address: 192.168.0.129:50000
+      - name: Apply terraform
+        run: |
+          terraform -chdir=terraform init -input=false
+          tfcmt -var target:terraform apply -- terraform -chdir=terraform apply -input=false -auto-approve
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          VULTR_API_KEY: ${{ secrets.VULTR_API_KEY }}
+          TF_VAR_github_token: ${{ steps.app-token.outputs.token }}
+          TF_VAR_github_app_client_id: ${{ vars.UPDATE_CLIENT_ID }}
+          TF_VAR_github_app_private_key: ${{ secrets.UPDATE_PRIVATE_KEY }}
+      # NOTE: netbirdのrootはクラスタのrootが使う接続のポリシーを変更しうるため、クラスタのrootの後に実行
+      #       2つのrootは独立しているため、クラスタのrootの成否に関係なく実行
+      - name: Apply terraform/netbird
+        if: ${{ !cancelled() && steps.app-token.outcome == 'success' }}
+        run: |
+          terraform -chdir=terraform/netbird init -input=false
+          tfcmt -var target:terraform/netbird apply -- terraform -chdir=terraform/netbird apply -input=false -auto-approve
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          NB_PAT: ${{ secrets.NB_PAT }}
+          TF_VAR_github_token: ${{ steps.app-token.outputs.token }}
+  reseal:
+    needs: apply
+    uses: $/.github/workflows/reseal-sealed-secrets.yaml
+    permissions:
+      contents: read
+    # NOTE: environmentのシークレットも呼び出し元が渡す必要がある。呼び出し先のjobはenvironmentの値を優先して使う
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      NETBIRD_SETUP_KEY: ${{ secrets.NETBIRD_SETUP_KEY }}
+      UPDATE_PRIVATE_KEY: ${{ secrets.UPDATE_PRIVATE_KEY }}

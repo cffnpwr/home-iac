@@ -12,7 +12,7 @@
 - 鍵が更新されたときの再暗号化では`kubectl`でクラスタに接続できる
 
 暗号化にはリポジトリの`kubernetes/apps/sealed-secrets/cert.pem`を使う。
-この証明書はsealed-secrets controllerが新しい鍵を追加したときに実行される`.github/workflows/sealed-secrets-reseal.yaml`のworkflowが更新する。
+この証明書はsealed-secrets controllerが新しい鍵を追加したときに実行される`.github/workflows/reseal-sealed-secrets.yaml`のworkflowが更新する。
 
 各手順では次の変数を使う。
 
@@ -122,18 +122,21 @@ SealedSecretは単一の値からもSecretのマニフェストからも作成�
 
 ## 鍵が更新されたときの再暗号化
 
-sealed-secrets controllerが新しい鍵を追加すると、再暗号化するworkflowが`cert.pem`を更新するPRを作成する。
-このPRをマージした後に`kubeseal`で作成したSealedSecretを新しい鍵で再暗号化する。
+sealed-secrets controllerが新しい鍵を追加すると、再暗号化するworkflowがすべてのSealedSecretを新しい鍵で暗号化し直すPRを作成する。
+workflowはTerraformのoutputの値を`cert.pem`の証明書で暗号化する。
+その後、workflowはnetbird経由でクラスタに接続し、既存のすべてのSealedSecretをcontrollerで再暗号化する。
 古い鍵を削除するJobはすべてのSealedSecretを最新の鍵で復号できる場合だけ古い鍵を削除する。
 このため再暗号化した変更がクラスタに同期されるまで古い鍵は削除されない。
 
-1. `sealed-secrets:re-encrypt`タスクを実行する。
+workflowがクラスタに接続できない場合は`cert.pem`を更新するPRをマージした後に次の手順で手元から再暗号化する。
+
+1. `sealed-secrets:reseal`タスクを実行する。
    タスクは`kubernetes/`以下のすべてのSealedSecretを対象にする。
    このうち`home-iac/cert-sha256`がcontrollerの最新の証明書と一致しないファイルを再暗号化する。
    再暗号化はcontrollerが行なうためクラスタへの接続が必要である
 
    ```sh
-   mise run sealed-secrets:re-encrypt
+   mise run sealed-secrets:reseal
    ```
 
 2. 変更したファイルをコミットしmainにマージする
