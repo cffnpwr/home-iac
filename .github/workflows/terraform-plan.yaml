@@ -15,6 +15,12 @@ permissions: {}
 jobs:
   plan:
     if: github.event.pull_request.head.repo.full_name == github.repository
+    strategy:
+      fail-fast: false
+      matrix:
+        root:
+          - terraform
+          - terraform/netbird
     runs-on: ubuntu-26.04
     timeout-minutes: 15
     environment: terraform-plan
@@ -35,10 +41,11 @@ jobs:
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.terraform.d/plugin-cache
-          key: terraform-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('terraform/.terraform.lock.hcl') }}
+          key: terraform-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('terraform/.terraform.lock.hcl', 'terraform/netbird/.terraform.lock.hcl') }}
           restore-keys: terraform-${{ runner.os }}-${{ runner.arch }}-
-      - run: mise run tf init -input=false
+      - run: terraform -chdir="$ROOT" init -input=false
         env:
+          ROOT: ${{ matrix.root }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - id: app-token
@@ -48,8 +55,11 @@ jobs:
           private-key: ${{ secrets.UPDATE_PRIVATE_KEY }}
           permission-actions: read
           permission-environments: read
-      - run: tfcmt plan -patch -disable-label -- mise run tf plan -input=false -lock=false
+      # NOTE: rootごとにPRのコメントを分けるため、targetにrootのディレクトリを指定
+      - if: matrix.root == 'terraform'
+        run: tfcmt -var "target:$ROOT" plan -patch -disable-label -- terraform -chdir="$ROOT" plan -input=false -lock=false
         env:
+          ROOT: ${{ matrix.root }}
           GITHUB_TOKEN: ${{ github.token }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -58,3 +68,12 @@ jobs:
           TF_VAR_github_token: ${{ steps.app-token.outputs.token }}
           TF_VAR_github_app_client_id: ${{ vars.UPDATE_CLIENT_ID }}
           TF_VAR_github_app_private_key: ${{ secrets.UPDATE_PRIVATE_KEY }}
+      - if: matrix.root == 'terraform/netbird'
+        run: tfcmt -var "target:$ROOT" plan -patch -disable-label -- terraform -chdir="$ROOT" plan -input=false -lock=false
+        env:
+          ROOT: ${{ matrix.root }}
+          GITHUB_TOKEN: ${{ github.token }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          NB_PAT: ${{ secrets.NB_PAT }}
+          TF_VAR_github_token: ${{ steps.app-token.outputs.token }}
