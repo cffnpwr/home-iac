@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+# NOTE: APIトークンのSecretとNetworkRouterは、netbirdのApplicationが同じnamespaceに作成
+namespace: netbird
+chart:
+  # NOTE: OCIのリポジトリは、Argo CDの指定方法に合わせて`oci://`を付けない
+  repoURL: ghcr.io/netbirdio/helm-charts
+  name: netbird-operator
+  version: 0.9.0
+# NOTE: namespaceを作るnetbird・CRDを作るcert-managerのApplicationの同期完了までの再試行
+retry:
+  limit: 10
+  backoff:
+    duration: 30s
+    factor: 2
+    maxDuration: 10m

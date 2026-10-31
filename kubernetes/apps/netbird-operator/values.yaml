@@ -1,0 +1,18 @@
+# NOTE: REST APIはクラスタ内のServiceで呼ぶ
+#       ルーティングピアのクライアントが接続するgRPCのURLは、NetworkRouterのpodTemplateで上書き
+managementURL: http://netbird-management.netbird.svc.cluster.local
+webhook:
+  # NOTE: Pod作成時にsidecarを追加するmutating webhookは無効にできず、failurePolicy: Failのため
+  #       Operatorの停止中にPodを作れなくなる。sidecarを使わないため、どのnamespaceにも一致させない
+  namespaceSelectors:
+    - key: kubernetes.io/metadata.name
+      operator: In
+      values:
+        - netbird-operator-webhook-disabled
+operator:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
