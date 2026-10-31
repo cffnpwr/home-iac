@@ -17,3 +17,20 @@ resource "github_actions_environment_secret" "sealed_secrets_reseal_aws_secret_a
   # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値
   value = sha256(cloudflare_account_token.sealed_secrets_reseal.value)
 }
+
+resource "github_repository_environment" "terraform_apply" {
+  repository  = "home-iac"
+  environment = "terraform-apply"
+
+  # NOTE: mainへのマージ後のapplyだけがシークレットを読めるよう、mainブランチに限定
+  deployment_branch_policy {
+    protected_branches     = false
+    custom_branch_policies = true
+  }
+}
+
+resource "github_repository_environment_deployment_policy" "terraform_apply_main" {
+  repository     = github_repository_environment.terraform_apply.repository
+  environment    = github_repository_environment.terraform_apply.environment
+  branch_pattern = "main"
+}
