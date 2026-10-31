@@ -5,3 +5,11 @@ self-hosted-runner:
   labels:
     - ubuntu-26.04
     - ubuntu-26.04-arm
+# NOTE: 同じリポジトリを指す`$/`の構文に、actionlintが未対応で偽陽性になる。
+#       ref: <https://github.com/rhysd/actionlint/issues/711>
+# TODO: 対応が入ったら削除する。
+paths:
+  .github/workflows/*.yaml:
+    ignore:
+      - 'specifying action "\$/.+" in invalid format because ref is missing'
+      - 'reusable workflow call "\$/.+" at "uses" is not following the format'
