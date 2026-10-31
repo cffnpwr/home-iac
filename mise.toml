@@ -41,6 +41,10 @@ description = "terraform/netbird/でterraformを実行する"
 dir = "{{config_root}}/terraform/netbird"
 run = "terraform"
 
+[tasks."sealed-secrets:seal-terraform-outputs"]
+description = "Terraformのoutputの値を、cert.pemの証明書でSealedSecretに封入する"
+run = "sh kubernetes/scripts/seal-terraform-outputs.sh"
+
 [tasks."sealed-secrets:re-encrypt"]
 description = "SealedSecretを、sealed-secrets controllerの最新の鍵で再暗号化する"
 run = "sh kubernetes/scripts/re-encrypt-sealed-secrets.sh"
