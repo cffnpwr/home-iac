@@ -17,10 +17,21 @@ for app in kubernetes/apps/*/app.yaml; do
     continue
   fi
 
-  helm pull "$(yq '.chart.name' "$app")" \
-    --repo "$(yq '.chart.repoURL' "$app")" \
-    --version "$(yq '.chart.version' "$app")" \
-    --untar --untardir "$work_dir/$name"
+  repo_url=$(yq '.chart.repoURL' "$app")
+  # NOTE: Argo CDの指定方法に合わせ、スキームの無いrepoURLはOCIのリポジトリとして扱う
+  case $repo_url in
+    *://*)
+      helm pull "$(yq '.chart.name' "$app")" \
+        --repo "$repo_url" \
+        --version "$(yq '.chart.version' "$app")" \
+        --untar --untardir "$work_dir/$name"
+      ;;
+    *)
+      helm pull "oci://$repo_url/$(yq '.chart.name' "$app")" \
+        --version "$(yq '.chart.version' "$app")" \
+        --untar --untardir "$work_dir/$name"
+      ;;
+  esac
   chart_dir="$work_dir/$name/$(yq '.chart.name' "$app")"
   if [ ! -f "$chart_dir/values.schema.json" ]; then
     continue
