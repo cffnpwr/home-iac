@@ -78,6 +78,23 @@ url = "https://github.com/suzuki-shunsuke/tfcmt/releases/download/v4.14.20/tfcmt
 url_api = "https://api.github.com/repos/suzuki-shunsuke/tfcmt/releases/assets/681409102"
 provenance = "github-attestations"
 
+[[tools."github:netbirdio/netbird"]]
+version = "0.81.5"
+backend = "github:netbirdio/netbird"
+specifiers = ["0.81.5"]
+
+[tools."github:netbirdio/netbird"."platforms.linux-arm64"]
+checksum = "sha256:7770879deef78d041d5ae55d4216016ce74c6a21d3493c95554bd8530530eb4e"
+checksum_source = "mise-versions"
+url = "https://github.com/netbirdio/netbird/releases/download/v0.81.5/netbird_0.81.5_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/netbirdio/netbird/releases/assets/679004092"
+
+[tools."github:netbirdio/netbird"."platforms.linux-x64"]
+checksum = "sha256:e08f9ea3f6d9e55bf1aa776b08c25146afdc45657f602ed02c1a4ae666b9d775"
+checksum_source = "mise-versions"
+url = "https://github.com/netbirdio/netbird/releases/download/v0.81.5/netbird_0.81.5_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/netbirdio/netbird/releases/assets/679004074"
+
 [[tools."github:remko/age-plugin-se"]]
 version = "0.2.1"
 backend = "github:remko/age-plugin-se"
