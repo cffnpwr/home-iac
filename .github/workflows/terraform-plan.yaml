@@ -7,6 +7,7 @@ on:
       - "terraform/**"
       - "mise.toml"
       - "mise.lock"
+      - ".github/actions/netbird/**"
       - ".github/workflows/terraform-plan.yaml"
 concurrency:
   group: ${{ github.workflow_ref }}-${{ github.event.number }}
@@ -55,6 +56,12 @@ jobs:
           private-key: ${{ secrets.UPDATE_PRIVATE_KEY }}
           permission-actions: read
           permission-environments: read
+      # NOTE: Talos providerがTalos APIに接続できないと、talos_machineごとにrefreshを2分間試行し続けるため
+      - if: matrix.root == 'terraform'
+        uses: $/.github/actions/netbird
+        with:
+          setup-key: ${{ secrets.NETBIRD_SETUP_KEY }}
+          wait-address: 192.168.0.129:50000
       # NOTE: rootごとにPRのコメントを分けるため、targetにrootのディレクトリを指定
       - if: matrix.root == 'terraform'
         run: tfcmt -var "target:$ROOT" plan -patch -disable-label -- terraform -chdir="$ROOT" plan -input=false -lock=false
