@@ -5,13 +5,14 @@ locals {
   netbird_access_redirect_uri = "https://${local.netbird_dashboard_hostname}/oauth2/callback"
 }
 
-resource "cloudflare_dns_record" "netbird_dashboard" {
-  zone_id = data.cloudflare_zone.cffnpwr_dev.zone_id
-  name    = local.netbird_dashboard_hostname
-  type    = "CNAME"
-  content = "${cloudflare_zero_trust_tunnel_cloudflared.home.id}.cfargotunnel.com"
-  proxied = true
-  ttl     = 1
+# NOTE: DNSレコードはCloudflare Tunnel Ingress Controllerへ移行したため、レコードを削除せずにstateから外す
+# TODO: applyした後に削除する
+removed {
+  from = cloudflare_dns_record.netbird_dashboard
+
+  lifecycle {
+    destroy = false
+  }
 }
 
 # NOTE: gRPC・relay・STUNはVultrノードで直接受けるため、プロキシしない

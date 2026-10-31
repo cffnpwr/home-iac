@@ -8,6 +8,7 @@ resources:
   - relay.yaml
   - dashboard.yaml
   - routes.yaml
+  - ingress.yaml
   - netbird-secrets.yaml
   - netbird-cloudflare.yaml
   - netbird-mgmt-api-key.yaml

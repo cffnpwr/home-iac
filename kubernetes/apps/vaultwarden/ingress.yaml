@@ -1,0 +1,19 @@
+# NOTE: ADMIN_TOKENが未設定のため、vaultwardenは/adminで管理画面を提供しない
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vaultwarden
+  namespace: vaultwarden
+spec:
+  ingressClassName: cloudflare-tunnel
+  rules:
+    - host: vaultwarden.cffnpwr.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vaultwarden
+                port:
+                  name: http
