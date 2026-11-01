@@ -78,6 +78,7 @@ locals {
   ])
 
   # NOTE: 自宅LANのサーバー。ホスト名をキーにする
+  #       ディスクはCEL式のdisk.wwid・disk.modelで選択し、起動に使うUSBメモリ等を選ばないようにする
   servers = {
     # NOTE: Custom PC
     cpwr-svr1 = {
@@ -96,6 +97,47 @@ locals {
         disk_selector = "system_disk"
         min_size      = "100GiB"
         max_size      = null
+      }
+      secure_boot = true
+    }
+
+    # NOTE: Dell Precision Tower 3431
+    cpwr-svr2 = {
+      address                 = "192.168.0.131"
+      extensions              = ["siderolabs/intel-ucode"]
+      link_name               = "eno1"
+      link_driver             = "e1000e"
+      install_disk_selector   = "disk.transport == \"nvme\""
+      ephemeral_max_size      = null
+      ephemeral_disk_selector = null
+      # NOTE: HDD（Seagate ST1000DM010、1TB）
+      ceph_osd = {
+        disk_selector = "disk.wwid == \"naa.5000c500c4153662\""
+        min_size      = null
+        max_size      = "100%"
+      }
+      secure_boot = true
+    }
+
+    # NOTE: INVERSENET FRONTIER
+    cpwr-svr3 = {
+      address = "192.168.0.132"
+      extensions = [
+        "siderolabs/intel-ucode",
+        "siderolabs/realtek-firmware",
+      ]
+      link_name   = "enp2s0"
+      link_driver = "r8169"
+      # NOTE: HP S700（250GB）。wwidにモデル名と空白が入るため、モデル名で選択
+      install_disk_selector = "disk.model == \"HP SSD S700 250G\""
+      ephemeral_max_size    = null
+      # NOTE: Crucial MX300（275GB）
+      ephemeral_disk_selector = "disk.wwid == \"naa.500a0751144eaf73\""
+      # NOTE: HDD（WD20EFRX、2TB）
+      ceph_osd = {
+        disk_selector = "disk.wwid == \"naa.50014ee2b9f89f48\""
+        min_size      = null
+        max_size      = "100%"
       }
       secure_boot = true
     }
