@@ -30,6 +30,42 @@ locals {
       }
     }),
   ]
+
+  # NOTE: inline manifestは各control planeが適用するため、全control planeに同じ設定を置く
+  talos_controlplane_config_patches = concat([
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeNodeConfig"
+      taints = {
+        "node-role.kubernetes.io/control-plane" = { "$patch" = "delete" }
+      }
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeFlannelCNIConfig"
+      "$patch"   = "delete"
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeProxyConfig"
+      enabled    = false
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeAPIServerConfig"
+      extraArgs = {
+        # NOTE: ClusterIPではなくEndpointSliceから接続先を選ぶ
+        enable-aggregator-routing = "true"
+      }
+    }),
+    ], [
+    for name, manifest in module.inline_manifests.inline_manifests : yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeInlineManifestConfig"
+      name       = name
+      manifest   = manifest
+    })
+  ])
 }
 
 locals {
@@ -105,8 +141,7 @@ module "rpi4" {
   talos_config_version = local.talos_config_version
   kubernetes_version   = local.kubernetes_version
   kubeconfig           = ephemeral.talos_cluster_kubeconfig.this.kubeconfig_raw
-  config_patches       = local.talos_common_config_patches
-  inline_manifests     = module.inline_manifests.inline_manifests
+  config_patches       = concat(local.talos_common_config_patches, local.talos_controlplane_config_patches)
   address              = local.rpi4_address
   prefix_length        = local.home_subnet_prefix_length
   gateway              = local.home_gateway_address
