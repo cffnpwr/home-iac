@@ -1,3 +1,8 @@
+# NOTE: Client IDは秘密の値ではないため、変数で受け取らずに記載
+locals {
+  github_app_client_id = "Iv23lik6Pnc4eS9iNx1b"
+}
+
 output "talosconfig" {
   value     = data.talos_client_configuration.this.talos_config
   sensitive = true
@@ -23,7 +28,7 @@ output "sealed_secrets" {
       namespace = "sealed-secrets"
       name      = "sealed-secrets-backup-github-app"
       data = {
-        client-id   = var.github_app_client_id
+        client-id   = local.github_app_client_id
         private-key = var.github_app_private_key
       }
     }
