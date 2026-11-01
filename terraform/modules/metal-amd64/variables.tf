@@ -39,9 +39,19 @@ variable "kubernetes_version" {
   description = "machine configに設定するKubernetesのバージョン"
 }
 
+variable "machine_type" {
+  type        = string
+  description = "ノードの種類（controlplane・worker）"
+
+  validation {
+    condition     = contains(["controlplane", "worker"], var.machine_type)
+    error_message = "machine_typeはcontrolplane・workerのいずれかを指定する"
+  }
+}
+
 variable "config_patches" {
   type        = list(string)
-  description = "全ノード共通のmachine configパッチ"
+  description = "全ノード共通のmachine configパッチ。control planeの場合はcontrol plane共通のパッチも含める"
 }
 
 variable "address" {
@@ -83,7 +93,14 @@ variable "kubeconfig" {
 
 variable "ephemeral_max_size" {
   type        = string
-  description = "EPHEMERALの最大サイズ。残りのシステムディスクの領域はlocal-path-provisionerのユーザーボリュームが使う"
+  description = "EPHEMERALの最大サイズ。nullの場合はディスクの残りの領域をすべて使う"
+  default     = null
+}
+
+variable "ephemeral_disk_selector" {
+  type        = string
+  description = "EPHEMERALを置くディスクを選択するCEL式。nullの場合はシステムディスクに置く"
+  default     = null
 }
 
 variable "extensions" {
@@ -113,5 +130,21 @@ variable "secure_boot" {
 
 variable "local_path_min_size" {
   type        = string
-  description = "local-path-provisionerのユーザーボリュームに必要な最小サイズ。空き領域がこれより小さいとボリュームを作成しない"
+  description = "システムディスクに作るlocal-path-provisionerのユーザーボリュームに必要な最小サイズ。空き領域がこれより小さいとボリュームを作成しない。nullの場合はユーザーボリュームを作らない"
+  default     = null
+}
+
+variable "ceph_osd" {
+  type = object({
+    disk_selector = string
+    min_size      = optional(string)
+    max_size      = optional(string)
+  })
+  description = "RookがCephのOSDに使うraw volumeを置くディスクを選択するCEL式とサイズ。min_size・max_sizeの少なくとも一方が必要。nullの場合はraw volumeを作らない"
+
+  validation {
+    condition     = var.ceph_osd == null || try(var.ceph_osd.min_size != null || var.ceph_osd.max_size != null, false)
+    error_message = "ceph_osdにはmin_size・max_sizeの少なくとも一方を指定する"
+  }
+  default = null
 }

@@ -1,11 +1,14 @@
 locals {
-  talos_cluster_name     = "cffnpwr-home"
-  rpi4_address           = "192.168.0.129"
-  talos_cluster_endpoint = "https://${local.rpi4_address}:6443"
+  talos_cluster_name = "cffnpwr-home"
+  # NOTE: control planeが共有するVirtual IP
+  talos_cluster_vip      = "192.168.0.128"
+  talos_cluster_endpoint = "https://${local.talos_cluster_vip}:6443"
 
   home_gateway_address      = "192.168.0.1"
   home_subnet_prefix_length = 23
   nameservers               = ["1.1.1.1", "1.0.0.1"]
+
+  rpi4_address = "192.168.0.129"
 
   talos_common_config_patches = [
     yamlencode({
@@ -30,6 +33,115 @@ locals {
       }
     }),
   ]
+
+  # NOTE: inline manifestは各control planeが適用するため、全control planeに同じ設定を置く
+  talos_controlplane_config_patches = concat([
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeNodeConfig"
+      taints = {
+        "node-role.kubernetes.io/control-plane" = { "$patch" = "delete" }
+      }
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeFlannelCNIConfig"
+      "$patch"   = "delete"
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeProxyConfig"
+      enabled    = false
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeAPIServerConfig"
+      extraArgs = {
+        # NOTE: ClusterIPではなくEndpointSliceから接続先を選ぶ
+        enable-aggregator-routing = "true"
+      }
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "Layer2VIPConfig"
+      name       = local.talos_cluster_vip
+      # NOTE: 各モジュールのLinkAliasConfigがLANのインターフェースに付ける別名
+      link = "net0"
+    }),
+    ], [
+    for name, manifest in module.inline_manifests.inline_manifests : yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeInlineManifestConfig"
+      name       = name
+      manifest   = manifest
+    })
+  ])
+
+  # NOTE: 自宅LANのサーバー。ホスト名をキーにする
+  #       ディスクはCEL式のdisk.wwid・disk.modelで選択し、起動に使うUSBメモリ等を選ばないようにする
+  servers = {
+    # NOTE: Custom PC
+    cpwr-svr1 = {
+      address = "192.168.0.130"
+      extensions = [
+        "siderolabs/intel-ucode",
+        "siderolabs/realtek-firmware",
+      ]
+      link_name               = "enp2s0"
+      link_driver             = "r8169"
+      install_disk_selector   = "disk.transport == \"nvme\""
+      ephemeral_max_size      = "200GiB"
+      ephemeral_disk_selector = null
+      # NOTE: NVMe（1TB）のEPHEMERAL以外の領域をOSDにする
+      ceph_osd = {
+        disk_selector = "system_disk"
+        min_size      = "100GiB"
+        max_size      = null
+      }
+      secure_boot = true
+    }
+
+    # NOTE: Dell Precision Tower 3431
+    cpwr-svr2 = {
+      address                 = "192.168.0.131"
+      extensions              = ["siderolabs/intel-ucode"]
+      link_name               = "eno1"
+      link_driver             = "e1000e"
+      install_disk_selector   = "disk.transport == \"nvme\""
+      ephemeral_max_size      = null
+      ephemeral_disk_selector = null
+      # NOTE: HDD（Seagate ST1000DM010、1TB）
+      ceph_osd = {
+        disk_selector = "disk.wwid == \"naa.5000c500c4153662\""
+        min_size      = null
+        max_size      = "100%"
+      }
+      secure_boot = true
+    }
+
+    # NOTE: INVERSENET FRONTIER
+    cpwr-svr3 = {
+      address = "192.168.0.132"
+      extensions = [
+        "siderolabs/intel-ucode",
+        "siderolabs/realtek-firmware",
+      ]
+      link_name   = "enp2s0"
+      link_driver = "r8169"
+      # NOTE: HP S700（250GB）。wwidにモデル名と空白が入るため、モデル名で選択
+      install_disk_selector = "disk.model == \"HP SSD S700 250G\""
+      ephemeral_max_size    = null
+      # NOTE: Crucial MX300（275GB）
+      ephemeral_disk_selector = "disk.wwid == \"naa.500a0751144eaf73\""
+      # NOTE: HDD（WD20EFRX、2TB）
+      ceph_osd = {
+        disk_selector = "disk.wwid == \"naa.50014ee2b9f89f48\""
+        min_size      = null
+        max_size      = "100%"
+      }
+      secure_boot = true
+    }
+  }
 }
 
 locals {
@@ -55,8 +167,9 @@ resource "talos_machine_secrets" "this" {
 data "talos_client_configuration" "this" {
   cluster_name         = local.talos_cluster_name
   client_configuration = talos_machine_secrets.this.client_configuration
-  endpoints            = [local.rpi4_address]
-  nodes                = [local.rpi4_address]
+  # NOTE: Virtual IPはetcdの障害時に使えないため、Talos APIには各control planeのアドレスで接続
+  endpoints = concat([local.rpi4_address], [for server in values(local.servers) : server.address])
+  nodes     = [local.rpi4_address]
 }
 
 # NOTE: Talosのアップグレードの前にノードをdrainするためのkubeconfig。stateに残さないようephemeralで生成
@@ -105,8 +218,7 @@ module "rpi4" {
   talos_config_version = local.talos_config_version
   kubernetes_version   = local.kubernetes_version
   kubeconfig           = ephemeral.talos_cluster_kubeconfig.this.kubeconfig_raw
-  config_patches       = local.talos_common_config_patches
-  inline_manifests     = module.inline_manifests.inline_manifests
+  config_patches       = concat(local.talos_common_config_patches, local.talos_controlplane_config_patches)
   address              = local.rpi4_address
   prefix_length        = local.home_subnet_prefix_length
   gateway              = local.home_gateway_address
@@ -117,8 +229,9 @@ module "rpi4" {
   }
 }
 
-module "server" {
-  source = "./modules/metal-amd64"
+module "servers" {
+  source   = "./modules/metal-amd64"
+  for_each = local.servers
 
   cluster_name         = local.talos_cluster_name
   cluster_endpoint     = local.talos_cluster_endpoint
@@ -128,26 +241,30 @@ module "server" {
   talos_config_version = local.talos_config_version
   kubernetes_version   = local.kubernetes_version
   kubeconfig           = ephemeral.talos_cluster_kubeconfig.this.kubeconfig_raw
-  config_patches       = local.talos_common_config_patches
-  address              = "192.168.0.130"
+  machine_type         = "controlplane"
+  config_patches       = concat(local.talos_common_config_patches, local.talos_controlplane_config_patches)
+  address              = each.value.address
   prefix_length        = local.home_subnet_prefix_length
   gateway              = local.home_gateway_address
   nameservers          = local.nameservers
-  hostname             = "cpwr-srvr"
-  node_labels = {
-    "topology.kubernetes.io/zone" = "home"
-  }
-  extensions = [
-    "siderolabs/intel-ucode",
-    # NOTE: オンボードEthernet（RTL8168）のfirmware。基本のTalosはlinux-firmwareを含まない
-    "siderolabs/realtek-firmware",
-  ]
-  link_name             = "enp2s0"
-  link_driver           = "r8169"
-  install_disk_selector = "disk.transport == \"nvme\""
-  ephemeral_max_size    = "200GiB"
-  local_path_min_size   = "100GiB"
-  secure_boot           = true
+  hostname             = each.key
+  node_labels = merge(
+    {
+      "topology.kubernetes.io/zone" = "home"
+    },
+    # NOTE: CephのOSDを置く永続化用のノードの場合はラベルを付与
+    each.value.ceph_osd == null ? {} : {
+      "cffnpwr.dev/storage" = "true"
+    },
+  )
+  extensions              = each.value.extensions
+  link_name               = each.value.link_name
+  link_driver             = each.value.link_driver
+  install_disk_selector   = each.value.install_disk_selector
+  ephemeral_max_size      = each.value.ephemeral_max_size
+  ephemeral_disk_selector = each.value.ephemeral_disk_selector
+  ceph_osd                = each.value.ceph_osd
+  secure_boot             = each.value.secure_boot
 
   depends_on = [talos_cluster.this]
 }

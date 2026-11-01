@@ -66,27 +66,6 @@ data "talos_machine_configuration" "this" {
       apiVersion = "v1alpha1"
       kind       = "KubeNodeConfig"
       labels     = var.node_labels
-      taints = {
-        "node-role.kubernetes.io/control-plane" = { "$patch" = "delete" }
-      }
-    }),
-    yamlencode({
-      apiVersion = "v1alpha1"
-      kind       = "KubeFlannelCNIConfig"
-      "$patch"   = "delete"
-    }),
-    yamlencode({
-      apiVersion = "v1alpha1"
-      kind       = "KubeProxyConfig"
-      enabled    = false
-    }),
-    yamlencode({
-      apiVersion = "v1alpha1"
-      kind       = "KubeAPIServerConfig"
-      extraArgs = {
-        # NOTE: ClusterIPではなくEndpointSliceから接続先を選ぶ
-        enable-aggregator-routing = "true"
-      }
     }),
     yamlencode({
       apiVersion = "v1alpha1"
@@ -100,13 +79,6 @@ data "talos_machine_configuration" "this" {
         }
       }
     }),
-    ], [
-    for name, manifest in var.inline_manifests : yamlencode({
-      apiVersion = "v1alpha1"
-      kind       = "KubeInlineManifestConfig"
-      name       = name
-      manifest   = manifest
-    })
   ])
 }
 

@@ -41,12 +41,7 @@ variable "kubernetes_version" {
 
 variable "config_patches" {
   type        = list(string)
-  description = "全ノード共通のmachine configパッチ"
-}
-
-variable "inline_manifests" {
-  type        = map(string)
-  description = "KubeInlineManifestConfigとして埋め込むマニフェスト"
+  description = "全ノード共通とcontrol plane共通のmachine configパッチ"
 }
 
 variable "address" {
