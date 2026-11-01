@@ -1,0 +1,14 @@
+name: Connect to NetBird
+description: CIのjobを一時的なピアとしてnetbirdに接続し、jobの終了時にピアを削除する
+inputs:
+  setup-key:
+    description: CIのピアを登録するephemeralのsetup key
+    required: true
+  wait-address:
+    description: 接続を確認する、netbird経由で到達する宛先のhost:port
+    required: true
+# NOTE: composite actionにはjobの終了時に実行するpostが無いため、JavaScriptのactionで接続と削除を対にする
+runs:
+  using: node24
+  main: main.mjs
+  post: post.mjs

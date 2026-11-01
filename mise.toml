@@ -15,6 +15,7 @@ yq = "4.54.1"
 age = "1.3.2"
 age-plugin-yubikey = { version = "0.5.1", os = ["macos"] }
 "github:remko/age-plugin-se" = { version = "0.2.1", os = ["macos"] }
+"github:netbirdio/netbird" = { version = "0.81.5", os = ["linux"] }
 yamllint = "1.38.0"
 "pypi:check-jsonschema" = "0.39.0"
 shellcheck = "0.11.0"
@@ -35,9 +36,18 @@ description = "terraform/でterraformを実行する"
 dir = "{{config_root}}/terraform"
 run = "terraform"
 
-[tasks."sealed-secrets:re-encrypt"]
+[tasks."tf:netbird"]
+description = "terraform/netbird/でterraformを実行する"
+dir = "{{config_root}}/terraform/netbird"
+run = "terraform"
+
+[tasks."sealed-secrets:seal-terraform-outputs"]
+description = "Terraformのoutputの値を、cert.pemの証明書でSealedSecretに封入する"
+run = "sh kubernetes/scripts/seal-terraform-outputs.sh"
+
+[tasks."sealed-secrets:reseal"]
 description = "SealedSecretを、sealed-secrets controllerの最新の鍵で再暗号化する"
-run = "sh kubernetes/scripts/re-encrypt-sealed-secrets.sh"
+run = "sh kubernetes/scripts/reseal-sealed-secrets.sh"
 
 [tasks.lint]
 description = "Terraform・YAML・Markdown・Go・シェルスクリプトを検査する"
@@ -60,10 +70,13 @@ run = "treefmt --ci"
 [tasks."lint:terraform"]
 description = "Terraformを検査する"
 # NOTE: 実バックエンドで初期化済みの`.terraform`を使うと`init -backend=false`がR2の認証情報を要求するため、検査用のDataDirを指定
-env = { TF_DATA_DIR = "{{config_root}}/terraform/.terraform/lint" }
+#       相対パスは各rootのディレクトリを基準に解決
+env = { TF_DATA_DIR = ".terraform/lint" }
 run = [
   "mise run tf init -backend=false",
   "mise run tf validate",
+  "mise run tf:netbird init -backend=false",
+  "mise run tf:netbird validate",
   "tflint --recursive --config \"$MISE_PROJECT_ROOT/.tflint.hcl\"",
 ]
 
