@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+namespace: rook-ceph
+chart:
+  repoURL: https://charts.rook.io/release
+  name: rook-ceph-cluster
+  version: v1.21.1
+# NOTE: CephのCRDを作るrook-cephのApplicationの同期完了までの再試行
+retry:
+  limit: 10
+  backoff:
+    duration: 30s
+    factor: 2
+    maxDuration: 10m

@@ -1,0 +1,3 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+# NOTE: rook-ceph・ceph-csi-drivers・rook-ceph-clusterのApplicationが同期するnamespace
+namespace: rook-ceph
