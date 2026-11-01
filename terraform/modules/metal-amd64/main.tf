@@ -77,16 +77,33 @@ data "talos_machine_configuration" "this" {
       kind       = "KubeNodeConfig"
       labels     = var.node_labels
     }),
-    # NOTE: VolumeConfig・UserVolumeConfigは未作成のボリュームにだけ適用されるため、初回の適用に含める。
-    #       EPHEMERALが先に作られ、maxSizeのないユーザーボリュームが残りの領域を使用
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "UnattendedInstallConfig"
+      installer = {
+        image = local.installer
+      }
+      provisioning = {
+        diskSelector = {
+          match = var.install_disk_selector
+        }
+      }
+    }),
+    # NOTE: VolumeConfig・UserVolumeConfig・RawVolumeConfigは未作成のボリュームにだけ適用されるため、初回の適用に含める。
+    #       EPHEMERALが先に作られ、maxSizeのないユーザーボリューム・raw volumeが残りの領域を使用
+    ], var.ephemeral_disk_selector == null && var.ephemeral_max_size == null ? [] : [
     yamlencode({
       apiVersion = "v1alpha1"
       kind       = "VolumeConfig"
       name       = "EPHEMERAL"
       provisioning = {
-        maxSize = var.ephemeral_max_size
+        for key, value in {
+          diskSelector = var.ephemeral_disk_selector == null ? null : { match = var.ephemeral_disk_selector }
+          maxSize      = var.ephemeral_max_size
+        } : key => value if value != null
       }
     }),
+    ], var.local_path_min_size == null ? [] : [
     yamlencode({
       apiVersion = "v1alpha1"
       kind       = "UserVolumeConfig"
@@ -101,16 +118,19 @@ data "talos_machine_configuration" "this" {
         grow    = true
       }
     }),
+    ], var.ceph_osd == null ? [] : [
+    # NOTE: RookがOSDに使う、フォーマットしないパーティション。パーティションのラベルはr-ceph-osd
     yamlencode({
       apiVersion = "v1alpha1"
-      kind       = "UnattendedInstallConfig"
-      installer = {
-        image = local.installer
-      }
+      kind       = "RawVolumeConfig"
+      name       = "ceph-osd"
       provisioning = {
-        diskSelector = {
-          match = var.install_disk_selector
-        }
+        for key, value in {
+          diskSelector = { match = var.ceph_osd.disk_selector }
+          minSize      = var.ceph_osd.min_size
+          maxSize      = var.ceph_osd.max_size
+          grow         = true
+        } : key => value if value != null
       }
     }),
   ])
