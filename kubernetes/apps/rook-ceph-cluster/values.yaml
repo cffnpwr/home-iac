@@ -17,5 +17,17 @@ cephClusterSpec:
     useAllDevices: false
     # NOTE: TalosのRawVolumeConfig（ceph_osd）が作るパーティションだけをOSDに使う
     devicePathFilter: ^/dev/disk/by-partlabel/r-osd$
+  # NOTE: CSIのcephxの鍵は、Linux 7.0より前のカーネルのクライアントのためにAESを使う（chartの既定値）。
+  #       ノードのカーネルは7.0より前のため、AES256Kへの移行を求める警告を止める
+  healthCheck:
+    muteHealthWarning:
+      AUTH_INSECURE_ROTATING_SERVICE_KEY_TYPE:
+        policy: mute
+      AUTH_INSECURE_CLIENT_KEY_TYPE:
+        policy: mute
+      AUTH_INSECURE_KEYS_ALLOWED:
+        policy: mute
+      AUTH_INSECURE_KEYS_CREATABLE:
+        policy: mute
 # NOTE: オブジェクトストレージは使わない
 cephObjectStores: []
