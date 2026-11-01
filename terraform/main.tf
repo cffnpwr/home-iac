@@ -269,16 +269,6 @@ module "servers" {
   depends_on = [talos_cluster.this]
 }
 
-moved {
-  from = module.server
-  to   = module.servers["cpwr-srvr"]
-}
-
-moved {
-  from = module.servers["cpwr-srvr"]
-  to   = module.servers["cpwr-svr1"]
-}
-
 module "vultr" {
   source = "./modules/vultr"
 
