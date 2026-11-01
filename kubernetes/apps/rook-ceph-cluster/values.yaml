@@ -1,0 +1,21 @@
+operatorNamespace: rook-ceph
+cephClusterSpec:
+  # NOTE: Cephのデーモンを、永続化用のノード（terraform/main.tfのlocal.serversでceph_osdを指定したノード）に限定
+  placement:
+    all:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: cffnpwr.dev/storage
+                  operator: In
+                  values:
+                    - "true"
+  storage:
+    # NOTE: placementの条件を満たすノードをすべてOSDのノードにする
+    useAllNodes: true
+    useAllDevices: false
+    # NOTE: TalosのRawVolumeConfig（ceph_osd）が作るパーティションだけをOSDに使う
+    devicePathFilter: ^/dev/disk/by-partlabel/r-ceph-osd$
+# NOTE: オブジェクトストレージは使わない
+cephObjectStores: []

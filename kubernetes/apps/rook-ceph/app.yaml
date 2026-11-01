@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+# NOTE: Ceph-CSI operatorとCRDも、このchartの依存として導入
+namespace: rook-ceph
+chart:
+  repoURL: https://charts.rook.io/release
+  name: rook-ceph
+  version: v1.21.1
+# NOTE: namespaceを作るrook-ceph-namespaceのApplicationの同期完了までの再試行
+retry:
+  limit: 10
+  backoff:
+    duration: 30s
+    factor: 2
+    maxDuration: 10m
