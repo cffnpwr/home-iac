@@ -5,16 +5,6 @@ resource "cloudflare_zero_trust_tunnel_cloudflared" "home" {
   config_src = "cloudflare"
 }
 
-# NOTE: 公開ルートはCloudflare Tunnel Ingress Controllerへ移行したため、トンネルの設定を変更せずにstateから外す
-# TODO: applyした後に削除する
-removed {
-  from = cloudflare_zero_trust_tunnel_cloudflared_config.home
-
-  lifecycle {
-    destroy = false
-  }
-}
-
 data "cloudflare_account_api_token_permission_groups_list" "cloudflared_write" {
   account_id = local.cloudflare_account_id
   name       = "Cloudflare%20One%20Connector%3A%20cloudflared%20Write"

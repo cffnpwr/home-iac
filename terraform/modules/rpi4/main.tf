@@ -121,21 +121,3 @@ resource "talos_machine" "this" {
   drain_on_upgrade                = true
   kubeconfig_wo                   = var.kubeconfig
 }
-
-# NOTE: talos_machineへ移行したため、ノードを変更せずにstateから外す
-removed {
-  from = talos_machine_configuration_apply.this
-
-  lifecycle {
-    destroy = false
-  }
-}
-
-# NOTE: etcdのbootstrapはtalos_clusterへ移行したため、stateから外す
-removed {
-  from = talos_machine_bootstrap.this
-
-  lifecycle {
-    destroy = false
-  }
-}
