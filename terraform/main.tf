@@ -1,11 +1,14 @@
 locals {
-  talos_cluster_name     = "cffnpwr-home"
-  rpi4_address           = "192.168.0.129"
-  talos_cluster_endpoint = "https://${local.rpi4_address}:6443"
+  talos_cluster_name = "cffnpwr-home"
+  # NOTE: control planeが共有するVirtual IP
+  talos_cluster_vip      = "192.168.0.128"
+  talos_cluster_endpoint = "https://${local.talos_cluster_vip}:6443"
 
   home_gateway_address      = "192.168.0.1"
   home_subnet_prefix_length = 23
   nameservers               = ["1.1.1.1", "1.0.0.1"]
+
+  rpi4_address = "192.168.0.129"
 
   talos_common_config_patches = [
     yamlencode({
@@ -57,6 +60,13 @@ locals {
         # NOTE: ClusterIPではなくEndpointSliceから接続先を選ぶ
         enable-aggregator-routing = "true"
       }
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "Layer2VIPConfig"
+      name       = local.talos_cluster_vip
+      # NOTE: 各モジュールのLinkAliasConfigがLANのインターフェースに付ける別名
+      link = "net0"
     }),
     ], [
     for name, manifest in module.inline_manifests.inline_manifests : yamlencode({
