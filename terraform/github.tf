@@ -98,3 +98,26 @@ resource "github_actions_environment_secret" "terraform_ci_netbird_pat" {
     ignore_changes = [value]
   }
 }
+
+resource "github_actions_secret" "vultr_api_key" {
+  repository  = "home-iac"
+  secret_name = "VULTR_API_KEY"
+  value       = var.vultr_api_key
+
+  # NOTE: CIのplan・applyでは変数が未設定のため、値の変更を無視する。値の更新は、手元で-replaceを指定してapplyする
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+resource "github_actions_secret" "update_private_key" {
+  repository  = "home-iac"
+  secret_name = "UPDATE_PRIVATE_KEY"
+  value       = var.github_app_private_key
+}
+
+resource "github_actions_variable" "update_client_id" {
+  repository    = "home-iac"
+  variable_name = "UPDATE_CLIENT_ID"
+  value         = local.github_app_client_id
+}

@@ -41,3 +41,10 @@ variable "netbird_pat_read_write" {
   default     = ""
   sensitive   = true
 }
+
+variable "vultr_api_key" {
+  description = "CIのplan・applyがVultr providerで使うAPIキー"
+  type        = string
+  default     = ""
+  sensitive   = true
+}

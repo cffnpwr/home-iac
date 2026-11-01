@@ -48,6 +48,10 @@ jobs:
           permission-actions: read
           permission-administration: write
           permission-environments: write
+          permission-secrets: write
+          # NOTE: GitHub AppのVariablesの権限名はactions_variables。action.ymlに無い入力のため、runnerはUnexpected inputの警告を出す
+          #       actionはpermission-*の入力をすべてトークンの権限に使う
+          permission-actions-variables: write
       # NOTE: クラスタのrootがTalos API・kube-apiserverに接続するため
       - uses: $/.github/actions/netbird
         with:
