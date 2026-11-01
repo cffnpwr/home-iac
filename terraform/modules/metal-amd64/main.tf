@@ -119,11 +119,12 @@ data "talos_machine_configuration" "this" {
       }
     }),
     ], var.ceph_osd == null ? [] : [
-    # NOTE: RookがOSDに使う、フォーマットしないパーティション。パーティションのラベルはr-ceph-osd
+    # NOTE: RookがOSDに使う、フォーマットしないパーティション。パーティションのラベルはr-osd。
+    #       ceph-volumeはラベルにcephを含むパーティションをceph-diskのものとみなして拒否するため、名前にcephを含めない
     yamlencode({
       apiVersion = "v1alpha1"
       kind       = "RawVolumeConfig"
-      name       = "ceph-osd"
+      name       = "osd"
       provisioning = {
         for key, value in {
           diskSelector = { match = var.ceph_osd.disk_selector }

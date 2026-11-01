@@ -16,6 +16,6 @@ cephClusterSpec:
     useAllNodes: true
     useAllDevices: false
     # NOTE: TalosのRawVolumeConfig（ceph_osd）が作るパーティションだけをOSDに使う
-    devicePathFilter: ^/dev/disk/by-partlabel/r-ceph-osd$
+    devicePathFilter: ^/dev/disk/by-partlabel/r-osd$
 # NOTE: オブジェクトストレージは使わない
 cephObjectStores: []
