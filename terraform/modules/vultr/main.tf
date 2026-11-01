@@ -158,15 +158,6 @@ resource "talos_machine" "this" {
   }
 }
 
-# NOTE: talos_machineへ移行したため、on_destroyのresetを実行せずにstateから外す
-removed {
-  from = talos_machine_configuration_apply.this
-
-  lifecycle {
-    destroy = false
-  }
-}
-
 # NOTE: 古いノードのdrainとインスタンスの削除を、新しいノードがReadyになった後に行わせるための待ち合わせ。
 # create_before_destroyにより、古いtalos_machineとvultr_instanceの削除はこのリソースの作成の後になる
 resource "terraform_data" "node_ready" {

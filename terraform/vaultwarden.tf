@@ -4,16 +4,6 @@ locals {
   vaultwarden_access_redirect_uri = "https://${local.vaultwarden_hostname}/identity/connect/oidc-signin"
 }
 
-# NOTE: DNSレコードはCloudflare Tunnel Ingress Controllerへ移行したため、レコードを削除せずにstateから外す
-# TODO: applyした後に削除する
-removed {
-  from = cloudflare_dns_record.vaultwarden
-
-  lifecycle {
-    destroy = false
-  }
-}
-
 resource "cloudflare_zero_trust_access_application" "vaultwarden" {
   account_id                = local.cloudflare_account_id
   name                      = "vaultwarden"
