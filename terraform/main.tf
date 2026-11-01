@@ -76,6 +76,24 @@ locals {
       manifest   = manifest
     })
   ])
+
+  # NOTE: 自宅LANのサーバー。ホスト名をキーにする
+  servers = {
+    # NOTE: Custom PC
+    cpwr-srvr = {
+      address = "192.168.0.130"
+      extensions = [
+        "siderolabs/intel-ucode",
+        "siderolabs/realtek-firmware",
+      ]
+      link_name             = "enp2s0"
+      link_driver           = "r8169"
+      install_disk_selector = "disk.transport == \"nvme\""
+      ephemeral_max_size    = "200GiB"
+      local_path_min_size   = "100GiB"
+      secure_boot           = true
+    }
+  }
 }
 
 locals {
@@ -162,8 +180,9 @@ module "rpi4" {
   }
 }
 
-module "server" {
-  source = "./modules/metal-amd64"
+module "servers" {
+  source   = "./modules/metal-amd64"
+  for_each = local.servers
 
   cluster_name         = local.talos_cluster_name
   cluster_endpoint     = local.talos_cluster_endpoint
@@ -174,27 +193,28 @@ module "server" {
   kubernetes_version   = local.kubernetes_version
   kubeconfig           = ephemeral.talos_cluster_kubeconfig.this.kubeconfig_raw
   config_patches       = local.talos_common_config_patches
-  address              = "192.168.0.130"
+  address              = each.value.address
   prefix_length        = local.home_subnet_prefix_length
   gateway              = local.home_gateway_address
   nameservers          = local.nameservers
-  hostname             = "cpwr-srvr"
+  hostname             = each.key
   node_labels = {
     "topology.kubernetes.io/zone" = "home"
   }
-  extensions = [
-    "siderolabs/intel-ucode",
-    # NOTE: オンボードEthernet（RTL8168）のfirmware。基本のTalosはlinux-firmwareを含まない
-    "siderolabs/realtek-firmware",
-  ]
-  link_name             = "enp2s0"
-  link_driver           = "r8169"
-  install_disk_selector = "disk.transport == \"nvme\""
-  ephemeral_max_size    = "200GiB"
-  local_path_min_size   = "100GiB"
-  secure_boot           = true
+  extensions            = each.value.extensions
+  link_name             = each.value.link_name
+  link_driver           = each.value.link_driver
+  install_disk_selector = each.value.install_disk_selector
+  ephemeral_max_size    = each.value.ephemeral_max_size
+  local_path_min_size   = each.value.local_path_min_size
+  secure_boot           = each.value.secure_boot
 
   depends_on = [talos_cluster.this]
+}
+
+moved {
+  from = module.server
+  to   = module.servers["cpwr-srvr"]
 }
 
 module "vultr" {

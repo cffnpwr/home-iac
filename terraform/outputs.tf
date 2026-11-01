@@ -90,6 +90,6 @@ output "sealed_secrets_data_hmac_key" {
   sensitive = true
 }
 
-output "server_iso_url" {
-  value = module.server.iso_url
+output "server_iso_urls" {
+  value = { for hostname, server in module.servers : hostname => server.iso_url }
 }
