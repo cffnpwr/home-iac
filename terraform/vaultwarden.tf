@@ -4,13 +4,14 @@ locals {
   vaultwarden_access_redirect_uri = "https://${local.vaultwarden_hostname}/identity/connect/oidc-signin"
 }
 
-resource "cloudflare_dns_record" "vaultwarden" {
-  zone_id = data.cloudflare_zone.cffnpwr_dev.zone_id
-  name    = local.vaultwarden_hostname
-  type    = "CNAME"
-  content = "${cloudflare_zero_trust_tunnel_cloudflared.home.id}.cfargotunnel.com"
-  proxied = true
-  ttl     = 1
+# NOTE: DNSレコードはCloudflare Tunnel Ingress Controllerへ移行したため、レコードを削除せずにstateから外す
+# TODO: applyした後に削除する
+removed {
+  from = cloudflare_dns_record.vaultwarden
+
+  lifecycle {
+    destroy = false
+  }
 }
 
 resource "cloudflare_zero_trust_access_application" "vaultwarden" {

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+# NOTE: controllerはcloudflaredのDeploymentを自身と同じnamespaceに作る
+namespace: cloudflared
+chart:
+  repoURL: https://helm.strrl.dev
+  name: cloudflare-tunnel-ingress-controller
+  version: 0.1.0
+syncOptions:
+  - CreateNamespace=true

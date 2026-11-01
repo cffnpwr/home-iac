@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: netbird-dashboard
+  namespace: netbird
+spec:
+  ingressClassName: cloudflare-tunnel
+  rules:
+    - host: netbird.cffnpwr.dev
+      http:
+        paths:
+          # NOTE: Web UI・/api・/oauth2はCloudflare Tunnelで公開する
+          # NOTE: cloudflaredはpathを正規表現として扱うが、Kubernetesはpathが/で始まることを要求するため先頭に^を書けない
+          - path: /(api|oauth2)(/|$)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: netbird-management
+                port:
+                  name: http
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: netbird-dashboard
+                port:
+                  name: http

@@ -3,5 +3,5 @@ kind: Namespace
 metadata:
   name: netbird
   labels:
-    # NOTE: relayとgatewayのhostPortを許可
+    # NOTE: netbird OperatorがルーティングピアのPodをprivilegedで作成するため許可
     pod-security.kubernetes.io/enforce: privileged

@@ -12,15 +12,35 @@ spec:
       targetPort: http
       appProtocol: kubernetes.io/ws
 ---
+# NOTE: STUNはHTTPのリバースプロキシを経由できないため、CiliumのNode IPAMでVultrノードのIPアドレスで直接受ける
+apiVersion: v1
+kind: Service
+metadata:
+  name: netbird-relay-stun
+  namespace: netbird
+  annotations:
+    io.cilium.nodeipam/match-node-labels: topology.kubernetes.io/zone=vultr
+spec:
+  type: LoadBalancer
+  loadBalancerClass: io.cilium/node
+  # NOTE: STUNはクライアントの送信元IPアドレスを返すため、送信元IPアドレスを保持する
+  externalTrafficPolicy: Local
+  # NOTE: 全ノードのIPアドレスでNodePortを受けないようにする
+  allocateLoadBalancerNodePorts: false
+  selector:
+    app.kubernetes.io/name: netbird-relay
+  ports:
+    - name: stun
+      port: 3478
+      targetPort: stun
+      protocol: UDP
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: netbird-relay
   namespace: netbird
 spec:
-  # NOTE: hostPortが同じノードで重複するため、古いPodを消してから新しいPodを作る
-  strategy:
-    type: Recreate
   selector:
     matchLabels:
       app.kubernetes.io/name: netbird-relay
@@ -56,7 +76,6 @@ spec:
               containerPort: 80
             - name: stun
               containerPort: 3478
-              hostPort: 3478
               protocol: UDP
             - name: health
               containerPort: 9000

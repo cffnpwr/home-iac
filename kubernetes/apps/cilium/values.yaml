@@ -36,7 +36,12 @@ hubble:
       method: cronJob
 # NOTE: cilium-agentは設定を起動時に読むため、ConfigMapの更新でPodを入れ替える
 rollOutCiliumPods: true
+# NOTE: Vultrノードで公開するServiceに、VultrノードのIPアドレスをLoadBalancerのIPアドレスとして割り当てる
+nodeIPAM:
+  enabled: true
 operator:
+  # NOTE: Node IPAMはoperatorが処理し、operatorは設定を起動時に読むため、ConfigMapの更新でPodを入れ替える
+  rollOutPods: true
   # NOTE: chartの既定のtolerationsに、Vultrノードへのスケジューリングの許可を追加
   tolerations:
     - key: node-role.kubernetes.io/control-plane

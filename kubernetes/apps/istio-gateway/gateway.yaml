@@ -1,0 +1,83 @@
+# NOTE: Let's Encryptはワイルドカードの証明書をDNS-01でのみ発行する。ClusterIssuerのletsencryptはDNS-01を使う
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cffnpwr-dev-wildcard
+  namespace: istio-system
+spec:
+  secretName: cffnpwr-dev-wildcard-tls
+  dnsNames:
+    - "*.cffnpwr.dev"
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: letsencrypt
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingress-gateway-options
+  namespace: istio-system
+data:
+  deployment: |
+    spec:
+      template:
+        spec:
+          # NOTE: LoadBalancerのIPアドレスはVultrノードのIPアドレスのため、PodをVultrノードに固定
+          nodeSelector:
+            topology.kubernetes.io/zone: vultr
+          # NOTE: Vultrノードへのスケジューリングを許可
+          tolerations:
+            - key: edge
+              operator: Exists
+              effect: NoSchedule
+          containers:
+            - name: istio-proxy
+              # NOTE: istiodのchartの既定値（requests cpu 100m・memory 128Mi、limits cpu 2000m・memory 1024Mi）から下げる
+              resources:
+                # TODO: 実測後に見直す
+                requests:
+                  cpu: 10m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+  service: |
+    metadata:
+      annotations:
+        # NOTE: Node IPAMが割り当てるIPアドレスを、VultrノードのIPアドレスに限定
+        io.cilium.nodeipam/match-node-labels: topology.kubernetes.io/zone=vultr
+    spec:
+      type: LoadBalancer
+      # NOTE: CiliumのNode IPAMに、ノードのIPアドレスをLoadBalancerのIPアドレスとして割り当てさせる
+      loadBalancerClass: io.cilium/node
+      # NOTE: クライアントの送信元IPアドレスを保持する
+      externalTrafficPolicy: Local
+      # NOTE: 全ノードのIPアドレスでNodePortを受けないようにする
+      allocateLoadBalancerNodePorts: false
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: ingress
+  namespace: istio-system
+spec:
+  gatewayClassName: istio
+  infrastructure:
+    parametersRef:
+      group: ""
+      kind: ConfigMap
+      name: ingress-gateway-options
+  listeners:
+    - name: https
+      hostname: "*.cffnpwr.dev"
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: cffnpwr-dev-wildcard-tls
+      # NOTE: サービスごとのnamespaceのRouteが、ホスト名を指定して接続する
+      allowedRoutes:
+        namespaces:
+          from: All

@@ -1,44 +1,49 @@
 resource "cloudflare_zero_trust_tunnel_cloudflared" "home" {
   account_id = local.cloudflare_account_id
-  name       = "home"
-  # NOTE: 公開ルートをTerraformから管理するためのリモート管理
+  name       = "cffnpwr-home"
+  # NOTE: 公開ルートをCloudflare Tunnel Ingress Controllerから管理するためのリモート管理
   config_src = "cloudflare"
 }
 
-resource "cloudflare_zero_trust_tunnel_cloudflared_config" "home" {
-  account_id = local.cloudflare_account_id
-  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.home.id
+# NOTE: 公開ルートはCloudflare Tunnel Ingress Controllerへ移行したため、トンネルの設定を変更せずにstateから外す
+# TODO: applyした後に削除する
+removed {
+  from = cloudflare_zero_trust_tunnel_cloudflared_config.home
 
-  config = {
-    ingress = [
-      {
-        hostname = local.netbird_dashboard_hostname
-        path     = "^/(api|oauth2)(/|$)"
-        service  = "http://netbird-management.netbird.svc.cluster.local"
-      },
-      {
-        hostname = local.netbird_dashboard_hostname
-        service  = "http://netbird-dashboard.netbird.svc.cluster.local"
-      },
-      # NOTE: 管理画面は公開しない
-      {
-        hostname = local.vaultwarden_hostname
-        path     = "^/admin(/|$)"
-        service  = "http_status:404"
-      },
-      {
-        hostname = local.vaultwarden_hostname
-        service  = "http://vaultwarden.vaultwarden.svc.cluster.local"
-      },
-      # NOTE: 公開ルートに一致しないリクエストに404を返す、ingressの末尾に必須のルール
-      {
-        service = "http_status:404"
-      },
-    ]
+  lifecycle {
+    destroy = false
   }
 }
 
-data "cloudflare_zero_trust_tunnel_cloudflared_token" "home" {
+data "cloudflare_account_api_token_permission_groups_list" "cloudflared_write" {
   account_id = local.cloudflare_account_id
-  tunnel_id  = cloudflare_zero_trust_tunnel_cloudflared.home.id
+  name       = "Cloudflare%20One%20Connector%3A%20cloudflared%20Write"
+}
+
+# NOTE: Cloudflare Tunnel Ingress Controllerが、トンネルの公開ルートとDNSレコードの管理に使うトークン
+resource "cloudflare_account_token" "cloudflare_tunnel_ingress_controller" {
+  account_id = local.cloudflare_account_id
+  name       = "cloudflare-tunnel-ingress-controller"
+
+  policies = [
+    {
+      effect = "allow"
+      permission_groups = [
+        { id = one(data.cloudflare_account_api_token_permission_groups_list.cloudflared_write.result).id },
+      ]
+      resources = jsonencode({
+        "com.cloudflare.api.account.${local.cloudflare_account_id}" = "*"
+      })
+    },
+    {
+      effect = "allow"
+      permission_groups = [
+        { id = one(data.cloudflare_account_api_token_permission_groups_list.dns_write.result).id },
+        { id = one(data.cloudflare_account_api_token_permission_groups_list.zone_read.result).id },
+      ]
+      resources = jsonencode({
+        "com.cloudflare.api.account.zone.${data.cloudflare_zone.cffnpwr_dev.zone_id}" = "*"
+      })
+    },
+  ]
 }
