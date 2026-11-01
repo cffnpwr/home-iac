@@ -57,3 +57,25 @@ resource "cloudflare_account_token" "sealed_secrets_reseal" {
     })
   }]
 }
+
+resource "cloudflare_account_token" "terraform_ci" {
+  # NOTE: CIのplanはstateをロックしない（-lock=false）ため、planには読み取りだけを許可
+  for_each = {
+    "terraform-plan"  = data.cloudflare_account_api_token_permission_groups_list.r2_bucket_item_read
+    "terraform-apply" = data.cloudflare_account_api_token_permission_groups_list.r2_bucket_item_write
+  }
+
+  account_id = local.cloudflare_account_id
+  name       = each.key
+
+  policies = [{
+    effect = "allow"
+    permission_groups = [{
+      id = one(each.value.result).id
+    }]
+    # NOTE: CIによるS3 backendのstateの読み書き用
+    resources = jsonencode({
+      "com.cloudflare.edge.r2.bucket.${local.cloudflare_account_id}_default_${cloudflare_r2_bucket.tfstate.name}" = "*"
+    })
+  }]
+}
