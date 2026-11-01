@@ -80,7 +80,7 @@ locals {
   # NOTE: 自宅LANのサーバー。ホスト名をキーにする
   servers = {
     # NOTE: Custom PC
-    cpwr-srvr = {
+    cpwr-svr1 = {
       address = "192.168.0.130"
       extensions = [
         "siderolabs/intel-ucode",
@@ -119,8 +119,9 @@ resource "talos_machine_secrets" "this" {
 data "talos_client_configuration" "this" {
   cluster_name         = local.talos_cluster_name
   client_configuration = talos_machine_secrets.this.client_configuration
-  endpoints            = [local.rpi4_address]
-  nodes                = [local.rpi4_address]
+  # NOTE: Virtual IPはetcdの障害時に使えないため、Talos APIには各control planeのアドレスで接続
+  endpoints = concat([local.rpi4_address], [for server in values(local.servers) : server.address])
+  nodes     = [local.rpi4_address]
 }
 
 # NOTE: Talosのアップグレードの前にノードをdrainするためのkubeconfig。stateに残さないようephemeralで生成
@@ -192,7 +193,8 @@ module "servers" {
   talos_config_version = local.talos_config_version
   kubernetes_version   = local.kubernetes_version
   kubeconfig           = ephemeral.talos_cluster_kubeconfig.this.kubeconfig_raw
-  config_patches       = local.talos_common_config_patches
+  machine_type         = "controlplane"
+  config_patches       = concat(local.talos_common_config_patches, local.talos_controlplane_config_patches)
   address              = each.value.address
   prefix_length        = local.home_subnet_prefix_length
   gateway              = local.home_gateway_address
@@ -215,6 +217,11 @@ module "servers" {
 moved {
   from = module.server
   to   = module.servers["cpwr-srvr"]
+}
+
+moved {
+  from = module.servers["cpwr-srvr"]
+  to   = module.servers["cpwr-svr1"]
 }
 
 module "vultr" {

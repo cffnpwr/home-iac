@@ -79,11 +79,11 @@ Bucketができるまでリモートのstateは使えないため、初回はロ
 
 ## ローカルサーバーの参加
 
-ローカルサーバー（`terraform/main.tf`の`local.servers`）のworkerは、ISOから手作業で起動して参加させる。
+ローカルサーバー（`terraform/main.tf`の`local.servers`）のcontrol planeは、ISOから手作業で起動して参加させる。
 次の手順は、サーバーごとに実行する。
 
 1. サーバー用のISOのURLを確定させる。
-   `<ホスト名>`は`local.servers`のキー（例: `cpwr-srvr`）である。
+   `<ホスト名>`は`local.servers`のキー（例: `cpwr-svr1`）である。
 
    ```sh
    mise run tf apply -target='module.servers["<ホスト名>"].data.talos_image_factory_urls.this'

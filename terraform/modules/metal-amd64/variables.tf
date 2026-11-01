@@ -39,9 +39,19 @@ variable "kubernetes_version" {
   description = "machine configに設定するKubernetesのバージョン"
 }
 
+variable "machine_type" {
+  type        = string
+  description = "ノードの種類（controlplane・worker）"
+
+  validation {
+    condition     = contains(["controlplane", "worker"], var.machine_type)
+    error_message = "machine_typeはcontrolplane・workerのいずれかを指定する"
+  }
+}
+
 variable "config_patches" {
   type        = list(string)
-  description = "全ノード共通のmachine configパッチ"
+  description = "全ノード共通のmachine configパッチ。control planeの場合はcontrol plane共通のパッチも含める"
 }
 
 variable "address" {

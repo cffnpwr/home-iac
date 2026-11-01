@@ -40,7 +40,7 @@ data "talos_image_factory_urls" "this" {
 data "talos_machine_configuration" "this" {
   cluster_name       = var.cluster_name
   cluster_endpoint   = var.cluster_endpoint
-  machine_type       = "worker"
+  machine_type       = var.machine_type
   machine_secrets    = var.machine_secrets
   talos_version      = var.talos_config_version
   kubernetes_version = var.kubernetes_version
