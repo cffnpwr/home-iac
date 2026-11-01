@@ -66,6 +66,10 @@ data "talos_machine_configuration" "this" {
       apiVersion = "v1alpha1"
       kind       = "KubeNodeConfig"
       labels     = var.node_labels
+      taints = {
+        # NOTE: etcd・kube-apiserverとメモリ・SDカードを共有するため、ワークロードはほかのノードに優先して置く
+        "node-role.kubernetes.io/control-plane" = "PreferNoSchedule"
+      }
     }),
     yamlencode({
       apiVersion = "v1alpha1"
