@@ -86,12 +86,18 @@ locals {
         "siderolabs/intel-ucode",
         "siderolabs/realtek-firmware",
       ]
-      link_name             = "enp2s0"
-      link_driver           = "r8169"
-      install_disk_selector = "disk.transport == \"nvme\""
-      ephemeral_max_size    = "200GiB"
-      local_path_min_size   = "100GiB"
-      secure_boot           = true
+      link_name               = "enp2s0"
+      link_driver             = "r8169"
+      install_disk_selector   = "disk.transport == \"nvme\""
+      ephemeral_max_size      = "200GiB"
+      ephemeral_disk_selector = null
+      # NOTE: NVMe（1TB）のEPHEMERAL以外の領域をOSDにする
+      ceph_osd = {
+        disk_selector = "system_disk"
+        min_size      = "100GiB"
+        max_size      = null
+      }
+      secure_boot = true
     }
   }
 }
@@ -200,16 +206,23 @@ module "servers" {
   gateway              = local.home_gateway_address
   nameservers          = local.nameservers
   hostname             = each.key
-  node_labels = {
-    "topology.kubernetes.io/zone" = "home"
-  }
-  extensions            = each.value.extensions
-  link_name             = each.value.link_name
-  link_driver           = each.value.link_driver
-  install_disk_selector = each.value.install_disk_selector
-  ephemeral_max_size    = each.value.ephemeral_max_size
-  local_path_min_size   = each.value.local_path_min_size
-  secure_boot           = each.value.secure_boot
+  node_labels = merge(
+    {
+      "topology.kubernetes.io/zone" = "home"
+    },
+    # NOTE: CephのOSDを置く永続化用のノードの場合はラベルを付与
+    each.value.ceph_osd == null ? {} : {
+      "cffnpwr.dev/storage" = "true"
+    },
+  )
+  extensions              = each.value.extensions
+  link_name               = each.value.link_name
+  link_driver             = each.value.link_driver
+  install_disk_selector   = each.value.install_disk_selector
+  ephemeral_max_size      = each.value.ephemeral_max_size
+  ephemeral_disk_selector = each.value.ephemeral_disk_selector
+  ceph_osd                = each.value.ceph_osd
+  secure_boot             = each.value.secure_boot
 
   depends_on = [talos_cluster.this]
 }
