@@ -6,6 +6,7 @@ resources:
   - vaultwarden-r2.yaml
   - vaultwarden-sso.yaml
   - vaultwarden-keys.yaml
+  - postgres.yaml
 configMapGenerator:
   - name: vaultwarden-litestream
     namespace: vaultwarden

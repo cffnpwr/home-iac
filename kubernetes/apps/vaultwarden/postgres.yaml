@@ -1,0 +1,83 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: vaultwarden-postgres
+  namespace: vaultwarden
+spec:
+  instances: 3
+  # NOTE: Barman Cloud Pluginのsidecarは、minimalのイメージと組み合わせる前提で作られている
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.11-minimal-trixie@sha256:7c680fc840a9ea6bd04399f1aeea06bb3180df3f0969f18833925b6df3d7dc87
+  bootstrap:
+    initdb:
+      database: vaultwarden
+      owner: vaultwarden
+  storage:
+    storageClass: ceph-block
+    size: 5Gi
+  affinity:
+    enablePodAntiAffinity: true
+    topologyKey: kubernetes.io/hostname
+    podAntiAffinityType: required
+    tolerations:
+      # NOTE: Vultrノードへのスケジューリングを許可
+      - key: edge
+        operator: Exists
+        effect: NoSchedule
+    # NOTE: PVはCephのOSDがある自宅に置かれるため、Vultrノードには自宅のノードに空きが無い場合だけ配置
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: NotIn
+                values:
+                  - vultr
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: vaultwarden-r2
+  resources:
+    # TODO: 実測後に見直す
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: vaultwarden-r2
+  namespace: vaultwarden
+spec:
+  configuration:
+    # NOTE: Litestreamの複製と同じバケット。Barman Cloud Pluginは、Clusterの名前のディレクトリに置く
+    destinationPath: s3://home-iac-vaultwarden-db/
+    endpointURL: https://086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com
+    s3Credentials:
+      accessKeyId:
+        name: vaultwarden-r2
+        key: db-access-key-id
+      secretAccessKey:
+        name: vaultwarden-r2
+        key: db-secret-access-key
+    wal:
+      compression: gzip
+  retentionPolicy: 30d
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: vaultwarden-postgres
+  namespace: vaultwarden
+spec:
+  # NOTE: 秒を含む6フィールドのcron
+  schedule: "0 0 3 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: vaultwarden-postgres
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
