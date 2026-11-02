@@ -114,7 +114,7 @@ spec:
               subPath: litestream.yml
       containers:
         - name: management
-          image: netbirdio/management:0.81.5@sha256:1b8c177dce855ef83e4da0fcd82a51a78b80145eb48453fe363fd40aca4b5471
+          image: netbirdio/management:0.82.0@sha256:07c8f979fcc980678cc64e584cf6b7b27204ceb4c871531b29e2dce39592e9ff
           env:
             - name: NETBIRD_ACCESS_ISSUER
               valueFrom:
