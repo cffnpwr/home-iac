@@ -13,10 +13,12 @@ spec:
   dnsZoneRef:
     name: cffnpwr-home.internal
   workloadOverride:
-    # NOTE: Vultrのノードはtaintで除外されるため、自宅の2台に1つずつ配置
+    # NOTE: 自宅LANのサブネットへ中継するため、自宅のノードに固定し、2台に1つずつ配置
     replicas: 2
     podTemplate:
       spec:
+        nodeSelector:
+          topology.kubernetes.io/zone: home
         # NOTE: Operatorの既定の配置条件は偏りを許容するため、必須の条件で別々のノードに配置
         affinity:
           podAntiAffinity:
