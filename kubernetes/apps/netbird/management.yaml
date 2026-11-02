@@ -28,14 +28,19 @@ spec:
       appProtocol: kubernetes.io/h2c
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: netbird-management
   namespace: netbird
 spec:
-  # NOTE: SQLiteとLitestreamは複数のレプリカに対応しない
-  replicas: 1
-  serviceName: netbird-management
+  # NOTE: SQLiteからPostgreSQLへのデータの移行が終わるまで停止
+  replicas: 0
+  # NOTE: OSS版のmanagementは複数のレプリカに対応しない。更新時の停止を避けるため、新しいPodの準備ができてから古いPodを止める
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: netbird-management
@@ -44,74 +49,11 @@ spec:
       labels:
         app.kubernetes.io/name: netbird-management
     spec:
-      nodeSelector:
-        topology.kubernetes.io/zone: vultr
       tolerations:
+        # NOTE: Vultrノードへのスケジューリングを許可
         - key: edge
           operator: Exists
           effect: NoSchedule
-      # NOTE: Vultrインスタンスの入れ替えでPVが失われたとき、R2の複製からDBを復元
-      initContainers:
-        - name: restore-store
-          image: litestream/litestream:0.5.17@sha256:4b02b9859a6b6b4087d8b8944e15f7e984bd7957cba322bbeee38b0e27b9656a
-          args: [restore, -if-db-not-exists, -if-replica-exists, /var/lib/netbird/store.db]
-          env:
-            - name: LITESTREAM_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: netbird-cloudflare
-                  key: backup-access-key-id
-            - name: LITESTREAM_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: netbird-cloudflare
-                  key: backup-secret-access-key
-          volumeMounts:
-            - name: data
-              mountPath: /var/lib/netbird
-            - name: litestream-config
-              mountPath: /etc/litestream.yml
-              subPath: litestream.yml
-        - name: restore-events
-          image: litestream/litestream:0.5.17@sha256:4b02b9859a6b6b4087d8b8944e15f7e984bd7957cba322bbeee38b0e27b9656a
-          args: [restore, -if-db-not-exists, -if-replica-exists, /var/lib/netbird/events.db]
-          env:
-            - name: LITESTREAM_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: netbird-cloudflare
-                  key: backup-access-key-id
-            - name: LITESTREAM_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: netbird-cloudflare
-                  key: backup-secret-access-key
-          volumeMounts:
-            - name: data
-              mountPath: /var/lib/netbird
-            - name: litestream-config
-              mountPath: /etc/litestream.yml
-              subPath: litestream.yml
-        - name: restore-idp
-          image: litestream/litestream:0.5.17@sha256:4b02b9859a6b6b4087d8b8944e15f7e984bd7957cba322bbeee38b0e27b9656a
-          args: [restore, -if-db-not-exists, -if-replica-exists, /var/lib/netbird/idp.db]
-          env:
-            - name: LITESTREAM_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: netbird-cloudflare
-                  key: backup-access-key-id
-            - name: LITESTREAM_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: netbird-cloudflare
-                  key: backup-secret-access-key
-          volumeMounts:
-            - name: data
-              mountPath: /var/lib/netbird
-            - name: litestream-config
-              mountPath: /etc/litestream.yml
-              subPath: litestream.yml
       containers:
         - name: management
           image: netbirdio/management:0.82.0@sha256:07c8f979fcc980678cc64e584cf6b7b27204ceb4c871531b29e2dce39592e9ff
@@ -153,6 +95,22 @@ spec:
                 secretKeyRef:
                   name: netbird-secrets
                   key: idp-session-cookie-encryption-key
+            # NOTE: CloudNativePGが生成するパスワードは英数字だけのため、key=value形式のDSNに引用符なしで埋め込む
+            - name: NETBIRD_POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: netbird-postgres-app
+                  key: password
+            # NOTE: 組み込みIdP（Dex）にはCAの証明書を渡せず、sslmodeを省略するとverify-fullになるため、3つのDSNをrequireで揃える
+            - name: NB_STORE_ENGINE_POSTGRES_DSN
+              value: host=netbird-postgres-rw port=5432 user=netbird password=$(NETBIRD_POSTGRES_PASSWORD) dbname=netbird sslmode=require
+            - name: NB_ACTIVITY_EVENT_STORE_ENGINE
+              value: postgres
+            - name: NB_ACTIVITY_EVENT_POSTGRES_DSN
+              value: host=netbird-postgres-rw port=5432 user=netbird password=$(NETBIRD_POSTGRES_PASSWORD) dbname=netbird_events sslmode=require
+            # NOTE: management.jsonのEmbeddedIdP.Storageに展開する
+            - name: NETBIRD_IDP_POSTGRES_DSN
+              value: host=netbird-postgres-rw port=5432 user=netbird password=$(NETBIRD_POSTGRES_PASSWORD) dbname=netbird_auth sslmode=require
           ports:
             - name: http
               containerPort: 80
@@ -169,51 +127,15 @@ spec:
             limits:
               memory: 512Mi
           volumeMounts:
+            # NOTE: GeoLite2のファイルだけを置く。ファイルが無い場合、managementは起動時にダウンロードする
             - name: data
               mountPath: /var/lib/netbird
             - name: config
               mountPath: /etc/netbird
               readOnly: true
-        - name: litestream
-          image: litestream/litestream:0.5.17@sha256:4b02b9859a6b6b4087d8b8944e15f7e984bd7957cba322bbeee38b0e27b9656a
-          args: [replicate]
-          env:
-            - name: LITESTREAM_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: netbird-cloudflare
-                  key: backup-access-key-id
-            - name: LITESTREAM_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: netbird-cloudflare
-                  key: backup-secret-access-key
-          volumeMounts:
-            - name: data
-              mountPath: /var/lib/netbird
-            - name: litestream-config
-              mountPath: /etc/litestream.yml
-              subPath: litestream.yml
-          resources:
-            # TODO: 実測後に見直す
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              memory: 128Mi
       volumes:
+        - name: data
+          emptyDir: {}
         - name: config
           configMap:
             name: netbird-management
-        - name: litestream-config
-          configMap:
-            name: netbird-litestream
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-      spec:
-        accessModes: [ReadWriteOnce]
-        storageClassName: local-path
-        resources:
-          requests:
-            storage: 1Gi
