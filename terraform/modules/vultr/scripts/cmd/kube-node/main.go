@@ -55,11 +55,6 @@ func run() error {
 		return err
 	}
 
-	talosconfig, err := clientconfig.FromString(in.Talosconfig)
-	if err != nil {
-		return fmt.Errorf("invalid talosconfig: %v", err)
-	}
-
 	vultrAPIKey := os.Getenv("VULTR_API_KEY")
 	if selectedMode == modeDetachIso && vultrAPIKey == "" {
 		return errors.New("environment variable VULTR_API_KEY is not set")
@@ -68,7 +63,13 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	cluster, err := connectCluster(ctx, talosconfig, in.TalosEndpoint)
+	talosClient, err := connectTalos(ctx, in)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = talosClient.Close() }()
+
+	cluster, err := connectCluster(ctx, talosClient)
 	if err != nil {
 		return err
 	}
@@ -84,12 +85,17 @@ func run() error {
 	panic(fmt.Sprintf("unreachable mode: %q", selectedMode))
 }
 
-func connectCluster(
-	ctx context.Context,
-	talosconfig *clientconfig.Config,
-	talosEndpoint string,
-) (*kube.Client, error) {
-	kubeconfig, err := talos.FetchKubeconfig(ctx, talosconfig, talosEndpoint)
+func connectTalos(ctx context.Context, in input) (*talos.Client, error) {
+	talosconfig, err := clientconfig.FromString(in.Talosconfig)
+	if err != nil {
+		return nil, fmt.Errorf("invalid talosconfig: %v", err)
+	}
+
+	return talos.NewClient(ctx, talosconfig, in.TalosEndpoint)
+}
+
+func connectCluster(ctx context.Context, talosClient *talos.Client) (*kube.Client, error) {
+	kubeconfig, err := talosClient.FetchKubeconfig(ctx)
 	if err != nil {
 		return nil, err
 	}
