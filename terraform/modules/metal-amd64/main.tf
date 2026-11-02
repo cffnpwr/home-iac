@@ -103,21 +103,6 @@ data "talos_machine_configuration" "this" {
         } : key => value if value != null
       }
     }),
-    ], var.local_path_min_size == null ? [] : [
-    yamlencode({
-      apiVersion = "v1alpha1"
-      kind       = "UserVolumeConfig"
-      name       = "local-path-provisioner"
-      volumeType = "partition"
-      provisioning = {
-        diskSelector = {
-          match = "system_disk"
-        }
-        # NOTE: local-path-privisionerのボリュームに割り当てる最小のサイズ
-        minSize = var.local_path_min_size
-        grow    = true
-      }
-    }),
     ], var.ceph_osd == null ? [] : [
     # NOTE: RookがOSDに使う、フォーマットしないパーティション。パーティションのラベルはr-osd。
     #       ceph-volumeはラベルにcephを含むパーティションをceph-diskのものとみなして拒否するため、名前にcephを含めない
