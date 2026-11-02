@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+namespace: cnpg-system
+chart:
+  repoURL: https://cloudnative-pg.github.io/charts
+  name: cloudnative-pg
+  version: 0.29.1
+syncOptions:
+  - CreateNamespace=true
