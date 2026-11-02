@@ -19,7 +19,3 @@ configMapGenerator:
     namespace: netbird
     files:
       - management.json
-  - name: netbird-litestream
-    namespace: netbird
-    files:
-      - litestream.yml
