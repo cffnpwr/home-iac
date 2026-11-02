@@ -4,13 +4,22 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/kubectl/pkg/drain"
 )
 
-var ErrNodeBootIDEmpty = errors.New("node boot ID is empty")
+// Podの猶予期間にspec.terminationGracePeriodSecondsを使う値
+const podGracePeriodSeconds = -1
+
+var (
+	ErrNodeBootIDEmpty = errors.New("node boot ID is empty")
+	ErrDrainNode       = errors.New("drain node failed")
+)
 
 func (c *Client) GetNodeReadyStatus(
 	ctx context.Context,
@@ -59,6 +68,35 @@ func (c *Client) DeleteNode(ctx context.Context, nodeName string) error {
 	err := c.clientset.CoreV1().Nodes().Delete(ctx, nodeName, metav1.DeleteOptions{})
 	if err != nil && !apierrors.IsNotFound(err) {
 		return fmt.Errorf("%w: delete node %s: %v", ErrKubernetesAPI, nodeName, err)
+	}
+
+	return nil
+}
+
+func (c *Client) DrainNode(ctx context.Context, nodeName string, timeout time.Duration) error {
+	node, err := c.getNode(ctx, nodeName)
+	if err != nil {
+		return err
+	}
+
+	// resetの前に、DaemonSet以外のPodをすべて退避
+	helper := &drain.Helper{
+		Ctx:                 ctx,
+		Client:              c.clientset,
+		Force:               true,
+		GracePeriodSeconds:  podGracePeriodSeconds,
+		IgnoreAllDaemonSets: true,
+		DeleteEmptyDirData:  true,
+		Timeout:             timeout,
+		Out:                 os.Stdout,
+		ErrOut:              os.Stderr,
+	}
+	if cordonErr := drain.RunCordonOrUncordon(helper, node, true); cordonErr != nil {
+		return fmt.Errorf("%w: cordon node %s: %v", ErrDrainNode, nodeName, cordonErr)
+	}
+
+	if drainErr := drain.RunNodeDrain(helper, nodeName); drainErr != nil {
+		return fmt.Errorf("%w: node %s: %v", ErrDrainNode, nodeName, drainErr)
 	}
 
 	return nil

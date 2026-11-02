@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// 新しいインスタンスの作成と再起動の待機時間
+// Nodeとインスタンスの状態の変化を待つ上限と確認の間隔
 const (
 	waitTimeout  = 15 * time.Minute
 	pollInterval = 10 * time.Second
