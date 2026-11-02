@@ -1,0 +1,76 @@
+# NOTE: PVはCephのOSDがある自宅に置かれるため、PVCを使うPodはVultrノードには自宅のノードに空きが無い場合だけ配置
+#       taintはPodのボリュームに応じて効果を変えられないため、PodにnodeAffinityを付与
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: pvc-node-affinity
+spec:
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+  matchConditions:
+    # NOTE: ephemeralのボリュームはPodの作成時にPVCを作りPVをCephに置くため対象に含める
+    - name: uses-pvc
+      expression: >-
+        has(object.spec.volumes) &&
+        object.spec.volumes.exists(v, has(v.persistentVolumeClaim) || has(v.ephemeral))
+  variables:
+    - name: preferNonVultr
+      expression: >-
+        {
+          "weight": dyn(100),
+          "preference": dyn({
+            "matchExpressions": [{
+              "key": dyn("topology.kubernetes.io/zone"),
+              "operator": dyn("NotIn"),
+              "values": dyn(["vultr"])
+            }]
+          })
+        }
+  # NOTE: preferredDuringSchedulingIgnoredDuringExecutionはatomicなリストで、ApplyConfigurationでは変更できないためJSONPatchで追加
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          !has(object.spec.affinity) ?
+            [JSONPatch{
+              op: "add",
+              path: "/spec/affinity",
+              value: {
+                "nodeAffinity": {
+                  "preferredDuringSchedulingIgnoredDuringExecution": [variables.preferNonVultr]
+                }
+              }
+            }] :
+          !has(object.spec.affinity.nodeAffinity) ?
+            [JSONPatch{
+              op: "add",
+              path: "/spec/affinity/nodeAffinity",
+              value: {
+                "preferredDuringSchedulingIgnoredDuringExecution": [variables.preferNonVultr]
+              }
+            }] :
+          !has(object.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution) ?
+            [JSONPatch{
+              op: "add",
+              path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution",
+              value: [variables.preferNonVultr]
+            }] :
+            [JSONPatch{
+              op: "add",
+              path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution/-",
+              value: variables.preferNonVultr
+            }]
+  # NOTE: 付与に失敗してもPodの作成を止めない
+  failurePolicy: Ignore
+  reinvocationPolicy: Never
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: pvc-node-affinity
+spec:
+  policyName: pvc-node-affinity

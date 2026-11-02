@@ -23,16 +23,6 @@ spec:
       - key: edge
         operator: Exists
         effect: NoSchedule
-    # NOTE: PVはCephのOSDがある自宅に置かれるため、Vultrノードには自宅のノードに空きが無い場合だけ配置
-    nodeAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 100
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: NotIn
-                values:
-                  - vultr
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
