@@ -13,17 +13,22 @@ spec:
       appProtocol: http
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: vaultwarden
   namespace: vaultwarden
   annotations:
     # NOTE: vaultwardenは設定・鍵・認証情報を起動したときにしか読まないため、Secretの変更時にPodを作り直す
-    secret.reloader.stakater.com/reload: vaultwarden-r2,vaultwarden-sso,vaultwarden-keys
+    secret.reloader.stakater.com/reload: vaultwarden-r2,vaultwarden-sso,vaultwarden-keys,vaultwarden-postgres-app
 spec:
-  # NOTE: SQLiteとLitestreamは複数のレプリカに対応しない
-  replicas: 1
-  serviceName: vaultwarden
+  # NOTE: SQLiteからPostgreSQLへのデータの移行が終わるまで停止
+  replicas: 0
+  # NOTE: vaultwardenは複数のレプリカに対応しない。更新時の停止を避けるため、新しいPodの準備ができてから古いPodを止める
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: vaultwarden
@@ -32,35 +37,15 @@ spec:
       labels:
         app.kubernetes.io/name: vaultwarden
     spec:
-      initContainers:
-        # NOTE: PVが失われたとき、R2の複製からDBを復元
-        - name: restore
-          image: litestream/litestream:0.5.17@sha256:4b02b9859a6b6b4087d8b8944e15f7e984bd7957cba322bbeee38b0e27b9656a
-          args: [restore, -if-db-not-exists, -if-replica-exists, /data/db.sqlite3]
-          env:
-            - name: LITESTREAM_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: vaultwarden-r2
-                  key: db-access-key-id
-            - name: LITESTREAM_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: vaultwarden-r2
-                  key: db-secret-access-key
-          volumeMounts:
-            - name: data
-              mountPath: /data
-            - name: litestream-config
-              mountPath: /etc/litestream.yml
-              subPath: litestream.yml
-            - name: litestream-sse-customer-key
-              mountPath: /etc/litestream
-              readOnly: true
       containers:
         - name: vaultwarden
-          image: ghcr.io/cffnpwr/home-iac/vaultwarden:main@sha256:9e3cfcb6cb46f2883c4f85df5a9bde1c7da390303e1b19f5dc296db65bb82879
+          image: ghcr.io/cffnpwr/home-iac/vaultwarden:main@sha256:417b6ea420e8c825aa0ec949e85439586b655b0e8d453851df42c7c3b68ebea7
           env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: vaultwarden-postgres-app
+                  key: uri
             - name: DOMAIN
               value: https://vaultwarden.cffnpwr.dev
             - name: SIGNUPS_ALLOWED
@@ -132,37 +117,10 @@ spec:
             - name: rsa-key
               mountPath: /etc/vaultwarden/rsa-key
               readOnly: true
-        - name: litestream
-          image: litestream/litestream:0.5.17@sha256:4b02b9859a6b6b4087d8b8944e15f7e984bd7957cba322bbeee38b0e27b9656a
-          args: [replicate]
-          env:
-            - name: LITESTREAM_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: vaultwarden-r2
-                  key: db-access-key-id
-            - name: LITESTREAM_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: vaultwarden-r2
-                  key: db-secret-access-key
-          volumeMounts:
-            - name: data
-              mountPath: /data
-            - name: litestream-config
-              mountPath: /etc/litestream.yml
-              subPath: litestream.yml
-            - name: litestream-sse-customer-key
-              mountPath: /etc/litestream
-              readOnly: true
-          resources:
-            # TODO: 実測後に見直す
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              memory: 128Mi
       volumes:
+        # NOTE: DBはPostgreSQL、添付ファイル等はR2に置くため、DATA_FOLDERには永続化するデータが無い
+        - name: data
+          emptyDir: {}
         - name: tmp
           emptyDir: {}
         - name: config
@@ -177,21 +135,3 @@ spec:
             items:
               - key: rsa_key.pem
                 path: rsa_key.pem
-        - name: litestream-config
-          configMap:
-            name: vaultwarden-litestream
-        - name: litestream-sse-customer-key
-          secret:
-            secretName: vaultwarden-keys
-            items:
-              - key: litestream-sse-customer-key
-                path: sse-customer-key
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-      spec:
-        accessModes: [ReadWriteOnce]
-        storageClassName: ceph-block
-        resources:
-          requests:
-            storage: 1Gi

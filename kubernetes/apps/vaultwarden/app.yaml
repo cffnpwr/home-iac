@@ -5,7 +5,7 @@ syncOptions:
 # NOTE: Secretの変更時にReloaderがPodのテンプレートへ追加するアノテーション
 ignoreDifferences:
   - group: apps
-    kind: StatefulSet
+    kind: Deployment
     name: vaultwarden
     jsonPointers:
       - /spec/template/metadata/annotations/reloader.stakater.com~1last-reloaded-from
