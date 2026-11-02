@@ -57,7 +57,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: relay
-          image: netbirdio/relay:0.81.5@sha256:9e2b250ed5bfb63c98fb2d184b59847facc200876211ce54bebc86b50499537f
+          image: netbirdio/relay:0.82.0@sha256:8f6b9e4193653ede89e83dd4aa4e2cf2562579b3e2481dcf259a7ab28bcd5fa1
           env:
             - name: NB_LISTEN_ADDRESS
               value: :80
