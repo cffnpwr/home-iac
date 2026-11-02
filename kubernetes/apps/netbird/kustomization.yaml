@@ -13,6 +13,7 @@ resources:
   - netbird-cloudflare.yaml
   - netbird-mgmt-api-key.yaml
   - networkrouter.yaml
+  - postgres.yaml
 configMapGenerator:
   - name: netbird-management
     namespace: netbird
