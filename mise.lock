@@ -79,21 +79,21 @@ url_api = "https://api.github.com/repos/suzuki-shunsuke/tfcmt/releases/assets/68
 provenance = "github-attestations"
 
 [[tools."github:netbirdio/netbird"]]
-version = "0.81.5"
+version = "0.82.0"
 backend = "github:netbirdio/netbird"
-specifiers = ["0.81.5"]
+specifiers = ["v0.82.0"]
 
 [tools."github:netbirdio/netbird"."platforms.linux-arm64"]
-checksum = "sha256:7770879deef78d041d5ae55d4216016ce74c6a21d3493c95554bd8530530eb4e"
+checksum = "sha256:c2e5ccb5824cb29fe008a5a54854fd5926b89d3aaff7ab8721f77abf8e8b3e62"
 checksum_source = "mise-versions"
-url = "https://github.com/netbirdio/netbird/releases/download/v0.81.5/netbird_0.81.5_linux_arm64.tar.gz"
-url_api = "https://api.github.com/repos/netbirdio/netbird/releases/assets/679004092"
+url = "https://github.com/netbirdio/netbird/releases/download/v0.82.0/netbird_0.82.0_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/netbirdio/netbird/releases/assets/688884882"
 
 [tools."github:netbirdio/netbird"."platforms.linux-x64"]
-checksum = "sha256:e08f9ea3f6d9e55bf1aa776b08c25146afdc45657f602ed02c1a4ae666b9d775"
+checksum = "sha256:b569f65de303d21317bc716f3116002e2cf175ae22a9f6d2bed91200a2f5000b"
 checksum_source = "mise-versions"
-url = "https://github.com/netbirdio/netbird/releases/download/v0.81.5/netbird_0.81.5_linux_amd64.tar.gz"
-url_api = "https://api.github.com/repos/netbirdio/netbird/releases/assets/679004074"
+url = "https://github.com/netbirdio/netbird/releases/download/v0.82.0/netbird_0.82.0_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/netbirdio/netbird/releases/assets/688884883"
 
 [[tools."github:remko/age-plugin-se"]]
 version = "0.2.1"
