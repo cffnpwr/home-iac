@@ -9,13 +9,13 @@ ARG VAULTWARDEN_COMMIT=7c188967e7a467b19b2757bc3326f9cf3ccae327
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
   apt-get update \
-  && apt-get install -y --no-install-recommends libssl-dev pkgconf
+  && apt-get install -y --no-install-recommends libpq-dev libssl-dev pkgconf
 
 ADD --checksum=${VAULTWARDEN_COMMIT} https://github.com/dani-garcia/vaultwarden.git#${VAULTWARDEN_VERSION} .
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
-  # NOTE: backendにs3を使用
-  VW_VERSION="${VAULTWARDEN_VERSION}" cargo build --locked --features sqlite,s3 --release
+  # NOTE: backendにs3を使用。DBはSQLiteからPostgreSQLへの移行のため両方に対応
+  VW_VERSION="${VAULTWARDEN_VERSION}" cargo build --locked --features sqlite,postgresql,s3 --release
 
 # NOTE: web-vault・起動スクリプト・ヘルスチェックは、同じバージョンの公式のイメージのものを使う
 FROM docker.io/vaultwarden/server:1.37.4@sha256:efb3cde962015fcc036b2ea625242248611943b27212ebf4392841fb30fad055
