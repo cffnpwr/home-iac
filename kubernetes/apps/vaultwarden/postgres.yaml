@@ -53,7 +53,7 @@ metadata:
   namespace: vaultwarden
 spec:
   configuration:
-    # NOTE: Litestreamの複製と同じバケット。Barman Cloud Pluginは、Clusterの名前のディレクトリに置く
+    # NOTE: Barman Cloud Pluginは、Clusterの名前のディレクトリに置く
     destinationPath: s3://home-iac-vaultwarden-db/
     endpointURL: https://086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com
     s3Credentials:

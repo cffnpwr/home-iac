@@ -29,7 +29,7 @@ resource "cloudflare_zero_trust_access_application" "vaultwarden" {
   }
 }
 
-# NOTE: Litestreamが複製するDB
+# NOTE: PostgreSQLのWALとベースバックアップ
 resource "cloudflare_r2_bucket" "vaultwarden_db" {
   account_id = local.cloudflare_account_id
   name       = "home-iac-vaultwarden-db"

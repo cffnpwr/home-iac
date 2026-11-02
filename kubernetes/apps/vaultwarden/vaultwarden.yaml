@@ -21,8 +21,7 @@ metadata:
     # NOTE: vaultwardenは設定・鍵・認証情報を起動したときにしか読まないため、Secretの変更時にPodを作り直す
     secret.reloader.stakater.com/reload: vaultwarden-r2,vaultwarden-sso,vaultwarden-keys,vaultwarden-postgres-app
 spec:
-  # NOTE: SQLiteからPostgreSQLへのデータの移行が終わるまで停止
-  replicas: 0
+  replicas: 1
   # NOTE: vaultwardenは複数のレプリカに対応しない。更新時の停止を避けるため、新しいPodの準備ができてから古いPodを止める
   strategy:
     type: RollingUpdate
