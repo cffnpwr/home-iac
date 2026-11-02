@@ -24,7 +24,7 @@ type mode string
 
 const (
 	modeWaitReady mode = "wait-ready"
-	modeDelete    mode = "delete"
+	modeTerminate mode = "terminate"
 	modeDetachIso mode = "detach-iso"
 )
 
@@ -32,9 +32,12 @@ type input struct {
 	NodeName      string `json:"node_name"      validate:"required"`
 	Talosconfig   string `json:"talosconfig"    validate:"required"`
 	TalosEndpoint string `json:"talos_endpoint" validate:"required"`
-	// detach-isoでのみ使用
-	InstanceID  string `json:"instance_id" validate:"required_if=IsDetachIso true"`
-	IsDetachIso bool   `json:"-"`
+	// detach-iso・terminateでのみ使用
+	InstanceID string `json:"instance_id" validate:"required_if=UsesVultrAPI true"`
+	// terminateでのみ使用
+	NodeAddress  string `json:"node_address" validate:"required_if=IsTerminate true"`
+	UsesVultrAPI bool   `json:"-"`
+	IsTerminate  bool   `json:"-"`
 }
 
 func main() {
@@ -55,20 +58,21 @@ func run() error {
 		return err
 	}
 
-	talosconfig, err := clientconfig.FromString(in.Talosconfig)
-	if err != nil {
-		return fmt.Errorf("invalid talosconfig: %v", err)
-	}
-
 	vultrAPIKey := os.Getenv("VULTR_API_KEY")
-	if selectedMode == modeDetachIso && vultrAPIKey == "" {
+	if in.UsesVultrAPI && vultrAPIKey == "" {
 		return errors.New("environment variable VULTR_API_KEY is not set")
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	cluster, err := connectCluster(ctx, talosconfig, in.TalosEndpoint)
+	talosClient, err := connectTalos(ctx, in)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = talosClient.Close() }()
+
+	cluster, err := connectCluster(ctx, talosClient)
 	if err != nil {
 		return err
 	}
@@ -76,20 +80,35 @@ func run() error {
 	switch selectedMode {
 	case modeWaitReady:
 		return waitReady(ctx, cluster, in.NodeName)
-	case modeDelete:
-		return deleteNode(ctx, cluster, in.NodeName)
+	case modeTerminate:
+		return terminateNode(
+			ctx,
+			cluster,
+			vultr.NewClient(vultrAPIKey),
+			talosClient,
+			terminateTarget{
+				nodeName:    in.NodeName,
+				nodeAddress: in.NodeAddress,
+				instanceID:  in.InstanceID,
+			},
+		)
 	case modeDetachIso:
 		return detachIso(ctx, cluster, vultr.NewClient(vultrAPIKey), in.InstanceID, in.NodeName)
 	}
 	panic(fmt.Sprintf("unreachable mode: %q", selectedMode))
 }
 
-func connectCluster(
-	ctx context.Context,
-	talosconfig *clientconfig.Config,
-	talosEndpoint string,
-) (*kube.Client, error) {
-	kubeconfig, err := talos.FetchKubeconfig(ctx, talosconfig, talosEndpoint)
+func connectTalos(ctx context.Context, in input) (*talos.Client, error) {
+	talosconfig, err := clientconfig.FromString(in.Talosconfig)
+	if err != nil {
+		return nil, fmt.Errorf("invalid talosconfig: %v", err)
+	}
+
+	return talos.NewClient(ctx, talosconfig, in.TalosEndpoint)
+}
+
+func connectCluster(ctx context.Context, talosClient *talos.Client) (*kube.Client, error) {
+	kubeconfig, err := talosClient.FetchKubeconfig(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -107,21 +126,24 @@ func parseMode() (mode, error) {
 	}
 
 	switch selectedMode := mode(flag.Arg(0)); selectedMode {
-	case modeWaitReady, modeDelete, modeDetachIso:
+	case modeWaitReady, modeTerminate, modeDetachIso:
 		return selectedMode, nil
 	default:
 		return "", fmt.Errorf(
 			"invalid mode: %q, expected %q, %q or %q",
 			selectedMode,
 			modeWaitReady,
-			modeDelete,
+			modeTerminate,
 			modeDetachIso,
 		)
 	}
 }
 
 func readInput(selectedMode mode) (input, error) {
-	in := input{IsDetachIso: selectedMode == modeDetachIso}
+	in := input{
+		UsesVultrAPI: selectedMode == modeDetachIso || selectedMode == modeTerminate,
+		IsTerminate:  selectedMode == modeTerminate,
+	}
 	if err := json.NewDecoder(os.Stdin).Decode(&in); err != nil {
 		return input{}, fmt.Errorf("invalid input value: %v", err)
 	}

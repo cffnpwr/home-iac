@@ -124,10 +124,10 @@ resource "vultr_instance" "this" {
     # NOTE: iso_idを変えると稼働中のインスタンスにISOが接続されるため、Talosのアップグレードで作り直したISOは新しいインスタンスにだけ使う
     ignore_changes = [iso_id]
 
-    # NOTE: create_before_destroyのリソースではdestroy-time provisionerが実行されないため、古いNodeの削除はactionで行う
+    # NOTE: create_before_destroyのリソースではdestroy-time provisionerが実行されないため、古いノードのdrain・reset・Nodeの削除はactionで行う
     action_trigger {
       events  = [before_destroy]
-      actions = [action.local_command.delete_node]
+      actions = [action.local_command.terminate_node]
     }
   }
 }
@@ -143,17 +143,10 @@ resource "talos_machine" "this" {
   ignore_kubernetes_upgrade_drift = true
   drain_on_upgrade                = true
   kubeconfig_wo                   = var.kubeconfig
-  # NOTE: 入れ替えで古いインスタンスを消す前に、古いノードをcordon・drainする
-  on_destroy = {
-    reset    = true
-    graceful = true
-    reboot   = false
-  }
 
   lifecycle {
     create_before_destroy = true
-    # NOTE: インスタンスの置換に合わせて古いノード宛てのresetを走らせるには置換が必要。
-    #       稼働中のノードをresetするため、置換でだけ変わるidを参照
+    # NOTE: 新しいインスタンスのIPアドレスが古いインスタンスと同じ場合も置換し、新しいノードに設定を適用する
     replace_triggered_by = [vultr_instance.this.id]
   }
 }
@@ -207,12 +200,15 @@ action "local_command" "wait_node_ready" {
   }
 }
 
-action "local_command" "delete_node" {
+# NOTE: Talos APIの接続はresetの途中で切れるため、resetの完了はVultr APIでインスタンスの停止を待って判定する
+action "local_command" "terminate_node" {
   config {
     command   = "go"
-    arguments = ["run", "-C", "${path.module}/scripts", "./cmd/kube-node", "delete"]
+    arguments = ["run", "-C", "${path.module}/scripts", "./cmd/kube-node", "terminate"]
     stdin = jsonencode({
       node_name      = caller.hostname
+      node_address   = caller.main_ip
+      instance_id    = caller.id
       talosconfig    = var.talosconfig
       talos_endpoint = var.talos_endpoint
     })
