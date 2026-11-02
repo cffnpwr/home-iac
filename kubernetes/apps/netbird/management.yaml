@@ -33,8 +33,7 @@ metadata:
   name: netbird-management
   namespace: netbird
 spec:
-  # NOTE: SQLiteからPostgreSQLへのデータの移行が終わるまで停止
-  replicas: 0
+  replicas: 1
   # NOTE: OSS版のmanagementは複数のレプリカに対応しない。更新時の停止を避けるため、新しいPodの準備ができてから古いPodを止める
   strategy:
     type: RollingUpdate
