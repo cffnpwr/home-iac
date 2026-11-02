@@ -20,11 +20,17 @@
   "Datadir": "/var/lib/netbird",
   "DataStoreEncryptionKey": "{{ .NETBIRD_DATASTORE_ENCRYPTION_KEY }}",
   "StoreConfig": {
-    "Engine": "sqlite"
+    "Engine": "postgres"
   },
   "EmbeddedIdP": {
     "Enabled": true,
     "Issuer": "https://netbird.cffnpwr.dev/oauth2",
+    "Storage": {
+      "Type": "postgres",
+      "Config": {
+        "DSN": "{{ .NETBIRD_IDP_POSTGRES_DSN }}"
+      }
+    },
     "SignKeyRefreshEnabled": true,
     "LocalAuthDisabled": true,
     "DashboardRedirectURIs": [
