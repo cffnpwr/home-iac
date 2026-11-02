@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+# NOTE: pluginはCloudNativePGのoperatorと同じnamespaceに置く必要がある
+namespace: cnpg-system
+chart:
+  repoURL: https://cloudnative-pg.github.io/charts
+  name: plugin-barman-cloud
+  version: 0.8.1
+syncOptions:
+  - CreateNamespace=true
