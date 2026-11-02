@@ -289,9 +289,7 @@ module "vultr" {
   node_labels = {
     "topology.kubernetes.io/zone" = "vultr"
   }
-  node_taints = {
-    edge = "vultr:NoSchedule"
-  }
+  node_taints = {}
   inbound_rules = {
     kubespan     = { protocol = "udp", port = "51820" }
     netbird_tls  = { protocol = "tcp", port = "443" }
