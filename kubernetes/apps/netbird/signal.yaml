@@ -49,7 +49,7 @@ spec:
           effect: NoSchedule
       containers:
         - name: signal
-          image: netbirdio/signal:0.81.5@sha256:eea5dfeb5ad81216731a7c53b2a2b5b5a35115e66327bbd42c3704fc0b9a857e
+          image: netbirdio/signal:0.82.0@sha256:0c0c38bbef7dcdfa1822b6d59844615db55dc7303b664e7aed498151edc0dbfb
           ports:
             - name: http
               containerPort: 80
