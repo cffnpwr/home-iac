@@ -128,12 +128,6 @@ variable "secure_boot" {
   description = "Secure Boot用のISOとinstallerを使うか。GRUBでインストールしたノードは、再インストールしないとSecure Bootへ移行できない"
 }
 
-variable "local_path_min_size" {
-  type        = string
-  description = "システムディスクに作るlocal-path-provisionerのユーザーボリュームに必要な最小サイズ。空き領域がこれより小さいとボリュームを作成しない。nullの場合はユーザーボリュームを作らない"
-  default     = null
-}
-
 variable "ceph_osd" {
   type = object({
     disk_selector = string
