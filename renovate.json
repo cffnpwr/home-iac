@@ -46,8 +46,23 @@
     {
       // NOTE: ソースからビルドするバイナリと、web-vault等を使う公式のイメージのバージョンを揃える
       "matchFileNames": ["images/vaultwarden/Dockerfile"],
-      "matchPackageNames": ["dani-garcia/vaultwarden", "/(^|/)vaultwarden/server$/"],
+      "matchPackageNames": [
+        "dani-garcia/vaultwarden",
+        "/(^|/)vaultwarden/server$/"
+      ],
       "groupName": "vaultwarden"
+    },
+    {
+      // NOTE: netbirdのサーバーのコンポーネントと、CIで使うCLIのバージョンを揃える
+      //       GitHub ReleasesとDocker imageの公開の時間差で一部だけのPRが作成されないよう、全コンポーネントの更新が揃うまで待機
+      "matchDepNames": [
+        "github:netbirdio/netbird",
+        "netbirdio/signal",
+        "netbirdio/management",
+        "netbirdio/relay"
+      ],
+      "groupName": "netbird",
+      "minimumGroupSize": 4
     }
   ],
   "kubernetes": {
