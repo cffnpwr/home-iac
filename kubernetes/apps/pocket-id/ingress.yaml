@@ -1,0 +1,19 @@
+# NOTE: AccessのログインにPocket IDを使うため、Accessのself-hosted applicationを置かない
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pocket-id
+  namespace: pocket-id
+spec:
+  ingressClassName: cloudflare-tunnel
+  rules:
+    - host: auth.cffnpwr.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pocket-id
+                port:
+                  name: http
