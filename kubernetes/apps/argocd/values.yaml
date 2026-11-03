@@ -10,8 +10,11 @@ configs:
       issuer: $argocd-oidc:issuer
       clientID: $argocd-oidc:client-id
       clientSecret: $argocd-oidc:client-secret
-      requestedScopes: ["openid", "profile", "email", "groups"]
+      # NOTE: Accessはoffline_accessを要求したときだけrefresh tokenを返す
+      requestedScopes: ["openid", "profile", "email", "groups", "offline_access"]
       enablePKCEAuthentication: true
+      # NOTE: AccessのID tokenの有効期間は5分。有効期限の2分前から、Accessのrefresh tokenでID tokenを更新
+      refreshTokenThreshold: 2m
   params:
     # NOTE: server-side applyで同期するため、diffもserver-side applyのdry-runで計算
     controller.diff.server.side: true

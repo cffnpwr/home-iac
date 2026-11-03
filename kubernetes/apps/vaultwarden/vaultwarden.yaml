@@ -59,6 +59,10 @@ spec:
               value: "true"
             - name: SSO_SIGNUPS_ALLOWED
               value: "false"
+            # NOTE: Accessはoffline_accessを要求したときだけrefresh tokenを返す
+            #       openidはvaultwardenが追加する
+            - name: SSO_SCOPES
+              value: email profile offline_access
             # NOTE: 管理画面の認証は、/adminを保護するAccessのapplicationで行なう
             #       管理画面で設定を保存すると、読み取り専用のconfig.jsonへの書き込みに失敗するため、設定を保存しない
             - name: DISABLE_ADMIN_TOKEN
