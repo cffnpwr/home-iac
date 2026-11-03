@@ -32,7 +32,7 @@ output "sealed_secrets" {
         private-key = var.github_app_private_key
       }
     }
-    "kubernetes/apps/cert-manager-issuers/cloudflare-api-token.yaml" = {
+    "kubernetes/apps/cert-manager/cloudflare-api-token.yaml" = {
       namespace = "cert-manager"
       name      = "cloudflare-api-token"
       data = {
