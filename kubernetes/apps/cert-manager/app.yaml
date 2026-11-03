@@ -6,3 +6,12 @@ chart:
   version: v1.21.3
 syncOptions:
   - CreateNamespace=true
+# NOTE: ClusterIssuerと、そのCloudflareのAPIトークンのSealedSecretを、chartとあわせて同期
+manifests: true
+# NOTE: ClusterIssuerの作成は、cert-managerのwebhookが応答できるようになるまで失敗するため再試行
+retry:
+  limit: 10
+  backoff:
+    duration: 30s
+    factor: 2
+    maxDuration: 10m
