@@ -16,19 +16,12 @@ locals {
       ]
       zone = ["DNS Read", "Zone Read"]
     }
+    # NOTE: applyのCloudflare providerは、トークンの管理にAccount API Tokens Writeが必要
+    #       APIトークンで作成したトークンにはこの権限を付けられないため、ダッシュボードで作成したトークンを使う
     "terraform-apply" = {
       tfstate = ["Workers R2 Storage Bucket Item Write"]
-      account = [
-        "Access: Apps Write",
-        "Access: Organizations, Identity Providers, and Groups Write",
-        "Access: Policies Write",
-        "Account API Tokens Write",
-        "Cloudflare One Connector: cloudflared Write",
-        "Email Sending Write",
-        "Workers R2 Storage Write",
-        "Zero Trust Write",
-      ]
-      zone = ["DNS Write", "Zone Read"]
+      account = []
+      zone    = []
     }
   }
 }
@@ -42,14 +35,14 @@ data "cloudflare_account_api_token_permission_groups_list" "terraform_ci" {
   name       = urlencode(each.key)
 }
 
-# NOTE: CIがS3 backendのstateの読み書きと、Cloudflare providerに使うトークン
+# NOTE: CIがS3 backendのstateの読み書きと、planのCloudflare providerに使うトークン
 resource "cloudflare_account_token" "terraform_ci" {
   for_each = local.terraform_ci_permission_groups
 
   account_id = local.cloudflare_account_id
   name       = each.key
 
-  policies = [
+  policies = [for policy in [
     {
       effect = "allow"
       permission_groups = [
@@ -77,5 +70,5 @@ resource "cloudflare_account_token" "terraform_ci" {
         "com.cloudflare.api.account.zone.${data.cloudflare_zone.cffnpwr_dev.zone_id}" = "*"
       })
     },
-  ]
+  ] : policy if length(policy.permission_groups) > 0]
 }

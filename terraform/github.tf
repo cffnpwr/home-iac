@@ -70,13 +70,34 @@ resource "github_actions_environment_secret" "terraform_ci_aws_secret_access_key
   value = sha256(each.value.value)
 }
 
-resource "github_actions_environment_secret" "terraform_ci_cloudflare_api_token" {
-  for_each = cloudflare_account_token.terraform_ci
-
+resource "github_actions_environment_secret" "terraform_plan_cloudflare_api_token" {
   repository  = "home-iac"
-  environment = each.key
+  environment = github_repository_environment.terraform_plan.environment
   secret_name = "CLOUDFLARE_API_TOKEN"
-  value       = each.value.value
+  value       = cloudflare_account_token.terraform_ci[github_repository_environment.terraform_plan.environment].value
+}
+
+moved {
+  from = github_actions_environment_secret.terraform_ci_cloudflare_api_token["terraform-plan"]
+  to   = github_actions_environment_secret.terraform_plan_cloudflare_api_token
+}
+
+# NOTE: APIトークンで作成したトークンにはAccount API Tokens Writeを付けられないため、ダッシュボードで作成したトークンを変数で受け取る
+#       入力の値の更新は、手元で-replaceを指定してapplyする
+resource "github_actions_environment_secret" "terraform_apply_cloudflare_api_token" {
+  repository  = "home-iac"
+  environment = github_repository_environment.terraform_apply.environment
+  secret_name = "CLOUDFLARE_API_TOKEN"
+  value       = var.cloudflare_api_token_read_write
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+moved {
+  from = github_actions_environment_secret.terraform_ci_cloudflare_api_token["terraform-apply"]
+  to   = github_actions_environment_secret.terraform_apply_cloudflare_api_token
 }
 
 resource "github_actions_environment_secret" "terraform_ci_netbird_pat" {
