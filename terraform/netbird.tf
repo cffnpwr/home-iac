@@ -16,16 +16,46 @@ resource "cloudflare_dns_record" "netbird_peer" {
   ttl = 60
 }
 
+resource "cloudflare_zero_trust_access_policy" "netbird" {
+  account_id = local.cloudflare_account_id
+  name       = "netbird"
+  decision   = "allow"
+  include = [
+    {
+      oidc = {
+        identity_provider_id = cloudflare_zero_trust_access_identity_provider.pocket_id.id
+        claim_name           = "groups"
+        claim_value          = "app-netbird"
+      }
+    },
+    {
+      gsuite = {
+        identity_provider_id = cloudflare_zero_trust_access_identity_provider.google_workspace.id
+        email                = "app-netbird@${data.cloudflare_zone.cffnpwr_dev.name}"
+      }
+    },
+  ]
+}
+
 resource "cloudflare_zero_trust_access_application" "netbird" {
-  account_id                = local.cloudflare_account_id
-  name                      = "netbird"
-  type                      = "saas"
-  allowed_idps              = [cloudflare_zero_trust_access_identity_provider.onetimepin.id]
-  auto_redirect_to_identity = true
-  policies = [{
-    id         = cloudflare_zero_trust_access_policy.allowed_emails.id
-    precedence = 1
-  }]
+  account_id = local.cloudflare_account_id
+  name       = "netbird"
+  type       = "saas"
+  allowed_idps = [
+    cloudflare_zero_trust_access_identity_provider.pocket_id.id,
+    cloudflare_zero_trust_access_identity_provider.google_workspace.id,
+    cloudflare_zero_trust_access_identity_provider.onetimepin.id,
+  ]
+  policies = [
+    {
+      id         = cloudflare_zero_trust_access_policy.netbird.id
+      precedence = 1
+    },
+    {
+      id         = cloudflare_zero_trust_access_policy.allowed_emails.id
+      precedence = 2
+    },
+  ]
   saas_app = {
     auth_type     = "oidc"
     redirect_uris = [local.netbird_access_redirect_uri]

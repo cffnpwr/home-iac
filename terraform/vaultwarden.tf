@@ -4,22 +4,60 @@ locals {
   vaultwarden_access_redirect_uri = "https://${local.vaultwarden_hostname}/identity/connect/oidc-signin"
 }
 
+resource "cloudflare_zero_trust_access_policy" "vaultwarden" {
+  account_id = local.cloudflare_account_id
+  name       = "vaultwarden"
+  decision   = "allow"
+  include = [
+    {
+      oidc = {
+        identity_provider_id = cloudflare_zero_trust_access_identity_provider.pocket_id.id
+        claim_name           = "groups"
+        claim_value          = "app-vaultwarden"
+      }
+    },
+    {
+      gsuite = {
+        identity_provider_id = cloudflare_zero_trust_access_identity_provider.google_workspace.id
+        email                = "app-vaultwarden@${data.cloudflare_zone.cffnpwr_dev.name}"
+      }
+    },
+  ]
+}
+
 resource "cloudflare_zero_trust_access_application" "vaultwarden" {
-  account_id                = local.cloudflare_account_id
-  name                      = "vaultwarden"
-  type                      = "saas"
-  allowed_idps              = [cloudflare_zero_trust_access_identity_provider.onetimepin.id]
-  auto_redirect_to_identity = true
-  policies = [{
-    id         = cloudflare_zero_trust_access_policy.allowed_emails.id
-    precedence = 1
-  }]
+  account_id = local.cloudflare_account_id
+  name       = "vaultwarden"
+  type       = "saas"
+  allowed_idps = [
+    cloudflare_zero_trust_access_identity_provider.pocket_id.id,
+    cloudflare_zero_trust_access_identity_provider.google_workspace.id,
+    cloudflare_zero_trust_access_identity_provider.onetimepin.id,
+  ]
+  policies = [
+    {
+      id         = cloudflare_zero_trust_access_policy.vaultwarden.id
+      precedence = 1
+    },
+    {
+      id         = cloudflare_zero_trust_access_policy.allowed_emails.id
+      precedence = 2
+    },
+  ]
   saas_app = {
     auth_type     = "oidc"
     redirect_uris = [local.vaultwarden_access_redirect_uri]
     # NOTE: vaultwardenのSSO_PKCEは既定で有効。セッションはAccessのrefresh tokenで延長
     grant_types = ["authorization_code_with_pkce", "refresh_tokens"]
     scopes      = ["openid", "email", "profile"]
+    # NOTE: vaultwardenはemail_verifiedが必要
+    custom_claims = [{
+      name  = "email_verified"
+      scope = "email"
+      source = {
+        name = "email_verified"
+      }
+    }]
     # NOTE: Web Vaultは有効期限まで5分を切ったaccess tokenを更新するため、5分より長くする
     access_token_lifetime = "15m"
     refresh_token_options = {
