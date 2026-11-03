@@ -60,6 +60,53 @@ resource "cloudflare_zero_trust_access_application" "vaultwarden" {
   }
 }
 
+resource "cloudflare_zero_trust_access_policy" "vaultwarden_admin" {
+  account_id = local.cloudflare_account_id
+  name       = "vaultwarden-admin"
+  decision   = "allow"
+  include = [
+    {
+      oidc = {
+        identity_provider_id = cloudflare_zero_trust_access_identity_provider.pocket_id.id
+        claim_name           = "groups"
+        claim_value          = "app-vaultwarden-admin"
+      }
+    },
+    {
+      gsuite = {
+        identity_provider_id = cloudflare_zero_trust_access_identity_provider.google_workspace.id
+        email                = "app-vaultwarden-admin@${data.cloudflare_zone.cffnpwr_dev.name}"
+      }
+    },
+  ]
+}
+
+# NOTE: vaultwardenはDISABLE_ADMIN_TOKENで管理画面の認証を無効にするため、管理画面の認証はAccessだけで行なう
+resource "cloudflare_zero_trust_access_application" "vaultwarden_admin" {
+  account_id = local.cloudflare_account_id
+  name       = "vaultwarden-admin"
+  type       = "self_hosted"
+  # NOTE: パスの末尾のワイルドカードは、ワイルドカードを除いたパス自体に一致しないため、/adminを別に指定
+  destinations = [
+    {
+      type = "public"
+      uri  = "${local.vaultwarden_hostname}/admin"
+    },
+    {
+      type = "public"
+      uri  = "${local.vaultwarden_hostname}/admin/*"
+    },
+  ]
+  allowed_idps = [
+    cloudflare_zero_trust_access_identity_provider.pocket_id.id,
+    cloudflare_zero_trust_access_identity_provider.google_workspace.id,
+  ]
+  policies = [{
+    id         = cloudflare_zero_trust_access_policy.vaultwarden_admin.id
+    precedence = 1
+  }]
+}
+
 # NOTE: PostgreSQLのWALとベースバックアップ
 resource "cloudflare_r2_bucket" "vaultwarden_db" {
   account_id = local.cloudflare_account_id
