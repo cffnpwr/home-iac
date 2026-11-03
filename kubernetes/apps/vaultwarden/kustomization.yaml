@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - vaultwarden.yaml
   - ingress.yaml
+  - networkpolicy.yaml
   - vaultwarden-r2.yaml
   - vaultwarden-sso.yaml
   - vaultwarden-keys.yaml

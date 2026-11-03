@@ -55,11 +55,14 @@ spec:
               value: ssh-agent-v2
             - name: SSO_ENABLED
               value: "true"
-            # TODO: Accessがemail_verifiedを送り、既存のアカウントとSSOを紐付けられることを確認した後にtrueにする
             - name: SSO_ONLY
-              value: "false"
+              value: "true"
             - name: SSO_SIGNUPS_ALLOWED
               value: "false"
+            # NOTE: 管理画面の認証は、/adminを保護するAccessのapplicationで行なう
+            #       管理画面で設定を保存すると、読み取り専用のconfig.jsonへの書き込みに失敗するため、設定を保存しない
+            - name: DISABLE_ADMIN_TOKEN
+              value: "true"
             - name: CONFIG_FILE
               value: /etc/vaultwarden/config/config.json
             # NOTE: vaultwardenは、この値に.pemを付けたファイルを読む
