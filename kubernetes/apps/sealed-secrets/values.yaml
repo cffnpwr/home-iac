@@ -6,3 +6,6 @@ resources:
     memory: 64Mi
   limits:
     memory: 128Mi
+podLabels:
+  # NOTE: kubeseal --fetch-certはメッシュ外のkube-apiserverを経由して接続するため、sidecarを注入しない
+  sidecar.istio.io/inject: "false"

@@ -15,6 +15,11 @@ resources:
 # NOTE: PodSecurityのbaselineがistio-initの権限（NET_ADMIN・NET_RAW）を拒否するため、通信の経路をIstio CNIで設定
 cni:
   enabled: true
+sidecarInjectorWebhook:
+  # NOTE: NetworkRouterのpodTemplateはラベルを指定できないため、WireGuardを使うルーティングピアをここで除外
+  neverInjectSelector:
+    - matchLabels:
+        app.kubernetes.io/name: networkrouter
 global:
   proxy:
     # NOTE: RPi4ではetcd・kube-apiserverとメモリを共有するため、chartの既定値から下げて上限を設定

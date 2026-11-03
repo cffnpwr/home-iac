@@ -4,5 +4,4 @@ chart:
   repoURL: https://stakater.github.io/stakater-charts
   name: reloader
   version: 2.2.19
-syncOptions:
-  - CreateNamespace=true
+manifests: true

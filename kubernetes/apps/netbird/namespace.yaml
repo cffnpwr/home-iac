@@ -5,3 +5,4 @@ metadata:
   labels:
     # NOTE: netbird OperatorがルーティングピアのPodをprivilegedで作成するため許可
     pod-security.kubernetes.io/enforce: privileged
+    istio-injection: enabled

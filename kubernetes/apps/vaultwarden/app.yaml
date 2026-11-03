@@ -1,7 +1,5 @@
 # yaml-language-server: $schema=../../schemas/app.schema.json
 namespace: vaultwarden
-syncOptions:
-  - CreateNamespace=true
 # NOTE: Secretの変更時にReloaderがPodのテンプレートへ追加するアノテーション
 ignoreDifferences:
   - group: apps
