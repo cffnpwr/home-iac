@@ -5,6 +5,10 @@ metadata:
   namespace: netbird
 spec:
   instances: 3
+  inheritedMetadata:
+    labels:
+      # NOTE: メッシュ外のCloudNativePGのoperatorが接続するため、sidecarを注入しない
+      sidecar.istio.io/inject: "false"
   imageName: ghcr.io/cloudnative-pg/postgresql:17.11-minimal-trixie@sha256:7c680fc840a9ea6bd04399f1aeea06bb3180df3f0969f18833925b6df3d7dc87
   bootstrap:
     initdb:
