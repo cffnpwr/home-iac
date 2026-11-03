@@ -57,6 +57,8 @@ spec:
               value: CF-Connecting-IP
             - name: CLOUDFLARE_LOCATION_HEADERS
               value: "true"
+            - name: ANALYTICS_DISABLED
+              value: "true"
             - name: UI_CONFIG_DISABLED
               value: "true"
             - name: EMAIL_VERIFICATION
