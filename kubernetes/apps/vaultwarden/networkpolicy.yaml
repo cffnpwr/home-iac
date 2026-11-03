@@ -1,0 +1,25 @@
+# NOTE: DISABLE_ADMIN_TOKENで管理画面の認証を無効にするため、Accessを経由しない接続を拒否する
+#       vaultwardenへの接続を、Cloudflare Tunnelのcloudflaredに限定
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: vaultwarden
+  namespace: vaultwarden
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: vaultwarden
+  policyTypes:
+    - Ingress
+  # NOTE: kubeletのprobeは、Ciliumが常にlocal hostからの通信を許可するため対象外
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cloudflared
+          podSelector:
+            matchLabels:
+              app: controlled-cloudflared-connector
+      ports:
+        - protocol: TCP
+          port: 80
