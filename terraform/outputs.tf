@@ -72,6 +72,16 @@ output "sealed_secrets" {
         sso_client_secret = cloudflare_zero_trust_access_application.vaultwarden.saas_app.client_secret
       }
     }
+    "kubernetes/apps/pocket-id/pocket-id-cloudflare.yaml" = {
+      namespace = "pocket-id"
+      name      = "pocket-id-cloudflare"
+      data = {
+        smtp-password    = cloudflare_account_token.pocket_id_smtp.value
+        db-access-key-id = cloudflare_account_token.pocket_id_db.id
+        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
+        db-secret-access-key = sha256(cloudflare_account_token.pocket_id_db.value)
+      }
+    }
     "kubernetes/apps/cloudflared/cloudflare-tunnel-ingress-controller.yaml" = {
       namespace = "cloudflared"
       name      = "cloudflare-tunnel-ingress-controller"
