@@ -22,7 +22,6 @@ configs:
     policy.default: ""
     policy.csv: |
       g, app-argocd-admin, role:admin
-      g, app-argocd-admin@cffnpwr.dev, role:admin
 
 # NOTE: oidc.configでIdPに直接接続するため、Dexを使わない
 dex:
