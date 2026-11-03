@@ -1,7 +1,7 @@
 # NOTE: SMTPでのメール送信に使用するパスワードとしてのCloudflare API Tokenを作成
 resource "cloudflare_account_token" "pocket_id_smtp" {
   account_id = local.cloudflare_account_id
-  name       = "pocket-id-smtp"
+  name       = "${local.cloudflare_account_token_name_prefix}pocket-id-smtp"
 
   policies = [{
     effect = "allow"
@@ -22,7 +22,7 @@ resource "cloudflare_r2_bucket" "pocket_id_db" {
 
 resource "cloudflare_account_token" "pocket_id_db" {
   account_id = local.cloudflare_account_id
-  name       = "pocket-id-db"
+  name       = "${local.cloudflare_account_token_name_prefix}pocket-id-db"
 
   policies = [{
     effect = "allow"

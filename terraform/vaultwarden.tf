@@ -115,7 +115,7 @@ resource "cloudflare_r2_bucket" "vaultwarden_db" {
 
 resource "cloudflare_account_token" "vaultwarden_db" {
   account_id = local.cloudflare_account_id
-  name       = "vaultwarden-db"
+  name       = "${local.cloudflare_account_token_name_prefix}vaultwarden-db"
 
   policies = [{
     effect = "allow"
@@ -148,7 +148,7 @@ resource "cloudflare_r2_bucket_cors" "vaultwarden_data" {
 
 resource "cloudflare_account_token" "vaultwarden_data" {
   account_id = local.cloudflare_account_id
-  name       = "vaultwarden-data"
+  name       = "${local.cloudflare_account_token_name_prefix}vaultwarden-data"
 
   policies = [{
     effect = "allow"

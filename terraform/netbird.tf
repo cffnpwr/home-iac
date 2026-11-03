@@ -64,7 +64,7 @@ resource "cloudflare_r2_bucket" "netbird_backup" {
 
 resource "cloudflare_account_token" "netbird_backup" {
   account_id = local.cloudflare_account_id
-  name       = "netbird-backup"
+  name       = "${local.cloudflare_account_token_name_prefix}netbird-backup"
 
   policies = [{
     effect = "allow"

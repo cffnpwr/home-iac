@@ -1,5 +1,8 @@
 locals {
   cloudflare_account_id = "086a84b440e09bc83330fe07f1966f5d"
+  # NOTE: アカウントトークンには説明を設定できないため、ダッシュボードで人が作成したトークンと名前で区別する
+  #       他のリポジトリが作成したトークンと区別するため、リポジトリ名も付ける
+  cloudflare_account_token_name_prefix = "[managed by terraform] home-iac/"
 }
 
 resource "cloudflare_r2_bucket" "tfstate" {
@@ -24,7 +27,7 @@ data "cloudflare_account_api_token_permission_groups_list" "r2_bucket_item_write
 
 resource "cloudflare_account_token" "sealed_secrets_backup" {
   account_id = local.cloudflare_account_id
-  name       = "sealed-secrets-backup"
+  name       = "${local.cloudflare_account_token_name_prefix}sealed-secrets-backup"
 
   policies = [{
     effect = "allow"
@@ -44,7 +47,7 @@ data "cloudflare_account_api_token_permission_groups_list" "r2_bucket_item_read"
 
 resource "cloudflare_account_token" "sealed_secrets_reseal" {
   account_id = local.cloudflare_account_id
-  name       = "sealed-secrets-reseal"
+  name       = "${local.cloudflare_account_token_name_prefix}sealed-secrets-reseal"
 
   policies = [{
     effect = "allow"
