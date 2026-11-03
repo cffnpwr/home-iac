@@ -1,4 +1,3 @@
-# NOTE: ADMIN_TOKENが未設定のため、vaultwardenは/adminで管理画面を提供しない
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
