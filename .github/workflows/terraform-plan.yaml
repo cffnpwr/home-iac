@@ -47,8 +47,8 @@ jobs:
       - run: terraform -chdir="$ROOT" init -input=false
         env:
           ROOT: ${{ matrix.root }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ matrix.root == 'terraform' && secrets.AWS_ACCESS_KEY_ID || secrets.NETBIRD_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ matrix.root == 'terraform' && secrets.AWS_SECRET_ACCESS_KEY || secrets.NETBIRD_AWS_SECRET_ACCESS_KEY }}
       - id: app-token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
@@ -85,7 +85,7 @@ jobs:
         env:
           ROOT: ${{ matrix.root }}
           GITHUB_TOKEN: ${{ github.token }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.NETBIRD_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.NETBIRD_AWS_SECRET_ACCESS_KEY }}
           NB_PAT: ${{ secrets.NB_PAT }}
           TF_VAR_github_token: ${{ steps.app-token.outputs.token }}

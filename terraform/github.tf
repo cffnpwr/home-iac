@@ -51,21 +51,47 @@ locals {
   }
 }
 
-resource "github_actions_environment_secret" "terraform_ci_aws_access_key_id" {
-  for_each = cloudflare_account_token.terraform_ci
+# NOTE: applyのS3 backendの認証情報は、workflowがCLOUDFLARE_API_TOKENから作る
+resource "github_actions_environment_secret" "terraform_plan_aws_access_key_id" {
+  repository  = "home-iac"
+  environment = github_repository_environment.terraform_plan.environment
+  secret_name = "AWS_ACCESS_KEY_ID"
+  value       = cloudflare_account_token.terraform_plan.id
+}
+
+moved {
+  from = github_actions_environment_secret.terraform_ci_aws_access_key_id["terraform-plan"]
+  to   = github_actions_environment_secret.terraform_plan_aws_access_key_id
+}
+
+resource "github_actions_environment_secret" "terraform_plan_aws_secret_access_key" {
+  repository  = "home-iac"
+  environment = github_repository_environment.terraform_plan.environment
+  secret_name = "AWS_SECRET_ACCESS_KEY"
+  # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値
+  value = sha256(cloudflare_account_token.terraform_plan.value)
+}
+
+moved {
+  from = github_actions_environment_secret.terraform_ci_aws_secret_access_key["terraform-plan"]
+  to   = github_actions_environment_secret.terraform_plan_aws_secret_access_key
+}
+
+resource "github_actions_environment_secret" "terraform_netbird_aws_access_key_id" {
+  for_each = cloudflare_account_token.terraform_netbird
 
   repository  = "home-iac"
   environment = each.key
-  secret_name = "AWS_ACCESS_KEY_ID"
+  secret_name = "NETBIRD_AWS_ACCESS_KEY_ID"
   value       = each.value.id
 }
 
-resource "github_actions_environment_secret" "terraform_ci_aws_secret_access_key" {
-  for_each = cloudflare_account_token.terraform_ci
+resource "github_actions_environment_secret" "terraform_netbird_aws_secret_access_key" {
+  for_each = cloudflare_account_token.terraform_netbird
 
   repository  = "home-iac"
   environment = each.key
-  secret_name = "AWS_SECRET_ACCESS_KEY"
+  secret_name = "NETBIRD_AWS_SECRET_ACCESS_KEY"
   # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値
   value = sha256(each.value.value)
 }
@@ -74,7 +100,7 @@ resource "github_actions_environment_secret" "terraform_plan_cloudflare_api_toke
   repository  = "home-iac"
   environment = github_repository_environment.terraform_plan.environment
   secret_name = "CLOUDFLARE_API_TOKEN"
-  value       = cloudflare_account_token.terraform_ci[github_repository_environment.terraform_plan.environment].value
+  value       = cloudflare_account_token.terraform_plan.value
 }
 
 moved {
