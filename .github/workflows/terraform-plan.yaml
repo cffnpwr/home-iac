@@ -78,6 +78,8 @@ jobs:
           VULTR_API_KEY: ${{ secrets.VULTR_API_KEY }}
           TF_VAR_github_token: ${{ steps.app-token.outputs.token }}
           TF_VAR_github_app_private_key: ${{ secrets.UPDATE_PRIVATE_KEY }}
+          TF_VAR_pocket_id_access_client_secret: ${{ secrets.POCKET_ID_ACCESS_CLIENT_SECRET }}
+          TF_VAR_google_workspace_access_client_secret: ${{ secrets.GOOGLE_WORKSPACE_ACCESS_CLIENT_SECRET }}
       - if: matrix.root == 'terraform/netbird'
         run: tfcmt -var "target:$ROOT" plan -patch -disable-label -- terraform -chdir="$ROOT" plan -input=false -lock=false
         env:
