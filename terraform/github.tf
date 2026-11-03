@@ -99,6 +99,33 @@ resource "github_actions_environment_secret" "terraform_ci_netbird_pat" {
   }
 }
 
+# NOTE: 入力の値の更新は、手元で-replaceを指定してapplyする
+resource "github_actions_environment_secret" "terraform_ci_pocket_id_access_client_secret" {
+  for_each = toset(keys(local.terraform_ci_environments))
+
+  repository  = "home-iac"
+  environment = each.key
+  secret_name = "POCKET_ID_ACCESS_CLIENT_SECRET"
+  value       = var.pocket_id_access_client_secret
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+resource "github_actions_environment_secret" "terraform_ci_google_workspace_access_client_secret" {
+  for_each = toset(keys(local.terraform_ci_environments))
+
+  repository  = "home-iac"
+  environment = each.key
+  secret_name = "GOOGLE_WORKSPACE_ACCESS_CLIENT_SECRET"
+  value       = var.google_workspace_access_client_secret
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
 resource "github_actions_secret" "vultr_api_key" {
   repository  = "home-iac"
   secret_name = "VULTR_API_KEY"

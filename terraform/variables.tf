@@ -42,6 +42,19 @@ variable "netbird_pat_read_write" {
   sensitive   = true
 }
 
+# NOTE: クライアントはPocket IDの管理画面とGoogle Cloudのコンソールでしか作れないため、シークレットを変数で受け取る
+variable "pocket_id_access_client_secret" {
+  description = "AccessがPocket IDにログインするときに使う、OIDCクライアントのシークレット"
+  type        = string
+  sensitive   = true
+}
+
+variable "google_workspace_access_client_secret" {
+  description = "AccessがGoogle Workspaceにログインするときに使う、OAuthクライアントのシークレット"
+  type        = string
+  sensitive   = true
+}
+
 variable "vultr_api_key" {
   description = "CIのplan・applyがVultr providerで使うAPIキー"
   type        = string
