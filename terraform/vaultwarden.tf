@@ -32,18 +32,11 @@ resource "cloudflare_zero_trust_access_application" "vaultwarden" {
   allowed_idps = [
     cloudflare_zero_trust_access_identity_provider.pocket_id.id,
     cloudflare_zero_trust_access_identity_provider.google_workspace.id,
-    cloudflare_zero_trust_access_identity_provider.onetimepin.id,
   ]
-  policies = [
-    {
-      id         = cloudflare_zero_trust_access_policy.vaultwarden.id
-      precedence = 1
-    },
-    {
-      id         = cloudflare_zero_trust_access_policy.allowed_emails.id
-      precedence = 2
-    },
-  ]
+  policies = [{
+    id         = cloudflare_zero_trust_access_policy.vaultwarden.id
+    precedence = 1
+  }]
   saas_app = {
     auth_type     = "oidc"
     redirect_uris = [local.vaultwarden_access_redirect_uri]
