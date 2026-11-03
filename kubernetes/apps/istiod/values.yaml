@@ -4,7 +4,7 @@ tolerations:
   - key: edge
     operator: Exists
     effect: NoSchedule
-# NOTE: 接続するプロキシがgatewayだけのため、chartの既定値（requests 2048Mi）から下げる
+# NOTE: chartの既定値（requests 2048Mi）から下げる
 resources:
   # TODO: 実測後に見直す
   requests:
@@ -15,6 +15,16 @@ resources:
 # NOTE: PodSecurityのbaselineがistio-initの権限（NET_ADMIN・NET_RAW）を拒否するため、通信の経路をIstio CNIで設定
 cni:
   enabled: true
+global:
+  proxy:
+    # NOTE: RPi4ではetcd・kube-apiserverとメモリを共有するため、chartの既定値から下げて上限を設定
+    resources:
+      # TODO: 実測後に見直す
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
 base:
   # NOTE: Argo CDとistiodによる書き換えの繰り返しを防ぐために同じ値を指定
   validationFailurePolicy: Fail
