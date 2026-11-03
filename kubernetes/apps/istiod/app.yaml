@@ -6,3 +6,4 @@ chart:
   version: 1.31.3
 syncOptions:
   - CreateNamespace=true
+manifests: true
