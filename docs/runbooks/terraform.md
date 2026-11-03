@@ -63,26 +63,23 @@ CIからクラスタへ接続できない場合と、CIの接続に使うnetbird
 
 ## CIのシークレットの更新
 
-`terraform/`は、CIが使うCloudflareのAPIトークン・netbirdのPAT・VultrのAPIキーを、GitHubのシークレットに登録する。
+`terraform/`は、CIが使うnetbirdのPAT・VultrのAPIキーを、GitHubのシークレットに登録する。
 値は次の環境変数で渡す。
 
 | 環境変数 | 登録先のenvironment・シークレット |
 | --- | --- |
-| `TF_VAR_cloudflare_api_token_read_only` | `terraform-plan`の`CLOUDFLARE_API_TOKEN`（読み取り専用のAPIトークン） |
-| `TF_VAR_cloudflare_api_token_read_write` | `terraform-apply`の`CLOUDFLARE_API_TOKEN`（読み書きできるAPIトークン） |
 | `TF_VAR_netbird_pat_read_only` | `terraform-plan`の`NB_PAT`（読み取り専用のサービスユーザーのPAT） |
 | `TF_VAR_netbird_pat_read_write` | `terraform-apply`の`NB_PAT`（管理者のサービスユーザーのPAT） |
 | `TF_VAR_vultr_api_key` | リポジトリの`VULTR_API_KEY`（`VULTR_API_KEY`環境変数と同じ値） |
 
-CIのplan・applyはこの5つを設定しないため、Terraformは登録済みのシークレットの値の変更を無視する。
-このため、この5つは、シークレットを登録・更新するapplyでだけ設定する。
+CIのplan・applyはこの3つを設定しないため、Terraformは登録済みのシークレットの値の変更を無視する。
+このため、この3つは、シークレットを登録・更新するapplyでだけ設定する。
 変数を設定しない場合、まだ登録されていないシークレットには空文字列が登録される。
 
 登録済みのシークレットを更新する場合は、新しい値を環境変数に設定し、対象のシークレットに`-replace`を指定して手元からapplyする。
 
 | シークレット | `-replace`に指定するリソース |
 | --- | --- |
-| `CLOUDFLARE_API_TOKEN` | `github_actions_environment_secret.terraform_ci_cloudflare_api_token["<environment>"]` |
 | `NB_PAT` | `github_actions_environment_secret.terraform_ci_netbird_pat["<environment>"]` |
 | `VULTR_API_KEY` | `github_actions_secret.vultr_api_key` |
 
