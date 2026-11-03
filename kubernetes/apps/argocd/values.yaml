@@ -1,4 +1,33 @@
+global:
+  domain: argocd.cffnpwr.dev
+
 configs:
+  cm:
+    admin.enabled: false
+    # NOTE: $argocd-oidc:<key>は、`app.kubernetes.io/part-of: argocd`のラベルを持つSecretのargocd-oidcの値
+    oidc.config: |
+      name: Pocket ID
+      issuer: $argocd-oidc:issuer
+      clientID: $argocd-oidc:client-id
+      clientSecret: $argocd-oidc:client-secret
+      requestedScopes: ["openid", "profile", "email", "groups"]
+      enablePKCEAuthentication: true
   params:
     # NOTE: server-side applyで同期するため、diffもserver-side applyのdry-runで計算
     controller.diff.server.side: true
+    # NOTE: cloudflaredからはHTTPで受ける
+    server.insecure: true
+  rbac:
+    # NOTE: ログインした全員に付くため、グループに属さないユーザーにロールを与えないよう空にする
+    policy.default: ""
+    policy.csv: |
+      g, app-argocd-admin, role:admin
+
+# NOTE: oidc.configでIdPに直接接続するため、Dexを使わない
+dex:
+  enabled: false
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: cloudflare-tunnel

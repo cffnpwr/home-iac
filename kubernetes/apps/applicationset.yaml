@@ -30,12 +30,13 @@ spec:
           selfHeal: true
   # NOTE: パラメーターの有無で変わる項目の付与
   #       chartがあればHelm chartを、無ければapp.yamlのディレクトリをKustomizeで同期
+  #       chartがありmanifestsがtrueなら、Helm chartとapp.yamlのディレクトリの両方を同期
   #
   # NOTE: `.path`には`.path.path = kubernetes/apps/<name>`・`.path.basename = <name>`が入る
   templatePatch: |-
     spec:
-      {{- if .chart }}
       sources:
+        {{- if .chart }}
         - repoURL: {{ .chart.repoURL }}
           chart: {{ .chart.name }}
           targetRevision: {{ .chart.version }}
@@ -50,6 +51,12 @@ spec:
         - repoURL: https://github.com/cffnpwr/home-iac.git
           targetRevision: main
           ref: values
+        {{- end }}
+        {{- if or .manifests (not .chart) }}
+        - repoURL: https://github.com/cffnpwr/home-iac.git
+          targetRevision: main
+          path: {{ .path.path }}
+        {{- end }}
         {{- if .talosBootstrap }}
         # NOTE: Talosのinline manifestが作成したリソースから、talosのmanagedFieldsのエントリを削除するPostSync hook
         #       Application間でクラスタスコープのリソース名が重複しないよう、Application名を接頭辞に付与
@@ -60,12 +67,6 @@ spec:
             namePrefix: {{ .path.basename }}-
             namespace: {{ .namespace }}
         {{- end }}
-      {{- else }}
-      source:
-        repoURL: https://github.com/cffnpwr/home-iac.git
-        targetRevision: main
-        path: {{ .path.path }}
-      {{- end }}
       {{- if .ignoreDifferences }}
       ignoreDifferences: {{ toJson .ignoreDifferences }}
       {{- end }}

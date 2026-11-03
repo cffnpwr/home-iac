@@ -8,3 +8,5 @@ chart:
   # NOTE: Terraformが初回導入のhelm_templateのリリース名として参照するため明示
   releaseName: argocd
 talosBootstrap: true
+# NOTE: OIDCのクライアントのSealedSecretを、chartとあわせて同期
+manifests: true

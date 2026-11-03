@@ -72,6 +72,15 @@ output "sealed_secrets" {
         sso_client_secret = cloudflare_zero_trust_access_application.vaultwarden.saas_app.client_secret
       }
     }
+    "kubernetes/apps/argocd/argocd-oidc.yaml" = {
+      namespace = "argocd"
+      name      = "argocd-oidc"
+      data = {
+        issuer        = "https://${data.cloudflare_zero_trust_organization.this.auth_domain}/cdn-cgi/access/sso/oidc/${cloudflare_zero_trust_access_application.argocd.saas_app.client_id}"
+        client-id     = cloudflare_zero_trust_access_application.argocd.saas_app.client_id
+        client-secret = cloudflare_zero_trust_access_application.argocd.saas_app.client_secret
+      }
+    }
     "kubernetes/apps/pocket-id/pocket-id-cloudflare.yaml" = {
       namespace = "pocket-id"
       name      = "pocket-id-cloudflare"

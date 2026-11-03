@@ -1,0 +1,13 @@
+kind: SealedSecret
+apiVersion: bitnami.com/v1alpha1
+metadata:
+  name: argocd-oidc
+  namespace: argocd
+spec:
+  template:
+    metadata:
+      name: argocd-oidc
+      namespace: argocd
+      labels:
+        app.kubernetes.io/part-of: argocd
+  encryptedData: {}

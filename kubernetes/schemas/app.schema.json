@@ -6,7 +6,8 @@
   "additionalProperties": false,
   "required": ["namespace"],
   "dependentRequired": {
-    "talosBootstrap": ["chart"]
+    "talosBootstrap": ["chart"],
+    "manifests": ["chart"]
   },
   "properties": {
     "namespace": {
@@ -37,6 +38,10 @@
           "type": "string"
         }
       }
+    },
+    "manifests": {
+      "description": "chartに加えて、app.yamlのディレクトリをKustomizeで同期するか。trueの場合、ディレクトリにkustomization.yamlが必要。chartを指定したApplicationでのみ有効",
+      "type": "boolean"
     },
     "talosBootstrap": {
       "description": "Talosのinline manifestで初回導入するか。trueの場合、同期後にtalosのmanagedFieldsのエントリを削除する。chartを指定したApplicationでのみ有効",
