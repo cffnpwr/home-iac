@@ -1,6 +1,12 @@
 ipam:
   mode: kubernetes
 kubeProxyReplacement: true
+socketLB:
+  # NOTE: Pod内のソケットのServiceの宛先変換がIstioのsidecarの経路を迂回するためホストのnamespaceに限定
+  hostNamespaceOnly: true
+cni:
+  # NOTE: Istio CNIがCiliumのCNIの設定に追加するプラグインをCiliumが削除しないようにする
+  exclusive: false
 k8sServiceHost: localhost
 k8sServicePort: 7445
 securityContext:
