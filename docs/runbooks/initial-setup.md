@@ -13,7 +13,7 @@
 - `mise install`でツールをインストール済み
 - GitHub Appに[CIでのapply](./terraform.md#ciでのapply)の権限を付与済み
 - [Terraformのplan・apply](./terraform.md#prerequisites)の環境変数を設定済み
-- CIのシークレットに登録するため、`TF_VAR_vultr_api_key`を設定済み（[CIのシークレットの更新](./terraform.md#ciのシークレットの更新)）
+- CIのシークレットに登録するため、`TF_VAR_cloudflare_api_token_read_write`・`TF_VAR_vultr_api_key`を設定済み（[CIのシークレットの更新](./terraform.md#ciのシークレットの更新)）
 
 ## tfstate用のR2 Bucketの作成
 
