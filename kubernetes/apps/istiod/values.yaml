@@ -12,6 +12,9 @@ resources:
     memory: 100Mi
   limits:
     memory: 512Mi
+# NOTE: PodSecurityのbaselineがistio-initの権限（NET_ADMIN・NET_RAW）を拒否するため、通信の経路をIstio CNIで設定
+cni:
+  enabled: true
 base:
   # NOTE: Argo CDとistiodによる書き換えの繰り返しを防ぐために同じ値を指定
   validationFailurePolicy: Fail
