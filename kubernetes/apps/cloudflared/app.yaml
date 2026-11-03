@@ -1,4 +1,2 @@
 # yaml-language-server: $schema=../../schemas/app.schema.json
 namespace: cloudflared
-syncOptions:
-  - CreateNamespace=true

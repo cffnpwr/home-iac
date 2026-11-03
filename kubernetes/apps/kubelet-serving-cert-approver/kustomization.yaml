@@ -21,3 +21,10 @@ patches:
           rollingUpdate:
             maxSurge: 0
             maxUnavailable: 1
+  - target:
+      kind: Namespace
+      name: kubelet-serving-cert-approver
+    patch: |-
+      - op: add
+        path: /metadata/labels/istio-injection
+        value: enabled

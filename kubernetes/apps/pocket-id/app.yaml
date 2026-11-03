@@ -1,7 +1,5 @@
 # yaml-language-server: $schema=../../schemas/app.schema.json
 namespace: pocket-id
-syncOptions:
-  - CreateNamespace=true
 ignoreDifferences:
   # NOTE: Secretの変更時にReloaderがPodのテンプレートへ追加するアノテーション
   - group: apps
