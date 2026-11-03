@@ -15,7 +15,7 @@
     "URI": "nb.cffnpwr.dev:443"
   },
   "ReverseProxy": {
-    "TrustedPeers": ["10.244.0.0/16"]
+    "TrustedPeers": ["10.244.0.0/16", "127.0.0.6/32"]
   },
   "Datadir": "/var/lib/netbird",
   "DataStoreEncryptionKey": "{{ .NETBIRD_DATASTORE_ENCRYPTION_KEY }}",
