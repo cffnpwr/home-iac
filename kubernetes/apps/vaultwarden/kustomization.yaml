@@ -4,6 +4,7 @@ resources:
   - namespace.yaml
   - vaultwarden.yaml
   - ingress.yaml
+  - virtualservice.yaml
   - networkpolicy.yaml
   - vaultwarden-r2.yaml
   - vaultwarden-sso.yaml

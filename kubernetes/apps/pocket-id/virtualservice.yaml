@@ -1,0 +1,15 @@
+# NOTE: cloudflaredは公開ホスト名をHostヘッダーに入れるため、sidecarがServiceのclusterに転送するよう指定
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: pocket-id
+  namespace: pocket-id
+spec:
+  hosts:
+    - auth.cffnpwr.dev
+  http:
+    - route:
+        - destination:
+            host: pocket-id.pocket-id.svc.cluster.local
+            port:
+              number: 80
