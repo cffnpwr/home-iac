@@ -75,6 +75,8 @@ CIからクラスタへ接続できない場合と、CIの接続に使うnetbird
 
 `TF_VAR_cloudflare_api_token_read_write`のトークンは、ダッシュボードで作成する。
 CIのapplyは、このトークンからS3 backendの認証情報を作るため、このトークンにはtfstateのR2 Bucketを読み書きする権限も付ける。
+Terraformは、作成するトークンの名前に`[managed by terraform] home-iac/`を付ける。
+ダッシュボードで作成するトークンの名前には、`[managed by terraform] `を付けない。
 
 CIのplan・applyはこの4つを設定しないため、Terraformは登録済みのシークレットの値の変更を無視する。
 このため、この4つは、シークレットを登録・更新するapplyでだけ設定する。

@@ -35,7 +35,7 @@ data "cloudflare_account_api_token_permission_groups_list" "terraform_plan" {
 # NOTE: CIのplanが、S3 backendのstateの読み取りとCloudflare providerに使うトークン
 resource "cloudflare_account_token" "terraform_plan" {
   account_id = local.cloudflare_account_id
-  name       = "terraform-plan"
+  name       = "${local.cloudflare_account_token_name_prefix}terraform-plan"
 
   policies = [
     {
@@ -69,7 +69,7 @@ resource "cloudflare_account_token" "terraform_netbird" {
   for_each = local.terraform_netbird_permission_groups
 
   account_id = local.cloudflare_account_id
-  name       = "terraform-netbird-${trimprefix(each.key, "terraform-")}"
+  name       = "${local.cloudflare_account_token_name_prefix}terraform-netbird-${trimprefix(each.key, "terraform-")}"
 
   policies = [{
     effect = "allow"

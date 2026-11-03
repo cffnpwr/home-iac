@@ -13,7 +13,7 @@ data "cloudflare_account_api_token_permission_groups_list" "cloudflared_write" {
 # NOTE: Cloudflare Tunnel Ingress Controllerが、トンネルの公開ルートとDNSレコードの管理に使うトークン
 resource "cloudflare_account_token" "cloudflare_tunnel_ingress_controller" {
   account_id = local.cloudflare_account_id
-  name       = "cloudflare-tunnel-ingress-controller"
+  name       = "${local.cloudflare_account_token_name_prefix}cloudflare-tunnel-ingress-controller"
 
   policies = [
     {

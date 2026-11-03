@@ -11,7 +11,7 @@ data "cloudflare_account_api_token_permission_groups_list" "zone_read" {
 # NOTE: cert-managerがACMEのDNS-01で使うトークン
 resource "cloudflare_account_token" "cert_manager" {
   account_id = local.cloudflare_account_id
-  name       = "cert-manager"
+  name       = "${local.cloudflare_account_token_name_prefix}cert-manager"
 
   policies = [{
     effect = "allow"
