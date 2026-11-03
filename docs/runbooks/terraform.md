@@ -73,6 +73,9 @@ CIからクラスタへ接続できない場合と、CIの接続に使うnetbird
 | `TF_VAR_netbird_pat_read_write` | `terraform-apply`の`NB_PAT`（管理者のサービスユーザーのPAT） |
 | `TF_VAR_vultr_api_key` | リポジトリの`VULTR_API_KEY`（`VULTR_API_KEY`環境変数と同じ値） |
 
+`TF_VAR_cloudflare_api_token_read_write`のトークンは、ダッシュボードで作成する。
+CIのapplyは、このトークンからS3 backendの認証情報を作るため、このトークンにはtfstateのR2 Bucketを読み書きする権限も付ける。
+
 CIのplan・applyはこの4つを設定しないため、Terraformは登録済みのシークレットの値の変更を無視する。
 このため、この4つは、シークレットを登録・更新するapplyでだけ設定する。
 変数を設定しない場合、まだ登録されていないシークレットには空文字列が登録される。
