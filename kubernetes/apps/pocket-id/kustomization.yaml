@@ -4,6 +4,7 @@ resources:
   - namespace.yaml
   - pocket-id.yaml
   - ingress.yaml
+  - virtualservice.yaml
   - pocket-id-keys.yaml
   - postgres.yaml
   - pocket-id-cloudflare.yaml
