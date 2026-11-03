@@ -43,12 +43,10 @@ resource "github_repository_environment" "terraform_plan" {
 locals {
   terraform_ci_environments = {
     (github_repository_environment.terraform_plan.environment) = {
-      cloudflare_api_token = var.cloudflare_api_token_read_only
-      netbird_pat          = var.netbird_pat_read_only
+      netbird_pat = var.netbird_pat_read_only
     }
     (github_repository_environment.terraform_apply.environment) = {
-      cloudflare_api_token = var.cloudflare_api_token_read_write
-      netbird_pat          = var.netbird_pat_read_write
+      netbird_pat = var.netbird_pat_read_write
     }
   }
 }
@@ -72,18 +70,13 @@ resource "github_actions_environment_secret" "terraform_ci_aws_secret_access_key
   value = sha256(each.value.value)
 }
 
-# NOTE: 入力の値の更新は、手元で-replaceを指定してapplyする
 resource "github_actions_environment_secret" "terraform_ci_cloudflare_api_token" {
-  for_each = toset(keys(local.terraform_ci_environments))
+  for_each = cloudflare_account_token.terraform_ci
 
   repository  = "home-iac"
   environment = each.key
   secret_name = "CLOUDFLARE_API_TOKEN"
-  value       = local.terraform_ci_environments[each.key].cloudflare_api_token
-
-  lifecycle {
-    ignore_changes = [value]
-  }
+  value       = each.value.value
 }
 
 resource "github_actions_environment_secret" "terraform_ci_netbird_pat" {
