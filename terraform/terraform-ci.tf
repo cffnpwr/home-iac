@@ -2,8 +2,8 @@ locals {
   # NOTE: planは変更を適用しないため、planには読み取りだけを許可
   terraform_ci_permission_groups = {
     "terraform-plan" = {
-      # NOTE: CIのplanはstateをロックしない（-lock=false）ため、stateも読み取りだけを許可
-      tfstate = ["Workers R2 Storage Bucket Item Read"]
+      # NOTE: stateの読み取りは、accountのWorkers R2 Storage Readで許可
+      tfstate = []
       account = [
         "Access: Apps Read",
         "Access: Organizations, Identity Providers, and Groups Read",
