@@ -7,20 +7,31 @@ resource "cloudflare_zero_trust_access_policy" "argocd" {
   account_id = local.cloudflare_account_id
   name       = "argocd"
   decision   = "allow"
-  include = [{
-    oidc = {
-      identity_provider_id = cloudflare_zero_trust_access_identity_provider.pocket_id.id
-      claim_name           = "groups"
-      claim_value          = "app-argocd"
-    }
-  }]
+  include = [
+    {
+      oidc = {
+        identity_provider_id = cloudflare_zero_trust_access_identity_provider.pocket_id.id
+        claim_name           = "groups"
+        claim_value          = "app-argocd"
+      }
+    },
+    {
+      gsuite = {
+        identity_provider_id = cloudflare_zero_trust_access_identity_provider.google_workspace.id
+        email                = "app-argocd@${data.cloudflare_zone.cffnpwr_dev.name}"
+      }
+    },
+  ]
 }
 
 resource "cloudflare_zero_trust_access_application" "argocd" {
-  account_id   = local.cloudflare_account_id
-  name         = "argocd"
-  type         = "saas"
-  allowed_idps = [cloudflare_zero_trust_access_identity_provider.pocket_id.id]
+  account_id = local.cloudflare_account_id
+  name       = "argocd"
+  type       = "saas"
+  allowed_idps = [
+    cloudflare_zero_trust_access_identity_provider.pocket_id.id,
+    cloudflare_zero_trust_access_identity_provider.google_workspace.id,
+  ]
   policies = [{
     id         = cloudflare_zero_trust_access_policy.argocd.id
     precedence = 1

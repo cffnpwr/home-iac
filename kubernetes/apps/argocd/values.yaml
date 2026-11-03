@@ -6,7 +6,7 @@ configs:
     admin.enabled: false
     # NOTE: $argocd-oidc:<key>は、`app.kubernetes.io/part-of: argocd`のラベルを持つSecretのargocd-oidcの値
     oidc.config: |
-      name: Pocket ID
+      name: Cloudflare Access
       issuer: $argocd-oidc:issuer
       clientID: $argocd-oidc:client-id
       clientSecret: $argocd-oidc:client-secret
@@ -22,6 +22,7 @@ configs:
     policy.default: ""
     policy.csv: |
       g, app-argocd-admin, role:admin
+      g, app-argocd-admin@cffnpwr.dev, role:admin
 
 # NOTE: oidc.configでIdPに直接接続するため、Dexを使わない
 dex:
