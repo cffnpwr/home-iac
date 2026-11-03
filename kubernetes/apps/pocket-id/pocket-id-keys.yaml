@@ -1,0 +1,14 @@
+kind: SealedSecret
+apiVersion: bitnami.com/v1alpha1
+metadata:
+  name: pocket-id-keys
+  namespace: pocket-id
+  annotations:
+    home-iac/cert-sha256: 1075837bdc565fd7eab5c1cdffa7e30b075b96df33757af974b241b20cf63525
+spec:
+  template:
+    metadata:
+      name: pocket-id-keys
+      namespace: pocket-id
+  encryptedData:
+    encryption-key: AgCXtGZh8nvrXj9t96Lyn+2Wrp9Y6+Jy19attnRQZvTo3Vq5lK3ODBBnuixQeE/nVLH91yw8PcT4Bz57jKBs3/lQ4gLmnyEJ4U752dBZoxEJdC2wLQj/tvk0/V8UxEw6hZoyzuLZHUS3G/TdBZtcGOdJjhODi3dMxw6rSKW97gdhtbSezRBX9q+IcC9clXz/t8Xvbk7KMSSm32uCDHeGTmknXZshKJMGs6SemYT/SxbztbK4MqX/qmIAUy5jRkHP83MTAjmwOttRKNVfhMSxhmaxOY7nxzpfBYiVvI7hTcEcoe0hZJj+clet5kmTKO+5oivsPAlEURCDUhAwdEWc0RrvYuABd7pMh6bPrMjjTrB9+4+ezLUNqzp85NT0zAK4EvzI5TbVX7iUm5tQkXNtXJ+iUwHmoE6Zdfvhhiydb/qn/9y/6Dyx+27l3LeM0afMse5IxPo5sTpclE4idR8kvk2J0LcJ/HjOOFUyRbzCvTneS4mceOCLBZms4aGTgJ6skMYrPKhVcY/OEbnhZ1tSB1Rxc1xUnxAE3Zma7u7RcQwcYDVTDo31YEvY7muVV1au4g7Zf3v/x+rwQ2NNj0ru5WvJWyEFDuCaP3dbrGCGZ0SZnHFaA3CH4AFdp3tzJf/B36LI2364wvFyQ/biBZmL1ScUweETkM/Sk3OednN8gOoVH45B/LzRS3EFI89dwJoso/bpLLjEst/oMwpn+vZxabLlA0UJh0x0kjcEgmcBWfUGLpjkLGhxF744wL86JA==
