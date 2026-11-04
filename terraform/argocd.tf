@@ -44,7 +44,8 @@ resource "cloudflare_zero_trust_access_application" "argocd" {
     # NOTE: groupsはArgo CDのRBACでロールの割り当てに使用
     scopes = ["openid", "email", "profile", "groups"]
     # NOTE: ID tokenの有効期間はこの値に関係なく5分
-    access_token_lifetime = "15m"
+    #       Argo CDはaccess tokenの期限を基準にrefreshするため、ID tokenの有効期間に合わせる
+    access_token_lifetime = "5m"
     refresh_token_options = {
       # NOTE: グローバルなセッションの有効期間（既定の24時間）より長くしても、グローバルなセッションが優先される
       lifetime = "24h"
