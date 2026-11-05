@@ -1,5 +1,6 @@
-# NOTE: PVはCephのOSDがある自宅に置かれるため、PVCを使うPodはVultrノードには自宅のノードに空きが無い場合だけ配置
-#       taintはPodのボリュームに応じて効果を変えられないため、PodにnodeAffinityを付与
+# NOTE: PVはCephのOSDがある自宅に置かれるため、PVCを使うPodは自宅のノードだけに配置する。
+#       VultrノードではWAN越しのCephへの読み書きが遅延・中断し、PostgreSQL等が応答しなくなる。
+#       taintはPodのボリュームに応じて効果を変えられないため、PodにnodeSelectorを付与
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingAdmissionPolicy
 metadata:
@@ -12,57 +13,26 @@ spec:
         operations: ["CREATE"]
         resources: ["pods"]
   matchConditions:
-    # NOTE: ephemeralのボリュームはPodの作成時にPVCを作りPVをCephに置くため対象に含める
+    # NOTE: ephemeralのボリュームはPodの作成時にPVCを作りPVをCephに置くため対象にする
     - name: uses-pvc
       expression: >-
         has(object.spec.volumes) &&
         object.spec.volumes.exists(v, has(v.persistentVolumeClaim) || has(v.ephemeral))
-  variables:
-    - name: preferNonVultr
-      expression: >-
-        {
-          "weight": dyn(100),
-          "preference": dyn({
-            "matchExpressions": [{
-              "key": dyn("topology.kubernetes.io/zone"),
-              "operator": dyn("NotIn"),
-              "values": dyn(["vultr"])
-            }]
-          })
-        }
-  # NOTE: preferredDuringSchedulingIgnoredDuringExecutionはatomicなリストで、ApplyConfigurationでは変更できないためJSONPatchで追加
+  # NOTE: nodeSelectorはatomicなmapで、ApplyConfigurationでは変更できないためJSONPatchで追加
   mutations:
     - patchType: JSONPatch
       jsonPatch:
         expression: >-
-          !has(object.spec.affinity) ?
+          !has(object.spec.nodeSelector) ?
             [JSONPatch{
               op: "add",
-              path: "/spec/affinity",
-              value: {
-                "nodeAffinity": {
-                  "preferredDuringSchedulingIgnoredDuringExecution": [variables.preferNonVultr]
-                }
-              }
-            }] :
-          !has(object.spec.affinity.nodeAffinity) ?
-            [JSONPatch{
-              op: "add",
-              path: "/spec/affinity/nodeAffinity",
-              value: {
-                "preferredDuringSchedulingIgnoredDuringExecution": [variables.preferNonVultr]
-              }
-            }] :
-          !has(object.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution) ?
-            [JSONPatch{
-              op: "add",
-              path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution",
-              value: [variables.preferNonVultr]
+              path: "/spec/nodeSelector",
+              value: {"topology.kubernetes.io/zone": "home"}
             }] :
             [JSONPatch{
               op: "add",
-              path: "/spec/affinity/nodeAffinity/preferredDuringSchedulingIgnoredDuringExecution/-",
-              value: variables.preferNonVultr
+              path: "/spec/nodeSelector/" + jsonpatch.escapeKey("topology.kubernetes.io/zone"),
+              value: "home"
             }]
   # NOTE: 付与に失敗してもPodの作成を止めない
   failurePolicy: Ignore
