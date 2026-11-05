@@ -110,5 +110,9 @@ output "sealed_secrets_data_hmac_key" {
 }
 
 output "server_iso_urls" {
-  value = { for hostname, server in module.servers : hostname => server.iso_url }
+  value = {
+    cpwr-svr1 = module.cpwr_svr1.iso_url
+    cpwr-svr2 = module.cpwr_svr2.iso_url
+    cpwr-svr3 = module.cpwr_svr3.iso_url
+  }
 }

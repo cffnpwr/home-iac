@@ -142,3 +142,9 @@ variable "ceph_osd" {
   }
   default = null
 }
+
+variable "upgrade_after" {
+  type        = string
+  description = "先に作成・更新を完了させるノードのtalos_machineのID。nullの場合は順序を付けない"
+  default     = null
+}
