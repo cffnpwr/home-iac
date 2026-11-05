@@ -31,3 +31,47 @@ cephClusterSpec:
         policy: mute
 # NOTE: オブジェクトストレージは使わない
 cephObjectStores: []
+# NOTE: chartの既定値のCephFSを、MDSの要求量だけ変えて定義する。リストはchartの既定値と結合されないため、既定値をすべて記述
+cephFileSystems:
+  - name: ceph-filesystem
+    spec:
+      metadataPool:
+        replicated:
+          size: 3
+      dataPools:
+        - failureDomain: host
+          replicated:
+            size: 3
+          name: data0
+      metadataServer:
+        activeCount: 1
+        activeStandby: true
+        resources:
+          limits:
+            memory: "4Gi"
+          # NOTE: CephFSのボリュームが無く、MDSの使用量はCPU 3m・メモリ35Mi程度のためdrainで退避するPodの要求量を減らす
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+        priorityClassName: system-cluster-critical
+    storageClass:
+      enabled: true
+      isDefault: false
+      name: ceph-filesystem
+      pool: data0
+      reclaimPolicy: Delete
+      allowVolumeExpansion: true
+      volumeBindingMode: "Immediate"
+      annotations: {}
+      labels: {}
+      mountOptions: []
+      parameters:
+        csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+        csi.storage.k8s.io/provisioner-secret-namespace: "{{ .Release.Namespace }}"
+        csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+        csi.storage.k8s.io/controller-expand-secret-namespace: "{{ .Release.Namespace }}"
+        csi.storage.k8s.io/controller-publish-secret-name: rook-csi-cephfs-provisioner
+        csi.storage.k8s.io/controller-publish-secret-namespace: "{{ .Release.Namespace }}"
+        csi.storage.k8s.io/node-stage-secret-name: rook-csi-cephfs-node
+        csi.storage.k8s.io/node-stage-secret-namespace: "{{ .Release.Namespace }}"
+        csi.storage.k8s.io/fstype: ext4
