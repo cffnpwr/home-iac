@@ -72,6 +72,11 @@
       ],
       "groupName": "netbird",
       "minimumGroupSize": 4
+    },
+    {
+      // NOTE: talosctlのバージョンをノードのTalosのバージョンに揃える
+      "matchDepNames": ["talosctl", "siderolabs/talos"],
+      "groupName": "talos"
     }
   ],
   "kubernetes": {
