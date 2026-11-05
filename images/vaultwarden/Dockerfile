@@ -3,8 +3,8 @@
 FROM docker.io/library/rust:1.99.1-slim-trixie@sha256:b8e062b1c3a80183df83d9ba187cadd2b5ab84bc78d453dbfeb2fccd5f982247 AS build
 WORKDIR /app
 
-ARG VAULTWARDEN_VERSION=1.37.4
-ARG VAULTWARDEN_COMMIT=7c188967e7a467b19b2757bc3326f9cf3ccae327
+ARG VAULTWARDEN_VERSION=1.37.5
+ARG VAULTWARDEN_COMMIT=6ed6921cc2b0e03b4d74189574d2a5e71c512e97
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
   VW_VERSION="${VAULTWARDEN_VERSION}" cargo build --locked --features sqlite,postgresql,s3 --release
 
 # NOTE: web-vault・起動スクリプト・ヘルスチェックは、同じバージョンの公式のイメージのものを使う
-FROM docker.io/vaultwarden/server:1.37.4@sha256:efb3cde962015fcc036b2ea625242248611943b27212ebf4392841fb30fad055
+FROM docker.io/vaultwarden/server:1.37.5@sha256:4fe17f415f90087377d37c755e0ea3cf189dcc6794e49cdd2a9adbb4937d9e1f
 
 LABEL org.opencontainers.image.source=https://github.com/cffnpwr/home-iac
 
