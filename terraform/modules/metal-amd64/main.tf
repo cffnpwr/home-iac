@@ -132,4 +132,7 @@ resource "talos_machine" "this" {
   ignore_kubernetes_upgrade_drift = true
   drain_on_upgrade                = true
   kubeconfig_wo                   = var.kubeconfig
+
+  # NOTE: 複数のcontrol planeを同時にdrain・再起動するとetcdのクォーラムを失うため、先のノードの完了を待つ
+  depends_on = [var.upgrade_after]
 }

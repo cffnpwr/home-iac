@@ -229,42 +229,114 @@ module "rpi4" {
   }
 }
 
-module "servers" {
-  source   = "./modules/metal-amd64"
-  for_each = local.servers
+locals {
+  server_node_labels = {
+    for name, server in local.servers : name => merge(
+      {
+        "topology.kubernetes.io/zone" = "home"
+      },
+      # NOTE: CephのOSDを置く永続化用のノードの場合はラベルを付与
+      server.ceph_osd == null ? {} : {
+        "cffnpwr.dev/storage" = "true"
+      },
+    )
+  }
+}
 
-  cluster_name         = local.talos_cluster_name
-  cluster_endpoint     = local.talos_cluster_endpoint
-  machine_secrets      = talos_machine_secrets.this.machine_secrets
-  client_configuration = talos_machine_secrets.this.client_configuration
-  talos_version        = local.talos_version
-  talos_config_version = local.talos_config_version
-  kubernetes_version   = local.kubernetes_version
-  kubeconfig           = ephemeral.talos_cluster_kubeconfig.this.kubeconfig_raw
-  machine_type         = "controlplane"
-  config_patches       = concat(local.talos_common_config_patches, local.talos_controlplane_config_patches)
-  address              = each.value.address
-  prefix_length        = local.home_subnet_prefix_length
-  gateway              = local.home_gateway_address
-  nameservers          = local.nameservers
-  hostname             = each.key
-  node_labels = merge(
-    {
-      "topology.kubernetes.io/zone" = "home"
-    },
-    # NOTE: CephのOSDを置く永続化用のノードの場合はラベルを付与
-    each.value.ceph_osd == null ? {} : {
-      "cffnpwr.dev/storage" = "true"
-    },
-  )
-  extensions              = each.value.extensions
-  link_name               = each.value.link_name
-  link_driver             = each.value.link_driver
-  install_disk_selector   = each.value.install_disk_selector
-  ephemeral_max_size      = each.value.ephemeral_max_size
-  ephemeral_disk_selector = each.value.ephemeral_disk_selector
-  ceph_osd                = each.value.ceph_osd
-  secure_boot             = each.value.secure_boot
+# NOTE: control planeのTalosを1台ずつ更新するため、for_eachを使わずにノードごとにモジュールを呼び出し、upgrade_afterで順序を付ける。
+#       同時に更新すると、drain・再起動が重なりetcdのクォーラムを失うおそれがある。
+#       for_eachの同じモジュールの呼び出しでは、インスタンス間で参照すると循環参照になるため順序を付けられない
+module "cpwr_svr1" {
+  source = "./modules/metal-amd64"
+
+  cluster_name            = local.talos_cluster_name
+  cluster_endpoint        = local.talos_cluster_endpoint
+  machine_secrets         = talos_machine_secrets.this.machine_secrets
+  client_configuration    = talos_machine_secrets.this.client_configuration
+  talos_version           = local.talos_version
+  talos_config_version    = local.talos_config_version
+  kubernetes_version      = local.kubernetes_version
+  kubeconfig              = ephemeral.talos_cluster_kubeconfig.this.kubeconfig_raw
+  machine_type            = "controlplane"
+  config_patches          = concat(local.talos_common_config_patches, local.talos_controlplane_config_patches)
+  address                 = local.servers["cpwr-svr1"].address
+  prefix_length           = local.home_subnet_prefix_length
+  gateway                 = local.home_gateway_address
+  nameservers             = local.nameservers
+  hostname                = "cpwr-svr1"
+  node_labels             = local.server_node_labels["cpwr-svr1"]
+  extensions              = local.servers["cpwr-svr1"].extensions
+  link_name               = local.servers["cpwr-svr1"].link_name
+  link_driver             = local.servers["cpwr-svr1"].link_driver
+  install_disk_selector   = local.servers["cpwr-svr1"].install_disk_selector
+  ephemeral_max_size      = local.servers["cpwr-svr1"].ephemeral_max_size
+  ephemeral_disk_selector = local.servers["cpwr-svr1"].ephemeral_disk_selector
+  ceph_osd                = local.servers["cpwr-svr1"].ceph_osd
+  secure_boot             = local.servers["cpwr-svr1"].secure_boot
+
+  depends_on = [talos_cluster.this]
+}
+
+module "cpwr_svr2" {
+  source = "./modules/metal-amd64"
+
+  cluster_name            = local.talos_cluster_name
+  cluster_endpoint        = local.talos_cluster_endpoint
+  machine_secrets         = talos_machine_secrets.this.machine_secrets
+  client_configuration    = talos_machine_secrets.this.client_configuration
+  talos_version           = local.talos_version
+  talos_config_version    = local.talos_config_version
+  kubernetes_version      = local.kubernetes_version
+  kubeconfig              = ephemeral.talos_cluster_kubeconfig.this.kubeconfig_raw
+  machine_type            = "controlplane"
+  config_patches          = concat(local.talos_common_config_patches, local.talos_controlplane_config_patches)
+  address                 = local.servers["cpwr-svr2"].address
+  prefix_length           = local.home_subnet_prefix_length
+  gateway                 = local.home_gateway_address
+  nameservers             = local.nameservers
+  hostname                = "cpwr-svr2"
+  node_labels             = local.server_node_labels["cpwr-svr2"]
+  extensions              = local.servers["cpwr-svr2"].extensions
+  link_name               = local.servers["cpwr-svr2"].link_name
+  link_driver             = local.servers["cpwr-svr2"].link_driver
+  install_disk_selector   = local.servers["cpwr-svr2"].install_disk_selector
+  ephemeral_max_size      = local.servers["cpwr-svr2"].ephemeral_max_size
+  ephemeral_disk_selector = local.servers["cpwr-svr2"].ephemeral_disk_selector
+  ceph_osd                = local.servers["cpwr-svr2"].ceph_osd
+  secure_boot             = local.servers["cpwr-svr2"].secure_boot
+  upgrade_after           = module.cpwr_svr1.talos_machine_id
+
+  depends_on = [talos_cluster.this]
+}
+
+module "cpwr_svr3" {
+  source = "./modules/metal-amd64"
+
+  cluster_name            = local.talos_cluster_name
+  cluster_endpoint        = local.talos_cluster_endpoint
+  machine_secrets         = talos_machine_secrets.this.machine_secrets
+  client_configuration    = talos_machine_secrets.this.client_configuration
+  talos_version           = local.talos_version
+  talos_config_version    = local.talos_config_version
+  kubernetes_version      = local.kubernetes_version
+  kubeconfig              = ephemeral.talos_cluster_kubeconfig.this.kubeconfig_raw
+  machine_type            = "controlplane"
+  config_patches          = concat(local.talos_common_config_patches, local.talos_controlplane_config_patches)
+  address                 = local.servers["cpwr-svr3"].address
+  prefix_length           = local.home_subnet_prefix_length
+  gateway                 = local.home_gateway_address
+  nameservers             = local.nameservers
+  hostname                = "cpwr-svr3"
+  node_labels             = local.server_node_labels["cpwr-svr3"]
+  extensions              = local.servers["cpwr-svr3"].extensions
+  link_name               = local.servers["cpwr-svr3"].link_name
+  link_driver             = local.servers["cpwr-svr3"].link_driver
+  install_disk_selector   = local.servers["cpwr-svr3"].install_disk_selector
+  ephemeral_max_size      = local.servers["cpwr-svr3"].ephemeral_max_size
+  ephemeral_disk_selector = local.servers["cpwr-svr3"].ephemeral_disk_selector
+  ceph_osd                = local.servers["cpwr-svr3"].ceph_osd
+  secure_boot             = local.servers["cpwr-svr3"].secure_boot
+  upgrade_after           = module.cpwr_svr2.talos_machine_id
 
   depends_on = [talos_cluster.this]
 }
