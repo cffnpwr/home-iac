@@ -38,7 +38,7 @@ spec:
     spec:
       containers:
         - name: vaultwarden
-          image: ghcr.io/cffnpwr/home-iac/vaultwarden:main@sha256:417b6ea420e8c825aa0ec949e85439586b655b0e8d453851df42c7c3b68ebea7
+          image: ghcr.io/cffnpwr/home-iac/vaultwarden:main@sha256:9bea2b90e0e8a77f078741914973fd505d227e28fab1e6b2ea6e15116156163b
           env:
             - name: DATABASE_URL
               valueFrom:
