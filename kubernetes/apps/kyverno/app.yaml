@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+# NOTE: kube-apiserverはメッシュの外からwebhookを呼ぶため、istio-injectionのラベルを持たないnamespaceを作る
+namespace: kyverno
+chart:
+  repoURL: https://kyverno.github.io/kyverno
+  name: kyverno
+  version: 3.9.2
+syncOptions:
+  - CreateNamespace=true

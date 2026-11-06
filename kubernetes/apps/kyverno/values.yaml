@@ -1,0 +1,58 @@
+config:
+  # NOTE: trueの場合はHelmのpost-delete hookが作られ、Argo CDのApplicationがOutOfSyncになるため無効化
+  preserve: false
+
+admissionController:
+  # NOTE: Kyvernoが高可用性の構成でサポートする最小のレプリカ数
+  replicas: 3
+  podDisruptionBudget:
+    enabled: true
+    # NOTE: chartの既定値のminAvailableはmaxUnavailableと同時に設定できないため削除
+    minAvailable: null
+    maxUnavailable: 1
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/instance: kyverno
+          app.kubernetes.io/component: admission-controller
+      matchLabelKeys:
+        - pod-template-hash
+      nodeTaintsPolicy: Honor
+
+backgroundController:
+  # NOTE: leader electionで1つのレプリカだけが生成を処理するため、可用性のために2つにする
+  replicas: 2
+  podDisruptionBudget:
+    enabled: true
+    # NOTE: chartの既定値のminAvailableはmaxUnavailableと同時に設定できないため削除
+    minAvailable: null
+    maxUnavailable: 1
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/instance: kyverno
+          app.kubernetes.io/component: background-controller
+      matchLabelKeys:
+        - pod-template-hash
+      nodeTaintsPolicy: Honor
+  rbac:
+    clusterRole:
+      # NOTE: GeneratingPolicyのcloudflare-tunnel-virtualserviceがVirtualServiceを生成・同期する
+      extraResources:
+        - apiGroups:
+            - networking.istio.io
+          resources:
+            - virtualservices
+          verbs:
+            - get
+            - list
+            - watch
+            - create
+            - update
+            - delete
