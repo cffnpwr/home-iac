@@ -19,8 +19,11 @@ spec:
           memory: 64Mi
         limits:
           memory: 256Mi
-    # NOTE: Vultrノードへのスケジューリングの許可
-    tolerations:
-      - key: edge
-        operator: Exists
-        effect: NoSchedule
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                controller: eventbus-controller
+                eventbus-name: default
+            topologyKey: kubernetes.io/hostname

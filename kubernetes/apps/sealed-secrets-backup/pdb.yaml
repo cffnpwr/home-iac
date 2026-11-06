@@ -1,0 +1,44 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sealed-secrets-eventsource
+  namespace: sealed-secrets
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      eventsource-name: sealed-secrets
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sealed-secrets-backup-sensor
+  namespace: sealed-secrets
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      sensor-name: sealed-secrets-backup
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sealed-secrets-key-cleanup-sensor
+  namespace: sealed-secrets
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      sensor-name: sealed-secrets-key-cleanup
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: eventbus-default
+  namespace: sealed-secrets
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      controller: eventbus-controller
+      eventbus-name: default

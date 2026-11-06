@@ -12,11 +12,6 @@ affinity:
             app.kubernetes.io/name: metrics-server
             app.kubernetes.io/instance: metrics-server
         topologyKey: kubernetes.io/hostname
-tolerations:
-  # NOTE: Vultrノードへのスケジューリングを許可
-  - key: edge
-    operator: Exists
-    effect: NoSchedule
 resources:
   # TODO: chartの既定値。実測後に見直す
   requests:

@@ -26,11 +26,6 @@ data:
           # NOTE: LoadBalancerのIPアドレスはVultrノードのIPアドレスのため、PodをVultrノードに固定
           nodeSelector:
             topology.kubernetes.io/zone: vultr
-          # NOTE: Vultrノードへのスケジューリングを許可
-          tolerations:
-            - key: edge
-              operator: Exists
-              effect: NoSchedule
           containers:
             - name: istio-proxy
               # NOTE: istiodのchartの既定値（requests cpu 100m・memory 128Mi、limits cpu 2000m・memory 1024Mi）から下げる

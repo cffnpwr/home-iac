@@ -10,6 +10,15 @@ webhook:
       values:
         - netbird-operator-webhook-disabled
 operator:
+  replicaCount: 3
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: netbird-operator
+              app.kubernetes.io/instance: netbird-operator
+          topologyKey: kubernetes.io/hostname
   resources:
     requests:
       cpu: 10m

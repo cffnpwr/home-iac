@@ -22,11 +22,6 @@ spec:
     enablePodAntiAffinity: true
     topologyKey: kubernetes.io/hostname
     podAntiAffinityType: required
-    tolerations:
-      # NOTE: Vultrノードへのスケジューリングを許可
-      - key: edge
-        operator: Exists
-        effect: NoSchedule
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true

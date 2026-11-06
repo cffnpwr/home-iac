@@ -3,7 +3,11 @@ kind: Sensor
 metadata:
   name: sealed-secrets-key-cleanup
   namespace: sealed-secrets
+  annotations:
+    # NOTE: 2レプリカでは1台の停止でleaderを選出できないためKubernetesのLeaseを使用
+    events.argoproj.io/leader-election: k8s
 spec:
+  replicas: 2
   template:
     serviceAccountName: sealed-secrets-sensor
     container:
@@ -13,6 +17,13 @@ spec:
           memory: 32Mi
         limits:
           memory: 128Mi
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                sensor-name: sealed-secrets-key-cleanup
+            topologyKey: kubernetes.io/hostname
   dependencies:
     - name: sealedsecret-updated
       eventSourceName: sealed-secrets
@@ -36,11 +47,6 @@ spec:
                   spec:
                     serviceAccountName: sealed-secrets-key-cleanup
                     restartPolicy: Never
-                    # NOTE: Vultrノードへのスケジューリングの許可
-                    tolerations:
-                      - key: edge
-                        operator: Exists
-                        effect: NoSchedule
                     containers:
                       - name: cleanup
                         image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:78ff784f9cbdf4ea495bce1e5fb878b7e1bcffcb2606036f391960ca38274dbd

@@ -51,10 +51,6 @@ spec:
     spec:
       nodeSelector:
         topology.kubernetes.io/zone: vultr
-      tolerations:
-        - key: edge
-          operator: Exists
-          effect: NoSchedule
       containers:
         - name: relay
           image: netbirdio/relay:0.82.0@sha256:8f6b9e4193653ede89e83dd4aa4e2cf2562579b3e2481dcf259a7ab28bcd5fa1

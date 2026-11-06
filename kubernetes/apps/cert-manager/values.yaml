@@ -1,5 +1,20 @@
 crds:
   enabled: true
+replicaCount: 2
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/instance: cert-manager
+        app.kubernetes.io/component: controller
+    matchLabelKeys:
+      - pod-template-hash
+    nodeTaintsPolicy: Honor
 resources:
   requests:
     cpu: 10m
@@ -7,6 +22,21 @@ resources:
   limits:
     memory: 256Mi
 webhook:
+  replicaCount: 3
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 1
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/instance: cert-manager
+          app.kubernetes.io/component: webhook
+      matchLabelKeys:
+        - pod-template-hash
+      nodeTaintsPolicy: Honor
   resources:
     requests:
       cpu: 10m
@@ -14,6 +44,21 @@ webhook:
     limits:
       memory: 128Mi
 cainjector:
+  replicaCount: 2
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 1
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/instance: cert-manager
+          app.kubernetes.io/component: cainjector
+      matchLabelKeys:
+        - pod-template-hash
+      nodeTaintsPolicy: Honor
   resources:
     requests:
       cpu: 10m

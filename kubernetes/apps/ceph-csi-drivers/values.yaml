@@ -1,5 +1,3 @@
-# NOTE: Rookが推奨するvalues（rook/rook v1.21.1: deploy/charts/ceph-csi-drivers/values.yaml）。chartの既定値だけではドライバが動かない
-#       ドライバの名前は、rook-ceph-clusterのStorageClassのprovisionerと一致させる
 operatorConfig:
   namespace: rook-ceph
   driverSpecDefaults:
@@ -10,28 +8,42 @@ operatorConfig:
     controllerPlugin:
       priorityClassName: system-cluster-critical
 drivers:
-  # NOTE: chartはドライバのtolerationsを常に空の配列で出力し、operatorはnilの場合だけdriverSpecDefaultsを使うため、ドライバごとに指定
   rbd:
     enabled: true
     name: rook-ceph.rbd.csi.ceph.com
-    nodePlugin:
-      tolerations:
-        # NOTE: Vultrノードへのスケジューリングを許可
-        - key: edge
-          operator: Exists
-          effect: NoSchedule
+    # NOTE: chartの既定値1がDriverに明示されるため、operatorの既定値2が使われない
+    #       ノードの分散は、operatorが既定で付与するhostnameのrequiredのpodAntiAffinityを使う
+    controllerPlugin:
+      replicas: 2
   cephfs:
     enabled: true
     name: rook-ceph.cephfs.csi.ceph.com
-    nodePlugin:
-      tolerations:
-        # NOTE: Vultrノードへのスケジューリングを許可
-        - key: edge
-          operator: Exists
-          effect: NoSchedule
+    controllerPlugin:
+      replicas: 2
   nfs:
     enabled: false
     name: rook-ceph.nfs.csi.ceph.com
   nvmeof:
     enabled: false
     name: rook-ceph.nvmeof.csi.ceph.com
+extraDeploy:
+  - apiVersion: policy/v1
+    kind: PodDisruptionBudget
+    metadata:
+      name: rook-ceph.rbd.csi.ceph.com-ctrlplugin
+      namespace: rook-ceph
+    spec:
+      maxUnavailable: 1
+      selector:
+        matchLabels:
+          app: rook-ceph.rbd.csi.ceph.com-ctrlplugin
+  - apiVersion: policy/v1
+    kind: PodDisruptionBudget
+    metadata:
+      name: rook-ceph.cephfs.csi.ceph.com-ctrlplugin
+      namespace: rook-ceph
+    spec:
+      maxUnavailable: 1
+      selector:
+        matchLabels:
+          app: rook-ceph.cephfs.csi.ceph.com-ctrlplugin
