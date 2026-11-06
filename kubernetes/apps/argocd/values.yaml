@@ -30,7 +30,92 @@ configs:
 dex:
   enabled: false
 
+redis-ha:
+  enabled: true
+  podDisruptionBudget:
+    maxUnavailable: 1
+  # NOTE: chartの既定値はresourcesが無制限のため設定
+  redis:
+    resources:
+      # TODO: 実測後に見直す
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
+  sentinel:
+    resources:
+      # TODO: 実測後に見直す
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
+  haproxy:
+    podDisruptionBudget:
+      maxUnavailable: 1
+    resources:
+      # TODO: 実測後に見直す
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
+
 server:
   ingress:
     enabled: true
     ingressClassName: cloudflare-tunnel
+  replicas: 3
+  env:
+    - name: ARGOCD_API_SERVER_REPLICAS
+      value: "3"
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+  # NOTE: nodeTaintsPolicy: Honorで、Podが許容しないtaintを持つノード（drain中にcordonされたノード等）をskewの計算から除外
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: argocd-server
+          app.kubernetes.io/instance: argocd
+      matchLabelKeys:
+        - pod-template-hash
+      nodeTaintsPolicy: Honor
+
+repoServer:
+  replicas: 2
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: argocd-repo-server
+          app.kubernetes.io/instance: argocd
+      matchLabelKeys:
+        - pod-template-hash
+      nodeTaintsPolicy: Honor
+
+applicationSet:
+  replicas: 2
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: argocd-applicationset-controller
+          app.kubernetes.io/instance: argocd
+      matchLabelKeys:
+        - pod-template-hash
+      nodeTaintsPolicy: Honor

@@ -19,3 +19,11 @@ spec:
           memory: 64Mi
         limits:
           memory: 256Mi
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                controller: eventbus-controller
+                eventbus-name: default
+            topologyKey: kubernetes.io/hostname

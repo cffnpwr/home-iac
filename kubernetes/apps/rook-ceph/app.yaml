@@ -5,6 +5,7 @@ chart:
   repoURL: https://charts.rook.io/release
   name: rook-ceph
   version: v1.21.1
+manifests: true
 # NOTE: namespaceを作るrook-ceph-namespaceのApplicationの同期完了までの再試行
 retry:
   limit: 10

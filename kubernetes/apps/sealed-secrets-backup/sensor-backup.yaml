@@ -3,7 +3,11 @@ kind: Sensor
 metadata:
   name: sealed-secrets-backup
   namespace: sealed-secrets
+  annotations:
+    # NOTE: 2レプリカでは1台の停止でleaderを選出できないためKubernetesのLeaseを使用
+    events.argoproj.io/leader-election: k8s
 spec:
+  replicas: 2
   template:
     serviceAccountName: sealed-secrets-sensor
     container:
@@ -13,6 +17,13 @@ spec:
           memory: 32Mi
         limits:
           memory: 128Mi
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                sensor-name: sealed-secrets-backup
+            topologyKey: kubernetes.io/hostname
   dependencies:
     - name: key-added
       eventSourceName: sealed-secrets

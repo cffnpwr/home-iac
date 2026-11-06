@@ -16,4 +16,6 @@ data "helm_template" "argocd" {
   namespace    = var.argocd_chart.namespace
   kube_version = var.kubernetes_version
   values       = [var.argocd_chart.values]
+  # NOTE: redis-haのtestのPodがinline manifestに含まれると、Talosが通常のPodとして適用するため除外
+  skip_tests = true
 }

@@ -1,9 +1,31 @@
-autoscaleEnabled: false
-# NOTE: chartの既定値（requests 2048Mi）から下げる
+# NOTE: Istioのベストプラクティスに従う
+#       ref: https://istio.io/latest/docs/ops/best-practices/deployment/#run-multiple-istiod-replicas
+autoscaleMin: 2
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app
+              operator: In
+              values:
+                - istiod
+        topologyKey: kubernetes.io/hostname
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - istiod
+          topologyKey: topology.kubernetes.io/zone
+# NOTE: chartの既定値（requests cpu 500m・memory 2048Mi）から下げる
 resources:
   # TODO: 実測後に見直す
   requests:
-    cpu: 10m
+    cpu: 100m
     memory: 100Mi
   limits:
     memory: 512Mi

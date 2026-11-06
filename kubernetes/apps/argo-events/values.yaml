@@ -1,4 +1,19 @@
 controller:
+  replicas: 2
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: argo-events-controller-manager
+          app.kubernetes.io/instance: argo-events
+      matchLabelKeys:
+        - pod-template-hash
+      nodeTaintsPolicy: Honor
   resources:
     requests:
       cpu: 10m

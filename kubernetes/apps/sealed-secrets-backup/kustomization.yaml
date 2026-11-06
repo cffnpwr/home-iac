@@ -6,6 +6,7 @@ resources:
   - eventbus.yaml
   - eventsource.yaml
   - networkpolicy.yaml
+  - pdb.yaml
   - rbac.yaml
   - recipients.yaml
   - sensor-backup.yaml

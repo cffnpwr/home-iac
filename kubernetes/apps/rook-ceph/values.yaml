@@ -1,0 +1,13 @@
+ceph-csi-operator:
+  controllerManager:
+    replicas: 2
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            control-plane: ceph-csi-op-controller-manager
+        matchLabelKeys:
+          - pod-template-hash
+        nodeTaintsPolicy: Honor

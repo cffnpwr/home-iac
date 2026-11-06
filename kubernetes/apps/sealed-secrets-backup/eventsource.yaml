@@ -3,7 +3,11 @@ kind: EventSource
 metadata:
   name: sealed-secrets
   namespace: sealed-secrets
+  annotations:
+    # NOTE: 2レプリカでは1台の停止でleaderを選出できないためKubernetesのLeaseを使用
+    events.argoproj.io/leader-election: k8s
 spec:
+  replicas: 2
   template:
     serviceAccountName: sealed-secrets-eventsource
     container:
@@ -13,6 +17,13 @@ spec:
           memory: 32Mi
         limits:
           memory: 128Mi
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                eventsource-name: sealed-secrets
+            topologyKey: kubernetes.io/hostname
   resource:
     # NOTE: controllerが鍵の作成時にログしか出さないため鍵のSecretの作成を監視
     key-added:

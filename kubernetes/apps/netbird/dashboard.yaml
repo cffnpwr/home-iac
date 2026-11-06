@@ -17,6 +17,7 @@ metadata:
   name: netbird-dashboard
   namespace: netbird
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app.kubernetes.io/name: netbird-dashboard
@@ -25,6 +26,16 @@ spec:
       labels:
         app.kubernetes.io/name: netbird-dashboard
     spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: netbird-dashboard
+          matchLabelKeys:
+            - pod-template-hash
+          nodeTaintsPolicy: Honor
       containers:
         - name: dashboard
           image: netbirdio/dashboard:v2.96.0@sha256:340b13c00b84349572a2acc5605e907cb09250a9e6461c757097eabdb8e02f2c
@@ -61,3 +72,14 @@ spec:
               memory: 32Mi
             limits:
               memory: 128Mi
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: netbird-dashboard
+  namespace: netbird
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: netbird-dashboard

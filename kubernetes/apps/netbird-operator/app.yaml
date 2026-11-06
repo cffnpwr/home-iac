@@ -6,6 +6,8 @@ chart:
   repoURL: ghcr.io/netbirdio/helm-charts
   name: netbird-operator
   version: 0.9.0
+# NOTE: chartがPodDisruptionBudgetを作らないため、PodDisruptionBudgetをchartとあわせて同期
+manifests: true
 # NOTE: namespaceを作るnetbird・CRDを作るcert-managerのApplicationの同期完了までの再試行
 retry:
   limit: 10

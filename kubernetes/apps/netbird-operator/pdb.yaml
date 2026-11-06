@@ -1,0 +1,11 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: netbird-operator
+  namespace: netbird
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: netbird-operator
+      app.kubernetes.io/instance: netbird-operator
