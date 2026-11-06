@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+# NOTE: 同期するリソースはすべてクラスタスコープで、namespaceは適用されない
+namespace: kyverno
+# NOTE: KyvernoのCRDの登録とadmission controllerの起動、istio-baseのCRDの登録までの再試行
+retry:
+  limit: 10
+  backoff:
+    duration: 30s
+    factor: 2
+    maxDuration: 10m

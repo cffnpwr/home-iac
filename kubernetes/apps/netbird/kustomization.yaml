@@ -9,7 +9,6 @@ resources:
   - dashboard.yaml
   - routes.yaml
   - ingress.yaml
-  - virtualservice.yaml
   - netbird-secrets.yaml
   - netbird-cloudflare.yaml
   - netbird-mgmt-api-key.yaml
