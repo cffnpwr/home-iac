@@ -48,11 +48,6 @@ spec:
       labels:
         app.kubernetes.io/name: netbird-management
     spec:
-      tolerations:
-        # NOTE: Vultrノードへのスケジューリングを許可
-        - key: edge
-          operator: Exists
-          effect: NoSchedule
       containers:
         - name: management
           image: netbirdio/management:0.82.0@sha256:07c8f979fcc980678cc64e584cf6b7b27204ceb4c871531b29e2dce39592e9ff

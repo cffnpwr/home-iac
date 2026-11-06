@@ -7,13 +7,6 @@ patches:
       kind: Deployment
       name: kubelet-serving-cert-approver
     patch: |-
-      # NOTE: Vultrノードへのスケジューリングを許可
-      - op: add
-        path: /spec/template/spec/tolerations/-
-        value:
-          key: edge
-          operator: Exists
-          effect: NoSchedule
       - op: add
         path: /spec/strategy
         value:

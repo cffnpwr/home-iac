@@ -19,8 +19,3 @@ spec:
           memory: 64Mi
         limits:
           memory: 256Mi
-    # NOTE: Vultrノードへのスケジューリングの許可
-    tolerations:
-      - key: edge
-        operator: Exists
-        effect: NoSchedule

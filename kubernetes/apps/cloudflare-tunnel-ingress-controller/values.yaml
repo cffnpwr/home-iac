@@ -21,11 +21,6 @@ cloudflared:
           app: controlled-cloudflared-connector
       matchLabelKeys:
         - pod-template-hash
-  tolerations:
-    # NOTE: Vultrノードへのスケジューリングを許可
-    - key: edge
-      operator: Exists
-      effect: NoSchedule
   resources:
     requests:
       cpu: 10m

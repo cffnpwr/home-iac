@@ -10,25 +10,12 @@ operatorConfig:
     controllerPlugin:
       priorityClassName: system-cluster-critical
 drivers:
-  # NOTE: chartはドライバのtolerationsを常に空の配列で出力し、operatorはnilの場合だけdriverSpecDefaultsを使うため、ドライバごとに指定
   rbd:
     enabled: true
     name: rook-ceph.rbd.csi.ceph.com
-    nodePlugin:
-      tolerations:
-        # NOTE: Vultrノードへのスケジューリングを許可
-        - key: edge
-          operator: Exists
-          effect: NoSchedule
   cephfs:
     enabled: true
     name: rook-ceph.cephfs.csi.ceph.com
-    nodePlugin:
-      tolerations:
-        # NOTE: Vultrノードへのスケジューリングを許可
-        - key: edge
-          operator: Exists
-          effect: NoSchedule
   nfs:
     enabled: false
     name: rook-ceph.nfs.csi.ceph.com

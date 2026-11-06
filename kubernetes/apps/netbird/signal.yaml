@@ -43,10 +43,6 @@ spec:
     spec:
       nodeSelector:
         topology.kubernetes.io/zone: vultr
-      tolerations:
-        - key: edge
-          operator: Exists
-          effect: NoSchedule
       containers:
         - name: signal
           image: netbirdio/signal:0.82.0@sha256:0c0c38bbef7dcdfa1822b6d59844615db55dc7303b664e7aed498151edc0dbfb

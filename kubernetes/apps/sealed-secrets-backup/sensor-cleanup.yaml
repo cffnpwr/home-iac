@@ -36,11 +36,6 @@ spec:
                   spec:
                     serviceAccountName: sealed-secrets-key-cleanup
                     restartPolicy: Never
-                    # NOTE: Vultrノードへのスケジューリングの許可
-                    tolerations:
-                      - key: edge
-                        operator: Exists
-                        effect: NoSchedule
                     containers:
                       - name: cleanup
                         image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:78ff784f9cbdf4ea495bce1e5fb878b7e1bcffcb2606036f391960ca38274dbd
