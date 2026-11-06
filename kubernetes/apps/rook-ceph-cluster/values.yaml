@@ -54,6 +54,22 @@ cephFileSystems:
             cpu: "100m"
             memory: "256Mi"
         priorityClassName: system-cluster-critical
+        # NOTE: CephClusterのplacementはMDSに適用されず、activeとstandbyが同じノードに配置されていたため指定
+        placement:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: cffnpwr.dev/storage
+                      operator: In
+                      values:
+                        - "true"
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchLabels:
+                    app: rook-ceph-mds
+                topologyKey: kubernetes.io/hostname
     storageClass:
       enabled: true
       isDefault: false
