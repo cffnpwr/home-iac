@@ -224,6 +224,29 @@ checksum_source = "mise-versions"
 url = "https://github.com/bitnami/sealed-secrets/releases/download/v0.41.2/kubeseal-0.41.2-darwin-arm64.tar.gz"
 url_api = "https://api.github.com/repos/bitnami/sealed-secrets/releases/assets/678156090"
 
+[[tools.kyverno]]
+version = "1.19.2"
+backend = "aqua:kyverno/kyverno"
+specifiers = ["1.19.2"]
+
+[tools.kyverno."platforms.linux-arm64"]
+checksum = "sha256:250f2a02f143d5c6425e686b13c130d3a3ba7372dba6a7210d599d1b0dd12e92"
+url = "https://github.com/kyverno/kyverno/releases/download/v1.19.2/kyverno-cli_v1.19.2_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/kyverno/kyverno/releases/assets/660821014"
+provenance = "cosign"
+
+[tools.kyverno."platforms.linux-x64"]
+checksum = "sha256:357eaf1df8bc24ddd5a73979fadeaae6a032e8710f11af264229756e4956bf4a"
+url = "https://github.com/kyverno/kyverno/releases/download/v1.19.2/kyverno-cli_v1.19.2_linux_x86_64.tar.gz"
+url_api = "https://api.github.com/repos/kyverno/kyverno/releases/assets/660820927"
+provenance = "cosign"
+
+[tools.kyverno."platforms.macos-arm64"]
+checksum = "sha256:7915c03c613c22363a100adb3da8d06f2e2626d9d21a98b97f921795ffdc536f"
+url = "https://github.com/kyverno/kyverno/releases/download/v1.19.2/kyverno-cli_v1.19.2_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/kyverno/kyverno/releases/assets/660820931"
+provenance = "cosign"
+
 [[tools."pypi:check-jsonschema"]]
 version = "0.39.0"
 backend = "pypi:check-jsonschema"

@@ -1,0 +1,79 @@
+# NOTE: cloudflaredは公開ホスト名をHostヘッダーに入れるため、sidecarがServiceのclusterに転送するよう、
+#       cloudflare-tunnelのIngressのホスト名ごとにVirtualServiceを生成
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: cloudflare-tunnel-virtualservice
+spec:
+  evaluation:
+    # NOTE: Ingressの変更・削除とポリシーの変更に合わせて、VirtualServiceを更新・削除
+    synchronize:
+      enabled: true
+    # NOTE: ポリシーの作成前からあるIngressからも生成
+    generateExisting:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["networking.k8s.io"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["ingresses"]
+  matchConditions:
+    # NOTE: cloudflare-tunnel-ingress-controllerは、ingressClassNameとkubernetes.io/ingress.classのアノテーションの両方で対象を判定
+    - name: cloudflare-tunnel
+      expression: >-
+        (has(object.spec.ingressClassName) && object.spec.ingressClassName == "cloudflare-tunnel") ||
+        (has(object.metadata.annotations) &&
+          "kubernetes.io/ingress.class" in object.metadata.annotations &&
+          object.metadata.annotations["kubernetes.io/ingress.class"] == "cloudflare-tunnel")
+  variables:
+    # NOTE: VirtualServiceの転送先にはポートの番号が必要なため、名前で指定したポートの番号をServiceから取得
+    - name: paths
+      expression: >-
+        (has(object.spec.rules) ? object.spec.rules : [])
+          .filter(r, has(r.host) && has(r.http))
+          .map(r, r.http.paths.filter(p, has(p.backend.service)).map(p, {
+            "host": r.host,
+            "path": has(p.path) ? p.path : "",
+            "service": p.backend.service.name,
+            "port": has(p.backend.service.port.number) ?
+              p.backend.service.port.number :
+              resource.Get("v1", "services", object.metadata.namespace, p.backend.service.name).spec.ports
+                .filter(sp, has(sp.name) && sp.name == p.backend.service.port.name)[0].port
+          }))
+          .flatten()
+    - name: hosts
+      expression: variables.paths.map(p, p.host).distinct()
+  generate:
+    # NOTE: cloudflaredは、ホスト名ごとにpathが長い順（同じ長さは辞書順）にルールを評価し、pathを先頭・末尾に固定しない正規表現として扱う
+    #       Envoyはpath全体に一致する正規表現を要求するため、前後に.*を付ける
+    #       pathが無い・/の場合はすべてのpathに一致するため、matchを付けない
+    - expression: >-
+        generator.Apply(object.metadata.namespace, variables.hosts.map(h, cel.bind(ps,
+          variables.paths.filter(p, p.host == h),
+          {
+            "apiVersion": dyn("networking.istio.io/v1"),
+            "kind": dyn("VirtualService"),
+            "metadata": dyn({
+              "name": object.metadata.name + "-" + h.replace("*", "wildcard"),
+              "namespace": object.metadata.namespace
+            }),
+            "spec": dyn({
+              "hosts": [h],
+              "http": ps.map(p, size(p.path)).distinct().sortBy(n, -n)
+                .map(n, ps.filter(p, size(p.path) == n).sortBy(p, p.path))
+                .flatten()
+                .map(p, cel.bind(route,
+                  [{
+                    "destination": {
+                      "host": p.service + "." + object.metadata.namespace + ".svc.cluster.local",
+                      "port": {"number": p.port}
+                    }
+                  }],
+                  p.path == "" || p.path == "/" ?
+                    dyn({"route": route}) :
+                    dyn({"match": [{"uri": {"regex": ".*(?:" + p.path + ").*"}}], "route": route})
+                ))
+            })
+          }
+        )))
