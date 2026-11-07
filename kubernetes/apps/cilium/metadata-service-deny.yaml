@@ -1,0 +1,14 @@
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: metadata-service-deny
+spec:
+  endpointSelector: {}
+  # NOTE: メタデータサービス以外への通信を変えないように既定拒否を無効化
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  # NOTE: PodからTalosのbootstrap token等を取得できないよう、全Podからメタデータサービスへの通信を拒否
+  egressDeny:
+    - toCIDR:
+        - 169.254.169.254/32
