@@ -8,3 +8,4 @@ chart:
   # NOTE: Terraformが初回導入のhelm_templateのリリース名として参照するため明示
   releaseName: cilium
 talosBootstrap: true
+manifests: true
