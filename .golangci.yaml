@@ -112,6 +112,11 @@ linters:
     usetesting:
       os-temp-dir: true
 
+    # NOTE: lintを抑制する理由が無いnolintのディレクティブと、抑制するlinterを指定しないnolintのディレクティブを検出する
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+
   exclusions:
     warn-unused: true
     presets:
