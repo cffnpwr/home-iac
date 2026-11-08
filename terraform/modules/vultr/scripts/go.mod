@@ -6,7 +6,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.6
 	github.com/siderolabs/talos/pkg/machinery v1.14.5
 	github.com/vultr/govultr/v3 v3.34.0
-	golang.org/x/oauth2 v0.36.0
+	golang.org/x/oauth2 v0.37.0
 	k8s.io/api v0.37.2
 	k8s.io/apimachinery v0.37.2
 	k8s.io/client-go v0.37.2
