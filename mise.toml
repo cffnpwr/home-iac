@@ -38,6 +38,18 @@ description = "terraform/でterraformを実行する"
 dir = "{{config_root}}/terraform"
 run = "terraform"
 
+[tasks."tf:bootstrap"]
+description = "terraform/bootstrap/でterraformを実行する"
+dir = "{{config_root}}/terraform/bootstrap/scripts"
+# NOTE: go runは実行したプログラムの終了ステータスを返さずterraformが0以外で終了すると1で終了する
+#       --の後の引数をterraformに渡す
+run = "go run ./cmd/tf --repo-root '{{config_root}}' --"
+
+[tasks."tf:bootstrap:generate-sse-customer-key"]
+description = "bootstrapのstateのSSE-Cの鍵を生成しageで暗号化してterraform/bootstrap/sse-customer-key.ageに書く"
+dir = "{{config_root}}/terraform/bootstrap/scripts"
+run = "go run ./cmd/generate-sse-customer-key --repo-root '{{config_root}}'"
+
 [tasks."tf:netbird"]
 description = "terraform/netbird/でterraformを実行する"
 dir = "{{config_root}}/terraform/netbird"
@@ -66,6 +78,7 @@ depends = [
   "lint:helm",
   "lint:shell",
   "lint:markdown",
+  "lint:go:terraform",
   "lint:go:vultr",
   "lint:go:bootstrap",
   "lint:go:kea-ha-peers",
@@ -84,6 +97,8 @@ env = { TF_DATA_DIR = ".terraform/lint" }
 run = [
   "mise run tf init -backend=false",
   "mise run tf validate",
+  "terraform -chdir=terraform/bootstrap init -backend=false",
+  "terraform -chdir=terraform/bootstrap validate",
   "mise run tf:netbird init -backend=false",
   "mise run tf:netbird validate",
   "tflint --recursive --config \"$MISE_PROJECT_ROOT/.tflint.hcl\"",
@@ -111,6 +126,11 @@ description = "Markdownを検査する"
 run = "rumdl check ."
 
 # NOTE: golangci-lintは既定で起動時にファイルロックを取得し、5秒以内に取得できないと失敗するため、並列実行を許可
+[tasks."lint:go:terraform"]
+description = "terraform/scriptsのGoを検査する"
+dir = "{{config_root}}/terraform/scripts"
+run = "golangci-lint run --allow-parallel-runners"
+
 [tasks."lint:go:vultr"]
 description = "terraform/modules/vultr/scriptsのGoを検査する"
 dir = "{{config_root}}/terraform/modules/vultr/scripts"

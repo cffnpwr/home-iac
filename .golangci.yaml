@@ -117,6 +117,10 @@ linters:
       require-explanation: true
       require-specific: true
 
+    # NOTE: terraform/bootstrap/scriptsはterraform/scriptsのモジュールを同じリポジトリのディレクトリから参照する
+    gomoddirectives:
+      replace-local: true
+
   exclusions:
     warn-unused: true
     presets:
