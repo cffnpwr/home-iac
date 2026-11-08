@@ -3,26 +3,40 @@
 この手順書はクラスタを初めて構築するときの手順を説明する。
 次の順に実行する。
 
-1. tfstate用のR2 Bucketの作成
-2. クラスタの構築
-3. ローカルサーバーの参加
-4. netbirdの設定
+1. bootstrapの構築
+2. GitHub Appの作成
+3. クラスタの構築
+4. ローカルサーバーの参加
+5. netbirdの設定
 
 ## Prerequisites
 
 - `mise install`でツールをインストール済み
-- GitHub Appに[CIでのapply](./terraform.md#ciでのapply)の権限を付与済み
-- [Terraformのplan・apply](./terraform.md#prerequisites)の環境変数を設定済み
-- CIのシークレットに登録するため、`TF_VAR_cloudflare_api_token_read_write`・`TF_VAR_vultr_api_key`を設定済み（[CIのシークレットの更新](./terraform.md#ciのシークレットの更新)）
+- [bootstrap用のトークン](./terraform.md#bootstrap用のトークン)を作成済み
+- `terraform-apply`が使う、読み書きできるCloudflareのAPIトークンをダッシュボードで作成済み
+  - CIのapplyはこのトークンからS3 backendの認証情報を作る
+  - このためトークンには`home-iac-tfstate`のR2 Bucketを読み書きする権限も付ける
+- Google WorkspaceのAccess用のOAuthクライアントをGoogle Cloudのコンソールで作成済み
 
-## tfstate用のR2 Bucketの作成
+Terraformは作成するトークンの名前に`[managed by terraform] home-iac/`を付ける。
+ダッシュボードで作成するトークンの名前には`[managed by terraform] `を付けない。
 
-tfstate管理用のR2 Bucketが未作成の場合は作成する。
+## bootstrapの構築
 
-tfstate用のR2 Bucketは同じTerraformで管理する。
-Bucketができるまでリモートのstateは使えないため、初回はローカルのstateを作成してから移行する。
+`terraform/bootstrap/`はtfstate用のR2 Bucketと、CIのjobが使う認証情報を作成する。
+bootstrapのstateを置くBucketもbootstrapが作成するため初回はローカルのstateを作成してから移行する。
 
-1. `terraform/backend_override.tf`に次の内容を記載する。
+1. SSE-Cの鍵を生成しageで暗号化して`terraform/bootstrap/sse-customer-key.age`に書く。
+   宛先は`kubernetes/apps/sealed-secrets-backup/recipients.yaml`の`recipients.txt`である。
+   生成した`sse-customer-key.age`はコミットする。
+
+   ```sh
+   mise run tf:bootstrap:generate-sse-customer-key
+   ```
+
+2. [`terraform/bootstrap/`の環境変数](./terraform.md#terraformbootstrapの環境変数)を設定する。
+   netbirdのPATはクラスタの構築後に作成するため、`TF_VAR_netbird_pat_read_only`・`TF_VAR_netbird_pat_read_write`には空文字列を設定する。
+3. `terraform/bootstrap/backend_override.tf`に次の内容を記載する。
 
    ```hcl
    terraform {
@@ -30,22 +44,81 @@ Bucketができるまでリモートのstateは使えないため、初回はロ
    }
    ```
 
-2. Bucketを作成する。
+4. bootstrapをapplyする。
 
    ```sh
-   mise run tf init
-   mise run tf plan
-   mise run tf apply
+   mise run tf:bootstrap init
+   mise run tf:bootstrap plan
+   mise run tf:bootstrap apply
    ```
 
-3. `terraform/backend_override.tf`を削除する。
-4. tfstateをR2 Bucketへ移行する。
+5. `terraform/bootstrap/backend_override.tf`を削除する。
+6. stateをR2 Bucketへ移行しローカルのstateを削除する。
 
    ```sh
-   mise run tf init -migrate-state
+   mise run tf:bootstrap init -migrate-state
+   rm -f terraform/bootstrap/terraform.tfstate terraform/bootstrap/terraform.tfstate.backup
    ```
+
+7. Vultrのコンソールで、bootstrapが作成したservice userのAPIキーをすべてのIPアドレスから使えるようにする。
+   VultrはAPIキーを使えるIPアドレスをユーザーごとに制限し、Terraformのproviderはこの設定を管理できない。
+   GitHub-hostedのrunnerのIPアドレスは実行のたびに変わるため、すべてのIPアドレスを許可する。
+   次の操作を`terraform-plan`・`terraform-apply`のservice userごとに行なう。
+   1. 上部のナビゲーションバーで組織の名前を選び、Manage Organizationを開く。
+   2. Usersで対象のservice userを選ぶ。
+   3. API AccessのAccess Control Listで、Any IPv4・Any IPv6を有効にする。
+
+## GitHub Appの作成
+
+CIのjobと鍵の退避Jobが使う4つのGitHub Appをmanifest flowで作成する。
+GitHub Appの種類と権限は[CIでのplan・apply](./terraform.md#ciでのplanapply)にある。
+次の手順は`plan`・`apply`・`reseal`・`backup`の種類ごとに実行する。
+
+1. タスクを実行する。
+   タスクはGitHub Appの登録の画面のURLを表示しブラウザで開く。
+   ブラウザが開かない場合は表示したURLをブラウザで開く。
+   `backup`では`--cert`にbootstrapのoutputの`sealed_secrets_cert`を書いたファイルを指定する。
+   `--cert`の相対パスはリポジトリのルートを基準にする。
+
+   ```sh
+   mise run github:create-app <種類>
+   ```
+
+2. ブラウザでGitHub Appの名前を確認してCreate GitHub Appを選ぶ。
+3. タスクが表示するインストールの画面で`home-iac`だけにインストールする。
+   タスクはインストールを確認した後にClient IDと秘密鍵をenvironmentに登録する。
+   `backup`では`kubernetes/apps/sealed-secrets-backup/sealed-secrets-backup-github-app.yaml`にSealedSecretを書く。
+
+タスクはslug・App ID・Client IDだけを出力し秘密鍵は出力しない。
+登録済みのClient IDを置き換える場合は`--force`を指定する。
+
+### 非GUI環境での実行
+
+GitHubはGitHub Appを登録した後にブラウザを`http://127.0.0.1:<ポート>/callback`へリダイレクトする。
+このURLはタスクを実行するホストで待ち受けている。
+SSHで接続したホストでタスクを実行する場合は、手元のブラウザからホストのポートに接続できるようにポートを転送する。
+
+1. ポートを転送してホストに接続する。
+
+   ```sh
+   ssh -L 8080:127.0.0.1:8080 <ホスト>
+   ```
+
+2. 転送したポートを`--listen-port`に指定してタスクを実行する。
+
+   ```sh
+   mise run github:create-app <種類> --listen-port 8080
+   ```
+
+3. タスクが表示したURLを手元のブラウザで開き、[GitHub Appの作成](#github-appの作成)の手順2から続ける。
 
 ## クラスタの構築
+
+mainのrootの初回のapplyは手元で実行する。
+CIのjobはクラスタの上で動作するnetbirdを経由してクラスタに接続するため、クラスタの構築前には接続できない。
+[`terraform/`の環境変数](./terraform.md#terraformの環境変数)を設定してから次の手順を実行する。
+`CLOUDFLARE_API_TOKEN`は`terraform-apply`のトークンに置き換える。
+bootstrap用のトークンは`BOOTSTRAP_CLOUDFLARE_API_TOKEN`に設定する。
 
 1. RPi4用のイメージのURLを確定させる。
    URLはImage Factoryに登録したschematicのIDから決まるため、schematicだけを先に作成し、表示される`urls.disk_image`を参照する。
@@ -140,11 +213,11 @@ CIのjobはnetbirdのルーティングピアを経由して自宅LANのクラ�
    v1alpha1の`NetworkResource`はCIDRを宛先に指定できないため、このNetwork Resourceはダッシュボードで管理する。
 6. ダッシュボードで、CIのplan・applyが使う2つのサービスユーザーとそれぞれのPATを作成する。
    planのサービスユーザーには読み取りだけを許可したロールを、applyのサービスユーザーには管理者のロールを設定する。
-7. [CIのシークレットの更新](./terraform.md#ciのシークレットの更新)の手順で、手順6のPATを`NB_PAT`に登録する。
-   クラスタの構築時の`terraform/`のapplyでは、PATがまだ無いため、`NB_PAT`には空文字列が登録されている。
+7. 手順6のPATを`TF_VAR_netbird_pat_read_only`・`TF_VAR_netbird_pat_read_write`に設定し、[bootstrapの再実行](./terraform.md#bootstrapの再実行)の手順で`NB_PAT`に登録する。
+   bootstrapの構築ではPATがまだ無いため、`NB_PAT`には空文字列が登録されている。
 8. applyのPATを`NB_PAT`環境変数に設定して、`terraform/netbird/`をapplyする。
    CIのグループ・ephemeralのsetup key・CIから`cffnpwr-home-lan`グループへのポリシーを作成する。
-   setup keyは、`terraform/`が作成した`terraform-plan`・`terraform-apply`・`sealed-secrets-reseal`のenvironmentに`NETBIRD_SETUP_KEY`として登録する。
+   setup keyは、`terraform/bootstrap/`が作成した`terraform-plan`・`terraform-apply`・`sealed-secrets-reseal`のenvironmentに`NETBIRD_SETUP_KEY`として登録する。
 
    ```sh
    mise run tf:netbird init
