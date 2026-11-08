@@ -43,6 +43,11 @@ description = "terraform/netbird/でterraformを実行する"
 dir = "{{config_root}}/terraform/netbird"
 run = "terraform"
 
+[tasks."github:create-app"]
+description = "GitHub Appをmanifest flowで作成しClient IDと秘密鍵を登録する（plan・apply・reseal・backup）"
+dir = "{{config_root}}/terraform/bootstrap/scripts"
+run = "go run ./cmd/create-github-app --repo-root '{{config_root}}'"
+
 [tasks."sealed-secrets:seal-terraform-outputs"]
 description = "Terraformのoutputの値を、cert.pemの証明書でSealedSecretに封入する"
 run = "sh kubernetes/scripts/seal-terraform-outputs.sh"
@@ -62,6 +67,7 @@ depends = [
   "lint:shell",
   "lint:markdown",
   "lint:go:vultr",
+  "lint:go:bootstrap",
   "lint:go:kea-ha-peers",
   "lint:go:gopls",
 ]
@@ -108,6 +114,11 @@ run = "rumdl check ."
 [tasks."lint:go:vultr"]
 description = "terraform/modules/vultr/scriptsのGoを検査する"
 dir = "{{config_root}}/terraform/modules/vultr/scripts"
+run = "golangci-lint run --allow-parallel-runners"
+
+[tasks."lint:go:bootstrap"]
+description = "terraform/bootstrap/scriptsのGoを検査する"
+dir = "{{config_root}}/terraform/bootstrap/scripts"
 run = "golangci-lint run --allow-parallel-runners"
 
 [tasks."lint:go:kea-ha-peers"]
