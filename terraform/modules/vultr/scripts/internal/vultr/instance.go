@@ -2,7 +2,6 @@ package vultr
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -17,25 +16,17 @@ const (
 
 func (c *Client) GetPowerStatus(ctx context.Context, instanceID string) (PowerStatus, error) {
 	path := "/instances/" + instanceID
-	body, err := c.request(ctx, http.MethodGet, path)
+	//nolint:bodyclose // NOTE: govultrが応答のbodyを読み切って閉じる
+	instance, _, err := c.client.Instance.Get(ctx, instanceID)
 	if err != nil {
-		return "", err
+		return "", &APIError{Method: http.MethodGet, Path: path, Detail: err.Error()}
 	}
 
-	var resp struct {
-		Instance struct {
-			PowerStatus string `json:"power_status"`
-		} `json:"instance"`
+	var powerStatus string
+	if instance != nil {
+		powerStatus = instance.PowerStatus
 	}
-	if unmarshalErr := json.Unmarshal(body, &resp); unmarshalErr != nil {
-		return "", &APIError{
-			Method: http.MethodGet,
-			Path:   path,
-			Detail: fmt.Sprintf("invalid response body: %v", unmarshalErr),
-		}
-	}
-
-	switch status := PowerStatus(resp.Instance.PowerStatus); status {
+	switch status := PowerStatus(powerStatus); status {
 	case PowerStatusRunning, PowerStatusStopped:
 		return status, nil
 	}
@@ -45,7 +36,7 @@ func (c *Client) GetPowerStatus(ctx context.Context, instanceID string) (PowerSt
 		Path:   path,
 		Detail: fmt.Sprintf(
 			"unexpected power status %q, expected one of %s",
-			resp.Instance.PowerStatus,
+			powerStatus,
 			strings.Join([]string{string(PowerStatusRunning), string(PowerStatusStopped)}, ", "),
 		),
 	}
