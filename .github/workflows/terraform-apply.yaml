@@ -11,6 +11,9 @@ on:
       - "mise.lock"
       - ".github/actions/netbird/**"
       - ".github/workflows/terraform-apply.yaml"
+  # NOTE: Talos APIのクライアント証明書を期限切れの前にtls_locally_signed_certのearly_renewal_hoursの期間内で更新
+  schedule:
+    - cron: "0 18 * * 0"
   workflow_dispatch:
 # NOTE: 途中で止めたapplyはstateのロックとリソースの不整合を残すため、実行中のapplyを取り消さない
 concurrency:
