@@ -5,6 +5,8 @@ on:
       - main
     paths:
       - "terraform/**"
+      # NOTE: bootstrapのrootは手元でapplyするためCIのapplyの対象外
+      - "!terraform/bootstrap/**"
       - "mise.toml"
       - "mise.lock"
       - ".github/actions/netbird/**"
@@ -38,45 +40,42 @@ jobs:
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.terraform.d/plugin-cache
-          key: terraform-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('terraform/.terraform.lock.hcl', 'terraform/netbird/.terraform.lock.hcl') }}
+          key: terraform-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('terraform/.terraform.lock.hcl', 'terraform/bootstrap/.terraform.lock.hcl', 'terraform/netbird/.terraform.lock.hcl') }}
           restore-keys: terraform-${{ runner.os }}-${{ runner.arch }}-
       - id: app-token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
-          client-id: ${{ vars.UPDATE_CLIENT_ID }}
-          private-key: ${{ secrets.UPDATE_PRIVATE_KEY }}
-          permission-actions: read
-          permission-administration: write
+          client-id: ${{ vars.APPLY_APP_CLIENT_ID }}
+          private-key: ${{ secrets.APPLY_APP_PRIVATE_KEY }}
           permission-environments: write
-          permission-secrets: write
-          # NOTE: GitHub AppのVariablesの権限名はactions_variables。action.ymlに無い入力のため、runnerはUnexpected inputの警告を出す
-          #       actionはpermission-*の入力をすべてトークンの権限に使う
-          permission-actions-variables: write
       # NOTE: クラスタのrootがTalos API・kube-apiserverに接続するため
       - uses: $/.github/actions/netbird
         with:
           setup-key: ${{ secrets.NETBIRD_SETUP_KEY }}
           wait-address: 192.168.0.129:50000
       # NOTE: S3 backendの認証情報は、CLOUDFLARE_API_TOKENのトークンから作る
-      #       R2のAccess Key IDはAPIトークンのID、Secret Access KeyはAPIトークンの値をSHA-256でハッシュ化した値
+      #       認証情報をマスクしてstepのoutputに書きクラスタのrootのapplyのstepにだけ渡す
+      - id: r2-credentials
+        run: go -C terraform/scripts run ./cmd/r2-credentials
+        env:
+          CLOUDFLARE_ACCOUNT_ID: 086a84b440e09bc83330fe07f1966f5d
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Apply terraform
         run: |
-          AWS_ACCESS_KEY_ID=$(curl -fsS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify" | jq -er .result.id)
-          AWS_SECRET_ACCESS_KEY=$(printf '%s' "$CLOUDFLARE_API_TOKEN" | sha256sum | cut -d ' ' -f 1)
-          echo "::add-mask::$AWS_ACCESS_KEY_ID"
-          echo "::add-mask::$AWS_SECRET_ACCESS_KEY"
-          export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
           terraform -chdir=terraform init -input=false
           tfcmt -var target:terraform apply -- terraform -chdir=terraform apply -input=false -auto-approve
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          CLOUDFLARE_ACCOUNT_ID: 086a84b440e09bc83330fe07f1966f5d
+          AWS_ACCESS_KEY_ID: ${{ steps.r2-credentials.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.r2-credentials.outputs.aws-secret-access-key }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           VULTR_API_KEY: ${{ secrets.VULTR_API_KEY }}
           TF_VAR_github_token: ${{ steps.app-token.outputs.token }}
-          TF_VAR_github_app_private_key: ${{ secrets.UPDATE_PRIVATE_KEY }}
           TF_VAR_pocket_id_access_client_secret: ${{ secrets.POCKET_ID_ACCESS_CLIENT_SECRET }}
-          TF_VAR_google_workspace_access_client_secret: ${{ secrets.GOOGLE_WORKSPACE_ACCESS_CLIENT_SECRET }}
+          TF_VAR_talos_machine_secrets: ${{ secrets.TALOS_MACHINE_SECRETS }}
+          TF_VAR_sealed_secrets_private_key: ${{ secrets.SEALED_SECRETS_PRIVATE_KEY }}
+          TF_VAR_sealed_secrets_cert: ${{ vars.SEALED_SECRETS_CERT }}
+          TF_VAR_google_workspace_access_identity_provider_id: ${{ vars.GOOGLE_WORKSPACE_ACCESS_IDENTITY_PROVIDER_ID }}
       # NOTE: netbirdのrootはクラスタのrootが使う接続のポリシーを変更しうるため、クラスタのrootの後に実行
       #       2つのrootは独立しているため、クラスタのrootの成否に関係なく実行
       - name: Apply terraform/netbird
@@ -100,4 +99,5 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       NETBIRD_SETUP_KEY: ${{ secrets.NETBIRD_SETUP_KEY }}
-      UPDATE_PRIVATE_KEY: ${{ secrets.UPDATE_PRIVATE_KEY }}
+      RESEAL_APP_PRIVATE_KEY: ${{ secrets.RESEAL_APP_PRIVATE_KEY }}
+      SEALED_SECRETS_DATA_HMAC_KEY: ${{ secrets.SEALED_SECRETS_DATA_HMAC_KEY }}
