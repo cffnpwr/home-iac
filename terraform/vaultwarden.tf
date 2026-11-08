@@ -18,7 +18,7 @@ resource "cloudflare_zero_trust_access_policy" "vaultwarden" {
     },
     {
       gsuite = {
-        identity_provider_id = cloudflare_zero_trust_access_identity_provider.google_workspace.id
+        identity_provider_id = var.google_workspace_access_identity_provider_id
         email                = "app-vaultwarden@${data.cloudflare_zone.cffnpwr_dev.name}"
       }
     },
@@ -31,7 +31,7 @@ resource "cloudflare_zero_trust_access_application" "vaultwarden" {
   type       = "saas"
   allowed_idps = [
     cloudflare_zero_trust_access_identity_provider.pocket_id.id,
-    cloudflare_zero_trust_access_identity_provider.google_workspace.id,
+    var.google_workspace_access_identity_provider_id,
   ]
   policies = [{
     id         = cloudflare_zero_trust_access_policy.vaultwarden.id
@@ -74,7 +74,7 @@ resource "cloudflare_zero_trust_access_policy" "vaultwarden_admin" {
     },
     {
       gsuite = {
-        identity_provider_id = cloudflare_zero_trust_access_identity_provider.google_workspace.id
+        identity_provider_id = var.google_workspace_access_identity_provider_id
         email                = "app-vaultwarden-admin@${data.cloudflare_zone.cffnpwr_dev.name}"
       }
     },
@@ -99,7 +99,7 @@ resource "cloudflare_zero_trust_access_application" "vaultwarden_admin" {
   ]
   allowed_idps = [
     cloudflare_zero_trust_access_identity_provider.pocket_id.id,
-    cloudflare_zero_trust_access_identity_provider.google_workspace.id,
+    var.google_workspace_access_identity_provider_id,
   ]
   policies = [{
     id         = cloudflare_zero_trust_access_policy.vaultwarden_admin.id

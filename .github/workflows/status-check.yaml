@@ -1,5 +1,7 @@
 name: Status check
 on:
+  # NOTE: 呼び出すcffnpwr/actionsのworkflowはPRのコードをcheckoutせず実行もしない
+  #       トークンの権限も読み取りだけのため、PRのコードがリポジトリの権限で実行されるdangerous-triggersの危険は無い
   pull_request_target: # zizmor: ignore[dangerous-triggers]
     branches:
       - main

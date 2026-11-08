@@ -1,7 +1,4 @@
 locals {
-  # NOTE: planは変更を適用しないため、planには読み取りだけを許可
-  #       applyのCloudflare providerは、トークンの管理にAccount API Tokens Writeが必要
-  #       APIトークンで作成したトークンにはこの権限を付けられないため、applyはダッシュボードで作成したトークンを使う
   terraform_plan_permission_groups = {
     # NOTE: stateの読み取りは、Workers R2 Storage Readで許可
     account = [
@@ -17,11 +14,25 @@ locals {
     zone = ["DNS Read", "Zone Read"]
   }
 
-  # NOTE: netbirdのrootはCloudflare providerを使わないため、stateの読み書きだけを許可
-  #       CIのplanはstateをロックしない（-lock=false）ため、planには読み取りだけを許可
   terraform_netbird_permission_groups = {
     "terraform-plan"  = data.cloudflare_account_api_token_permission_groups_list.r2_bucket_item_read
     "terraform-apply" = data.cloudflare_account_api_token_permission_groups_list.r2_bucket_item_write
+  }
+
+  vultr_terraform_actions = {
+    plan = [
+      "compute.instance.Read",
+      "compute.instance.List",
+      "compute.iso.Read",
+      "compute.iso.List",
+      "network.firewall.Read",
+      "network.firewall.List",
+    ]
+    apply = [
+      "compute.instance.*",
+      "compute.iso.*",
+      "network.firewall.*",
+    ]
   }
 }
 
@@ -32,7 +43,7 @@ data "cloudflare_account_api_token_permission_groups_list" "terraform_plan" {
   name       = urlencode(each.key)
 }
 
-# NOTE: CIのplanが、S3 backendのstateの読み取りとCloudflare providerに使うトークン
+# NOTE: mainのplan jobでS3 backendのstateの読み取りとCloudflare providerに使うトークン
 resource "cloudflare_account_token" "terraform_plan" {
   account_id = local.cloudflare_account_id
   name       = "${local.cloudflare_account_token_name_prefix}terraform-plan"
@@ -59,12 +70,7 @@ resource "cloudflare_account_token" "terraform_plan" {
   ]
 }
 
-moved {
-  from = cloudflare_account_token.terraform_ci["terraform-plan"]
-  to   = cloudflare_account_token.terraform_plan
-}
-
-# NOTE: CIのnetbirdのrootが、S3 backendのstateの読み書きに使うトークン
+# NOTE: netbirdplan jobでS3 backendのstateの読み書きに使うトークン
 resource "cloudflare_account_token" "terraform_netbird" {
   for_each = local.terraform_netbird_permission_groups
 
@@ -82,7 +88,43 @@ resource "cloudflare_account_token" "terraform_netbird" {
   }]
 }
 
-moved {
-  from = cloudflare_account_token.terraform_ci["terraform-apply"]
-  to   = cloudflare_account_token.terraform_netbird["terraform-apply"]
+# NOTE: vultr_userのpasswordは必須の引数のため生成
+resource "random_password" "vultr_terraform" {
+  for_each = local.vultr_terraform_actions
+
+  length = 32
+}
+
+# NOTE: mainのplan・apply jobがVultr providerとmodules/vultr/scriptsで使うAPIキーのservice user
+resource "vultr_user" "terraform" {
+  for_each = local.vultr_terraform_actions
+
+  name         = "terraform-${each.key}"
+  email        = "vultr-terraform-${each.key}@cffnpwr.dev"
+  password     = random_password.vultr_terraform[each.key].result
+  api_enabled  = true
+  service_user = true
+}
+
+resource "vultr_organization_policy" "terraform" {
+  for_each = local.vultr_terraform_actions
+
+  name        = "terraform-${each.key}"
+  description = "Terraform ${each.key} in CI of cffnpwr/home-iac"
+
+  document {
+    version = "2026-03-20"
+    statement {
+      effect    = "Allow"
+      actions   = each.value
+      resources = ["*"]
+    }
+  }
+}
+
+resource "vultr_organization_policy_user_attachment" "terraform" {
+  for_each = local.vultr_terraform_actions
+
+  policy_id = vultr_organization_policy.terraform[each.key].id
+  user_id   = vultr_user.terraform[each.key].id
 }

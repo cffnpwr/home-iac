@@ -10,22 +10,29 @@ cert=kubernetes/apps/sealed-secrets/cert.pem
 work_dir=$(mktemp -d)
 trap 'rm -rf "$work_dir"' EXIT
 
-for name in sealed_secrets sealed_secrets_data_hmac_key sealed_secrets_cert; do
-  terraform -chdir=terraform output -json "$name" > "$work_dir/$name.json"
-done
+terraform -chdir=terraform output -json sealed_secrets > "$work_dir/sealed_secrets.json"
 
+# NOTE: HMACの鍵と初期の証明書はCIではenvironmentのシークレット、手元ではbootstrapのoutputから読む
 if [ -f "$cert" ]; then
   echo "Using $cert."
 else
   echo "$cert not found. Using the initial certificate from Terraform."
   mkdir -p "$(dirname "$cert")"
-  jq -r . "$work_dir/sealed_secrets_cert.json" > "$cert"
+  if [ -n "${SEALED_SECRETS_CERT:-}" ]; then
+    printf '%s\n' "$SEALED_SECRETS_CERT" > "$cert"
+  else
+    terraform -chdir=terraform/bootstrap output -raw sealed_secrets_cert > "$cert"
+  fi
 fi
 # NOTE: 証明書として読めない内容での封入の防止
 openssl x509 -in "$cert" -noout
 
 cert_sha256=$(openssl x509 -in "$cert" -noout -fingerprint -sha256 | cut -d = -f 2 | tr -d : | tr '[:upper:]' '[:lower:]')
-hmac_key=$(jq -r . "$work_dir/sealed_secrets_data_hmac_key.json")
+if [ -n "${SEALED_SECRETS_DATA_HMAC_KEY:-}" ]; then
+  hmac_key=$SEALED_SECRETS_DATA_HMAC_KEY
+else
+  hmac_key=$(terraform -chdir=terraform/bootstrap output -raw sealed_secrets_data_hmac_key)
+fi
 jq -r 'keys[]' "$work_dir/sealed_secrets.json" > "$work_dir/paths.txt"
 
 while IFS= read -r path; do

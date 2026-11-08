@@ -30,7 +30,7 @@ resource "cloudflare_zero_trust_access_policy" "netbird" {
     },
     {
       gsuite = {
-        identity_provider_id = cloudflare_zero_trust_access_identity_provider.google_workspace.id
+        identity_provider_id = var.google_workspace_access_identity_provider_id
         email                = "app-netbird@${data.cloudflare_zone.cffnpwr_dev.name}"
       }
     },
@@ -43,7 +43,7 @@ resource "cloudflare_zero_trust_access_application" "netbird" {
   type       = "saas"
   allowed_idps = [
     cloudflare_zero_trust_access_identity_provider.pocket_id.id,
-    cloudflare_zero_trust_access_identity_provider.google_workspace.id,
+    var.google_workspace_access_identity_provider_id,
   ]
   policies = [{
     id         = cloudflare_zero_trust_access_policy.netbird.id

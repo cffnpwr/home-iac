@@ -24,6 +24,7 @@ yamlfmt = "0.21.0"
 "aqua:numtide/treefmt" = "2.6.0"
 go = "1.27.3"
 golangci-lint = "2.15.0"
+"go:golang.org/x/tools/gopls" = "0.24.0"
 python = "3.14.8"
 k9s = "0.51.0"
 kyverno = "1.19.2"
@@ -37,10 +38,27 @@ description = "terraform/でterraformを実行する"
 dir = "{{config_root}}/terraform"
 run = "terraform"
 
+[tasks."tf:bootstrap"]
+description = "terraform/bootstrap/でterraformを実行する"
+dir = "{{config_root}}/terraform/bootstrap/scripts"
+# NOTE: go runは実行したプログラムの終了ステータスを返さずterraformが0以外で終了すると1で終了する
+#       --の後の引数をterraformに渡す
+run = "go run ./cmd/tf --repo-root '{{config_root}}' --"
+
+[tasks."tf:bootstrap:generate-sse-customer-key"]
+description = "bootstrapのstateのSSE-Cの鍵を生成しageで暗号化してterraform/bootstrap/sse-customer-key.ageに書く"
+dir = "{{config_root}}/terraform/bootstrap/scripts"
+run = "go run ./cmd/generate-sse-customer-key --repo-root '{{config_root}}'"
+
 [tasks."tf:netbird"]
 description = "terraform/netbird/でterraformを実行する"
 dir = "{{config_root}}/terraform/netbird"
 run = "terraform"
+
+[tasks."github:create-app"]
+description = "GitHub Appをmanifest flowで作成しClient IDと秘密鍵を登録する（plan・apply・reseal・backup）"
+dir = "{{config_root}}/terraform/bootstrap/scripts"
+run = "go run ./cmd/create-github-app --repo-root '{{config_root}}'"
 
 [tasks."sealed-secrets:seal-terraform-outputs"]
 description = "Terraformのoutputの値を、cert.pemの証明書でSealedSecretに封入する"
@@ -60,8 +78,11 @@ depends = [
   "lint:helm",
   "lint:shell",
   "lint:markdown",
+  "lint:go:terraform",
   "lint:go:vultr",
+  "lint:go:bootstrap",
   "lint:go:kea-ha-peers",
+  "lint:go:gopls",
 ]
 
 [tasks."lint:format"]
@@ -76,6 +97,8 @@ env = { TF_DATA_DIR = ".terraform/lint" }
 run = [
   "mise run tf init -backend=false",
   "mise run tf validate",
+  "terraform -chdir=terraform/bootstrap init -backend=false",
+  "terraform -chdir=terraform/bootstrap validate",
   "mise run tf:netbird init -backend=false",
   "mise run tf:netbird validate",
   "tflint --recursive --config \"$MISE_PROJECT_ROOT/.tflint.hcl\"",
@@ -103,12 +126,34 @@ description = "Markdownを検査する"
 run = "rumdl check ."
 
 # NOTE: golangci-lintは既定で起動時にファイルロックを取得し、5秒以内に取得できないと失敗するため、並列実行を許可
+[tasks."lint:go:terraform"]
+description = "terraform/scriptsのGoを検査する"
+dir = "{{config_root}}/terraform/scripts"
+run = "golangci-lint run --allow-parallel-runners"
+
 [tasks."lint:go:vultr"]
 description = "terraform/modules/vultr/scriptsのGoを検査する"
 dir = "{{config_root}}/terraform/modules/vultr/scripts"
+run = "golangci-lint run --allow-parallel-runners"
+
+[tasks."lint:go:bootstrap"]
+description = "terraform/bootstrap/scriptsのGoを検査する"
+dir = "{{config_root}}/terraform/bootstrap/scripts"
 run = "golangci-lint run --allow-parallel-runners"
 
 [tasks."lint:go:kea-ha-peers"]
 description = "images/kea-ha-peersのGoを検査する"
 dir = "{{config_root}}/images/kea-ha-peers"
 run = "golangci-lint run --allow-parallel-runners"
+
+[tasks."lint:go:gopls"]
+description = "goplsの診断でリポジトリのすべてのGoを検査する"
+dir = "{{config_root}}"
+# NOTE: gopls checkは診断があっても終了ステータス0で終了するため、診断を出力した場合に失敗させる
+run = """
+diagnostics=$(find . -path ./.tmp -prune -o -path '*/.terraform' -prune -o -name '*.go' -print | xargs gopls check) || exit
+if [ -n "$diagnostics" ]; then
+  printf '%s\n' "$diagnostics"
+  exit 1
+fi
+"""
