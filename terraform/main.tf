@@ -160,13 +160,9 @@ locals {
   }
 }
 
-resource "talos_machine_secrets" "this" {
-  talos_version = local.talos_config_version
-}
-
 data "talos_client_configuration" "this" {
   cluster_name         = local.talos_cluster_name
-  client_configuration = talos_machine_secrets.this.client_configuration
+  client_configuration = local.talos_client_configuration
   # NOTE: Virtual IPはetcdの障害時に使えないため、Talos APIには各control planeのアドレスで接続
   endpoints = concat([local.rpi4_address], [for server in values(local.servers) : server.address])
   nodes     = [local.rpi4_address]
@@ -176,11 +172,11 @@ data "talos_client_configuration" "this" {
 ephemeral "talos_cluster_kubeconfig" "this" {
   cluster_name    = local.talos_cluster_name
   endpoint        = local.talos_cluster_endpoint
-  machine_secrets = talos_machine_secrets.this.machine_secrets
+  machine_secrets = local.talos_machine_secrets
 }
 
 resource "talos_cluster" "this" {
-  client_configuration = talos_machine_secrets.this.client_configuration
+  client_configuration = local.talos_client_configuration
   node                 = local.rpi4_address
   kubernetes_version   = local.kubernetes_version
 
@@ -202,8 +198,8 @@ module "inline_manifests" {
     path     = "kubernetes/apps"
   }
   sealed_secrets_key = {
-    cert_pem        = tls_self_signed_cert.sealed_secrets.cert_pem
-    private_key_pem = tls_private_key.sealed_secrets.private_key_pem
+    cert_pem        = var.sealed_secrets_cert
+    private_key_pem = var.sealed_secrets_private_key
   }
 }
 
@@ -212,8 +208,8 @@ module "rpi4" {
 
   cluster_name         = local.talos_cluster_name
   cluster_endpoint     = local.talos_cluster_endpoint
-  machine_secrets      = talos_machine_secrets.this.machine_secrets
-  client_configuration = talos_machine_secrets.this.client_configuration
+  machine_secrets      = local.talos_machine_secrets
+  client_configuration = local.talos_client_configuration
   talos_version        = local.talos_version
   talos_config_version = local.talos_config_version
   kubernetes_version   = local.kubernetes_version
@@ -251,8 +247,8 @@ module "cpwr_svr1" {
 
   cluster_name            = local.talos_cluster_name
   cluster_endpoint        = local.talos_cluster_endpoint
-  machine_secrets         = talos_machine_secrets.this.machine_secrets
-  client_configuration    = talos_machine_secrets.this.client_configuration
+  machine_secrets         = local.talos_machine_secrets
+  client_configuration    = local.talos_client_configuration
   talos_version           = local.talos_version
   talos_config_version    = local.talos_config_version
   kubernetes_version      = local.kubernetes_version
@@ -282,8 +278,8 @@ module "cpwr_svr2" {
 
   cluster_name            = local.talos_cluster_name
   cluster_endpoint        = local.talos_cluster_endpoint
-  machine_secrets         = talos_machine_secrets.this.machine_secrets
-  client_configuration    = talos_machine_secrets.this.client_configuration
+  machine_secrets         = local.talos_machine_secrets
+  client_configuration    = local.talos_client_configuration
   talos_version           = local.talos_version
   talos_config_version    = local.talos_config_version
   kubernetes_version      = local.kubernetes_version
@@ -314,8 +310,8 @@ module "cpwr_svr3" {
 
   cluster_name            = local.talos_cluster_name
   cluster_endpoint        = local.talos_cluster_endpoint
-  machine_secrets         = talos_machine_secrets.this.machine_secrets
-  client_configuration    = talos_machine_secrets.this.client_configuration
+  machine_secrets         = local.talos_machine_secrets
+  client_configuration    = local.talos_client_configuration
   talos_version           = local.talos_version
   talos_config_version    = local.talos_config_version
   kubernetes_version      = local.kubernetes_version
@@ -346,8 +342,8 @@ module "vultr" {
 
   cluster_name         = local.talos_cluster_name
   cluster_endpoint     = local.talos_cluster_endpoint
-  machine_secrets      = talos_machine_secrets.this.machine_secrets
-  client_configuration = talos_machine_secrets.this.client_configuration
+  machine_secrets      = local.talos_machine_secrets
+  client_configuration = local.talos_client_configuration
   talos_endpoint       = local.rpi4_address
   talos_version        = local.talos_version
   talos_config_version = local.talos_config_version
