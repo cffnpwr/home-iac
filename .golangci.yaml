@@ -17,8 +17,9 @@ formatters:
 
   settings:
     goimports:
+      # NOTE: リポジトリ内のすべてのGoのモジュールで共有するため、リポジトリのモジュールパスの共通部分を指定
       local-prefixes:
-        - github.com/cffnpwr/home-iac/terraform/modules/vultr/scripts
+        - github.com/cffnpwr/home-iac
 
 linters:
   enable:
