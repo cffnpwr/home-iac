@@ -31,6 +31,6 @@ spec:
         containers:
           - name: netbird
             env:
-              # NOTE: Operatorに渡したURLはREST API用のため、クライアントはgatewayのgRPCに接続
+              # NOTE: Operatorに渡したURLはgRPCを受けないためクライアントはgatewayのgRPCに接続
               - name: NB_MANAGEMENT_URL
                 value: https://nb.cffnpwr.dev:443
