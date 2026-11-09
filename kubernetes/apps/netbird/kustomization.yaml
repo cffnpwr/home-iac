@@ -12,7 +12,6 @@ resources:
   - netbird-secrets.yaml
   - netbird-cloudflare.yaml
   - netbird-mgmt-api-key.yaml
-  - networkrouter.yaml
   - postgres.yaml
   - networkpolicy.yaml
 configMapGenerator:
