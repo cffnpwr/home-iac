@@ -78,3 +78,14 @@ backgroundController:
             - get
             - list
             - watch
+
+reportsController:
+  rbac:
+    clusterRole:
+      # NOTE: Argo CDがallow-gateway-routeをDegradedと判定しないようreports controllerにHTTPRoute・GRPCRouteを読む権限を付与
+      extraResources:
+        - apiGroups:
+            - gateway.networking.k8s.io
+          resources:
+            - httproutes
+            - grpcroutes

@@ -1,4 +1,3 @@
-# NOTE: インターネットのクライアントがHTTPS・gRPCで接続するためworldからの接続を許可
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -9,8 +8,19 @@ spec:
     matchLabels:
       gateway.networking.k8s.io/gateway-name: ingress
   ingress:
+    # NOTE: インターネットのクライアントがHTTPS・gRPCで接続するためworldからの接続を許可
     - fromEntities:
         - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    # NOTE: NetBirdのルーティングピア等のPodがnb.cffnpwr.devに接続できるようすべてのnamespaceからの接続を許可
+    #       クラスタ内のPodからLoadBalancerのIPアドレスへの通信はingress gatewayのPodに直接届き、worldとして扱われない
+    - fromEndpoints:
+        - matchExpressions:
+            - key: k8s:io.kubernetes.pod.namespace
+              operator: Exists
       toPorts:
         - ports:
             - port: "443"
