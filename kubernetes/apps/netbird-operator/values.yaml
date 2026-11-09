@@ -1,6 +1,6 @@
-# NOTE: REST APIはクラスタ内のServiceで呼ぶ
-#       ルーティングピアのクライアントが接続するgRPCのURLは、NetworkRouterのpodTemplateで上書き
-managementURL: http://netbird-management.netbird.svc.cluster.local
+# NOTE: REST APIは/apiを公開しているnetbird.cffnpwr.devで呼ぶ
+#       netbird.cffnpwr.devはgRPCを受けないためルーティングピアのクライアントが接続するURLはNetworkRouterのpodTemplateで上書き
+managementURL: https://netbird.cffnpwr.dev
 webhook:
   # NOTE: Pod作成時にsidecarを追加するmutating webhookは無効にできず、failurePolicy: Failのため
   #       Operatorの停止中にPodを作れなくなる。sidecarを使わないため、どのnamespaceにも一致させない
