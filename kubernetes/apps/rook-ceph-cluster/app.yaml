@@ -3,7 +3,7 @@ namespace: rook-ceph
 chart:
   repoURL: https://charts.rook.io/release
   name: rook-ceph-cluster
-  version: v1.21.1
+  version: v1.21.2
 # NOTE: CephのCRDを作るrook-cephのApplicationの同期完了までの再試行
 retry:
   limit: 10
