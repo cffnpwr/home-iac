@@ -1,25 +1,19 @@
-# NOTE: DISABLE_ADMIN_TOKENで管理画面の認証を無効にするため、Accessを経由しない接続を拒否する
-#       vaultwardenへの接続を、Cloudflare Tunnelのcloudflaredに限定
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
 metadata:
-  name: vaultwarden
+  name: vaultwarden-postgres
   namespace: vaultwarden
 spec:
-  podSelector:
+  endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: vaultwarden
-  policyTypes:
-    - Ingress
-  # NOTE: kubeletのprobeは、Ciliumが常にlocal hostからの通信を許可するため対象外
+      cnpg.io/cluster: vaultwarden-postgres
   ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: cloudflared
-          podSelector:
-            matchLabels:
-              app: controlled-cloudflared-connector
-      ports:
-        - protocol: TCP
-          port: 80
+    # NOTE: CloudNativePGのoperatorがPostgreSQLの状態を取得するためoperatorからの接続を許可
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: cnpg-system
+            app.kubernetes.io/name: cloudnative-pg
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
