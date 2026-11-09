@@ -1,0 +1,17 @@
+# NOTE: インターネットのクライアントがHTTPS・gRPCで接続するためworldからの接続を許可
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: ingress-gateway
+  namespace: istio-system
+spec:
+  endpointSelector:
+    matchLabels:
+      gateway.networking.k8s.io/gateway-name: ingress
+  ingress:
+    - fromEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

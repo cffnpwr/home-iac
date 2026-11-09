@@ -1,0 +1,19 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: pocket-id-postgres
+  namespace: pocket-id
+spec:
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: pocket-id-postgres
+  ingress:
+    # NOTE: CloudNativePGのoperatorがPostgreSQLの状態を取得するためoperatorからの接続を許可
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: cnpg-system
+            app.kubernetes.io/name: cloudnative-pg
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP

@@ -1,0 +1,28 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: ceph-daemons
+  namespace: rook-ceph
+spec:
+  endpointSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - rook-ceph-mon
+          - rook-ceph-osd
+          - rook-ceph-mds
+          - rook-ceph-mgr
+  ingress:
+    # NOTE: hostNetworkのCSIのPodとノードのカーネルのCephクライアントが接続するためremote-nodeからの接続を許可
+    - fromEntities:
+        - remote-node
+      toPorts:
+        - ports:
+            # NOTE: CephClusterのrequireMsgr2によりmonはmsgr2の3300だけで待ち受ける
+            - port: "3300"
+              protocol: TCP
+            # NOTE: Cephのms_bind_port_min・ms_bind_port_maxの既定値
+            - port: "6800"
+              endPort: 7568
+              protocol: TCP
