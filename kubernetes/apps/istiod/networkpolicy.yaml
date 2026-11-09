@@ -1,0 +1,27 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: istiod
+  namespace: istio-system
+spec:
+  endpointSelector:
+    matchLabels:
+      app: istiod
+  ingress:
+    # NOTE: sidecarが設定（XDS）と証明書（CA）を取得するためすべてのnamespaceからの接続を許可
+    - fromEndpoints:
+        - matchExpressions:
+            - key: k8s:io.kubernetes.pod.namespace
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "15012"
+              protocol: TCP
+    # NOTE: kube-apiserverがsidecarの注入・設定の検証のwebhookを呼ぶため接続を許可
+    - fromEntities:
+        # NOTE: 別のノードのkube-apiserverからの通信のidentityはremote-nodeとなる
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "15017"
+              protocol: TCP

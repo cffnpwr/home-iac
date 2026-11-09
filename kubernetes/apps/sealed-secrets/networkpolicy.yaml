@@ -1,0 +1,18 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: sealed-secrets-controller
+  namespace: sealed-secrets
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: sealed-secrets
+  ingress:
+    # NOTE: kubesealがService proxyで証明書の取得・再暗号化を行なうため接続を許可
+    - fromEntities:
+        # NOTE: 別のノードのkube-apiserverからの通信のidentityはremote-nodeとなる
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

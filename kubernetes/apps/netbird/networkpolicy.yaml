@@ -1,0 +1,37 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: netbird-relay-stun
+  namespace: netbird
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: netbird-relay
+  ingress:
+    # NOTE: NetBirdのクライアントがSTUNで送信元IPアドレスを取得するためworldからの接続を許可
+    - fromEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "3478"
+              protocol: UDP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: netbird-postgres
+  namespace: netbird
+spec:
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: netbird-postgres
+  ingress:
+    # NOTE: CloudNativePGのoperatorがPostgreSQLの状態を取得するためoperatorからの接続を許可
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: cnpg-system
+            app.kubernetes.io/name: cloudnative-pg
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP

@@ -1,0 +1,13 @@
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: default-deny-ingress
+spec:
+  # NOTE: cilium-healthのendpointを対象から外すためnamespaceを持つendpointだけを選択
+  endpointSelector:
+    matchExpressions:
+      - key: k8s:io.kubernetes.pod.namespace
+        operator: Exists
+  # NOTE: 許可した接続元以外からPodへ接続させないため全Podのingressをデフォルトで拒否
+  ingress:
+    - {}

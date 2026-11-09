@@ -1,34 +1,30 @@
-# NOTE: 秘密鍵を含むstreamへの接続を、EventSourceとSensorのPodに限定
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
 metadata:
   name: eventbus-default
   namespace: sealed-secrets
 spec:
-  podSelector:
+  endpointSelector:
     matchLabels:
       controller: eventbus-controller
       eventbus-name: default
-  policyTypes:
-    - Ingress
-  # NOTE: kubeletのprobeは、Ciliumが常にlocal hostからの通信を許可するため対象外
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              controller: eventsource-controller
-        - podSelector:
-            matchLabels:
-              controller: sensor-controller
-      ports:
-        - protocol: TCP
-          port: 4222
+    # NOTE: 秘密鍵を含むstreamへの接続を、EventSourceとSensorのPodに限定
+    - fromEndpoints:
+        - matchLabels:
+            controller: eventsource-controller
+        - matchLabels:
+            controller: sensor-controller
+      toPorts:
+        - ports:
+            - port: "4222"
+              protocol: TCP
     # NOTE: JetStreamのレプリカ間の通信の許可
-    - from:
-        - podSelector:
-            matchLabels:
-              controller: eventbus-controller
-              eventbus-name: default
-      ports:
-        - protocol: TCP
-          port: 6222
+    - fromEndpoints:
+        - matchLabels:
+            controller: eventbus-controller
+            eventbus-name: default
+      toPorts:
+        - ports:
+            - port: "6222"
+              protocol: TCP

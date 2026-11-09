@@ -1,0 +1,34 @@
+# NOTE: Kyvernoはresource filterでkyvernoのNamespaceを処理しないため手で定義
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-same-namespace-kyverno
+  namespace: kyverno
+spec:
+  endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - {}
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kyverno-webhook
+  namespace: kyverno
+spec:
+  endpointSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/component
+        operator: In
+        values:
+          - admission-controller
+          - cleanup-controller
+  ingress:
+    # NOTE: kube-apiserverがKyvernoのポリシー適用とcleanup controllerのwebhookを呼ぶため接続を許可
+    - fromEntities:
+        # NOTE: 別のノードのkube-apiserverからの通信のidentityはremote-nodeとなる
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9443"
+              protocol: TCP

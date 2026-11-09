@@ -7,3 +7,4 @@ resources:
   - pocket-id-keys.yaml
   - postgres.yaml
   - pocket-id-cloudflare.yaml
+  - networkpolicy.yaml
