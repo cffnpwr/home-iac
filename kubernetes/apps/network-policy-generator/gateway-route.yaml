@@ -1,0 +1,70 @@
+# NOTE: Gatewayが受けたリクエストを転送できるようHTTPRoute・GRPCRouteのbackendへの接続を許可
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: allow-gateway-route
+spec:
+  evaluation:
+    # NOTE: Routeの変更・削除とポリシーの変更に合わせてCiliumNetworkPolicyを更新・削除
+    synchronize:
+      enabled: true
+    # NOTE: ポリシーの作成前からあるRouteからも生成
+    generateExisting:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["gateway.networking.k8s.io"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["httproutes", "grpcroutes"]
+  variables:
+    # NOTE: IstioがGatewayのPodに付けるgateway.networking.k8s.io/gateway-nameのラベルで接続元を選択
+    - name: gateways
+      expression: >-
+        object.spec.parentRefs
+          .filter(p, (!has(p.group) || p.group == "gateway.networking.k8s.io") && (!has(p.kind) || p.kind == "Gateway"))
+          .map(p, {
+            "matchLabels": {
+              "k8s:io.kubernetes.pod.namespace": has(p.namespace) ? p.namespace : object.metadata.namespace,
+              "gateway.networking.k8s.io/gateway-name": p.name
+            }
+          })
+    # NOTE: 別のnamespaceのServiceはReferenceGrantが必要なため同じnamespaceのServiceだけを対象にする
+    - name: backends
+      expression: >-
+        (has(object.spec.rules) ? object.spec.rules : [])
+          .map(r, has(r.backendRefs) ? r.backendRefs : [])
+          .flatten()
+          .filter(b, (!has(b.group) || b.group == "") && (!has(b.kind) || b.kind == "Service") &&
+            (!has(b.namespace) || b.namespace == object.metadata.namespace))
+    # NOTE: CiliumNetworkPolicyはPodのポートを指定するためServiceからtargetPortとPodのselectorを取得
+    #       selectorの無いServiceは空のendpointSelectorでnamespaceの全Podを選択するため除外
+    - name: targets
+      expression: >-
+        variables.backends
+          .map(b, {"ref": b, "service": resource.Get("v1", "services", object.metadata.namespace, b.name)})
+          .filter(s, has(s.service.spec.selector))
+          .map(s, cel.bind(b, s.ref, cel.bind(sp,
+            s.service.spec.ports.filter(x, x.port == b.port)[0],
+            {
+              "selector": s.service.spec.selector,
+              "port": has(sp.targetPort) ? string(sp.targetPort) : string(sp.port),
+              "protocol": has(sp.protocol) ? sp.protocol : "TCP"
+            })))
+  generate:
+    - expression: >-
+        generator.Apply(object.metadata.namespace, [{
+          "apiVersion": dyn("cilium.io/v2"),
+          "kind": dyn("CiliumNetworkPolicy"),
+          "metadata": dyn({
+            "name": object.metadata.name + (object.kind == "HTTPRoute" ? "-httproute" : "-grpcroute"),
+            "namespace": object.metadata.namespace
+          }),
+          "specs": dyn(variables.targets.map(t, {
+            "endpointSelector": {"matchLabels": t.selector},
+            "ingress": [{
+              "fromEndpoints": variables.gateways,
+              "toPorts": [{"ports": [{"port": t.port, "protocol": t.protocol}]}]
+            }]
+          }))
+        }])

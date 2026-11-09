@@ -35,6 +35,8 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: vaultwarden
+        # NOTE: DISABLE_ADMIN_TOKENで管理画面の認証を無効にするため同じnamespaceのPodからの接続を拒否
+        home-iac/same-namespace-ingress: deny
     spec:
       containers:
         - name: vaultwarden

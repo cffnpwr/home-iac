@@ -1,0 +1,70 @@
+# NOTE: cloudflaredが公開ホスト名へのリクエストを転送できるようIngressのbackendへの接続を許可
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: allow-cloudflare-tunnel
+spec:
+  evaluation:
+    # NOTE: Ingressの変更・削除とポリシーの変更に合わせてCiliumNetworkPolicyを更新・削除
+    synchronize:
+      enabled: true
+    # NOTE: ポリシーの作成前からあるIngressからも生成
+    generateExisting:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["networking.k8s.io"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["ingresses"]
+  matchConditions:
+    # NOTE: ingressにcloudflare-tunnelを指定している場合にのみCiliumNetworkPolicyを生成
+    - name: cloudflare-tunnel
+      expression: >-
+        (has(object.spec.ingressClassName) && object.spec.ingressClassName == "cloudflare-tunnel") ||
+        (has(object.metadata.annotations) &&
+          "kubernetes.io/ingress.class" in object.metadata.annotations &&
+          object.metadata.annotations["kubernetes.io/ingress.class"] == "cloudflare-tunnel")
+  variables:
+    - name: backends
+      expression: >-
+        (has(object.spec.rules) ? object.spec.rules : [])
+          .filter(r, has(r.http))
+          .map(r, r.http.paths.filter(p, has(p.backend.service)).map(p, p.backend.service))
+          .flatten()
+    # NOTE: CiliumNetworkPolicyはPodのポートを指定するためServiceからtargetPortとPodのselectorを取得
+    #       selectorの無いServiceは空のendpointSelectorでnamespaceの全Podを選択するため除外
+    - name: targets
+      expression: >-
+        variables.backends
+          .map(b, {"ref": b, "service": resource.Get("v1", "services", object.metadata.namespace, b.name)})
+          .filter(s, has(s.service.spec.selector))
+          .map(s, cel.bind(b, s.ref, cel.bind(sp,
+            s.service.spec.ports.filter(x, has(b.port.number) ? x.port == b.port.number : (has(x.name) && x.name == b.port.name))[0],
+            {
+              "selector": s.service.spec.selector,
+              "port": has(sp.targetPort) ? string(sp.targetPort) : string(sp.port),
+              "protocol": has(sp.protocol) ? sp.protocol : "TCP"
+            })))
+  generate:
+    - expression: >-
+        generator.Apply(object.metadata.namespace, [{
+          "apiVersion": dyn("cilium.io/v2"),
+          "kind": dyn("CiliumNetworkPolicy"),
+          "metadata": dyn({
+            "name": object.metadata.name + "-cloudflare-tunnel",
+            "namespace": object.metadata.namespace
+          }),
+          "specs": dyn(variables.targets.map(t, {
+            "endpointSelector": {"matchLabels": t.selector},
+            "ingress": [{
+              "fromEndpoints": [{
+                "matchLabels": {
+                  "k8s:io.kubernetes.pod.namespace": "cloudflared",
+                  "app": "controlled-cloudflared-connector"
+                }
+              }],
+              "toPorts": [{"ports": [{"port": t.port, "protocol": t.protocol}]}]
+            }]
+          }))
+        }])

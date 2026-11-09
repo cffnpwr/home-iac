@@ -1,0 +1,40 @@
+# NOTE: namespaceごとに手で定義せずに済むようすべてのnamespaceに同じnamespaceからの接続の許可を生成
+apiVersion: policies.kyverno.io/v1
+kind: GeneratingPolicy
+metadata:
+  name: allow-same-namespace
+spec:
+  evaluation:
+    # NOTE: ポリシーの変更に合わせてCiliumNetworkPolicyを更新
+    synchronize:
+      enabled: true
+    # NOTE: ポリシーの作成前からあるnamespaceにも生成
+    generateExisting:
+      enabled: true
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["namespaces"]
+  generate:
+    # NOTE: 接続元を限定するPodはhome-iac/same-namespace-ingress: denyのラベルで対象から除外
+    - expression: >-
+        generator.Apply(object.metadata.name, [{
+          "apiVersion": dyn("cilium.io/v2"),
+          "kind": dyn("CiliumNetworkPolicy"),
+          "metadata": dyn({
+            "name": "allow-same-namespace",
+            "namespace": object.metadata.name
+          }),
+          "spec": dyn({
+            "endpointSelector": {
+              "matchExpressions": [{
+                "key": "home-iac/same-namespace-ingress",
+                "operator": "NotIn",
+                "values": ["deny"]
+              }]
+            },
+            "ingress": [{"fromEndpoints": [{}]}]
+          })
+        }])

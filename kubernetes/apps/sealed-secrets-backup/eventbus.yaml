@@ -9,6 +9,10 @@ spec:
     # NOTE: argo-events chartのconfigs.jetstream.versionsにあるバージョンだけ指定可能
     version: 2.10.29
     replicas: 3
+    metadata:
+      labels:
+        # NOTE: 秘密鍵を含むstreamへの接続をEventSourceとSensorのPodに限定するため同じnamespaceのPodからの接続を拒否
+        home-iac/same-namespace-ingress: deny
     # NOTE: 鍵のSecret全体を含むイベントを、streamに長く残さないための保持期間
     streamConfig: |
       maxAge: 30m
