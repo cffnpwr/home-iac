@@ -1,0 +1,58 @@
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: node-port-deny
+spec:
+  endpointSelector:
+    matchExpressions:
+      # NOTE: cilium-healthのendpointを対象から外すためnamespaceを持つendpointだけを選択
+      - key: k8s:io.kubernetes.pod.namespace
+        operator: Exists
+      # NOTE: VPNの通信を中継するNetBirdのルーティングピアと、別のポリシーで扱うmetrics-serverを除外
+      - key: app.kubernetes.io/name
+        operator: NotIn
+        values:
+          - networkrouter
+          - metrics-server
+  # NOTE: ノード以外への通信を変えないように既定拒否を無効化
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  # NOTE: PodからTalos API・kubelet・etcd等へ接続させないため、kube-apiserverの6443以外のノードのポートを拒否
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "1"
+              endPort: 6442
+            - port: "6444"
+              endPort: 65535
+---
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: metrics-server-node-port-deny
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:io.kubernetes.pod.namespace: kube-system
+      app.kubernetes.io/name: metrics-server
+  # NOTE: ノード以外への通信を変えないように既定拒否を無効化
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  # NOTE: metrics-serverがkubeletからメトリクスを取得するため、kube-apiserverの6443に加えてkubeletの10250も拒否の対象から除外
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "1"
+              endPort: 6442
+            - port: "6444"
+              endPort: 10249
+            - port: "10251"
+              endPort: 65535

@@ -1,0 +1,20 @@
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: lan-device-deny
+spec:
+  endpointSelector:
+    matchExpressions:
+      # NOTE: NetBirdのルーティングピアはVPNの通信を自宅LANへ中継するため対象から除外
+      - key: app.kubernetes.io/name
+        operator: NotIn
+        values:
+          - networkrouter
+  # NOTE: 自宅LAN以外への通信を変えないように既定拒否を無効化
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  # NOTE: CIDRの規則はノードのIPアドレスに適用されないため、ノード以外の自宅LANの機器への通信だけを拒否
+  egressDeny:
+    - toCIDR:
+        - 192.168.0.0/23
