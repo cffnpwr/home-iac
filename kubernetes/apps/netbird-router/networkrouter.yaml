@@ -5,9 +5,6 @@ kind: NetworkRouter
 metadata:
   name: cffnpwr-home
   namespace: netbird
-  annotations:
-    # NOTE: Operatorは削除されたNetworkRouterのnetworkを削除し、Network Resourceはダッシュボードで追加し直す必要があるため、Argo CDに削除させない
-    argocd.argoproj.io/sync-options: Prune=false
 spec:
   # NOTE: Operatorは名前で検索するため、ダッシュボードで名前とドメインを同じにしたDNSゾーンが必要
   dnsZoneRef:
