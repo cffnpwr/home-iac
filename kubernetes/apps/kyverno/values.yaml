@@ -43,7 +43,7 @@ backgroundController:
       nodeTaintsPolicy: Honor
   rbac:
     clusterRole:
-      # NOTE: GeneratingPolicyのcloudflare-tunnel-virtualserviceがVirtualServiceを生成・同期する
+      # NOTE: GeneratingPolicyのcloudflare-tunnel-virtualserviceがVirtualServiceを生成・同期
       extraResources:
         - apiGroups:
             - networking.istio.io
@@ -56,3 +56,25 @@ backgroundController:
             - create
             - update
             - delete
+        # NOTE: network-policy-generatorのGeneratingPolicyがCiliumNetworkPolicyを生成・同期
+        - apiGroups:
+            - cilium.io
+          resources:
+            - ciliumnetworkpolicies
+          verbs:
+            - get
+            - list
+            - watch
+            - create
+            - update
+            - delete
+        # NOTE: network-policy-generatorのGeneratingPolicyが既存のHTTPRoute・GRPCRouteを読んで生成
+        - apiGroups:
+            - gateway.networking.k8s.io
+          resources:
+            - httproutes
+            - grpcroutes
+          verbs:
+            - get
+            - list
+            - watch
