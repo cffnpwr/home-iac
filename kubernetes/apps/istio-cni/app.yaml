@@ -3,7 +3,7 @@ namespace: istio-system
 chart:
   repoURL: https://blob.istio.io/istio-release/charts
   name: cni
-  version: 1.31.3
+  version: 1.31.4
 manifests: true
 syncOptions:
   - CreateNamespace=true
