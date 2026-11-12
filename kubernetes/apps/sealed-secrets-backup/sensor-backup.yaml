@@ -48,7 +48,7 @@ spec:
                     restartPolicy: Never
                     containers:
                       - name: backup
-                        image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:3b9a699694dd388bbbb74ce123fba881a5c4d2dde58ae4317ec51a2d41e3f0d8
+                        image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:cdf93d8babd209dd3318fadfd626743eb50b47a599c3d924e3a445e89a2446da
                         command: [/bin/sh, /opt/sealed-secrets-backup/backup.sh]
                         env:
                           # NOTE: Sensorのparametersが、イベントが示す鍵のSecret名で値を置換
