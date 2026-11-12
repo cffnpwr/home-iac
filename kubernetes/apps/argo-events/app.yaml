@@ -3,5 +3,5 @@ namespace: argo-events
 chart:
   repoURL: https://argoproj.github.io/argo-helm
   name: argo-events
-  version: 2.4.27
+  version: 2.4.28
 manifests: true
