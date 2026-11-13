@@ -45,7 +45,7 @@ spec:
         topology.kubernetes.io/zone: vultr
       containers:
         - name: signal
-          image: netbirdio/signal:0.82.0@sha256:0c0c38bbef7dcdfa1822b6d59844615db55dc7303b664e7aed498151edc0dbfb
+          image: netbirdio/signal:0.82.1@sha256:1735ff3b09c4fdace66ef38ffe6cded1821800ef78755560d918079aff2c7608
           ports:
             - name: http
               containerPort: 80
