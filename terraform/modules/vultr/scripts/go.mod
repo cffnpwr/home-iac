@@ -1,6 +1,6 @@
 module github.com/cffnpwr/home-iac/terraform/modules/vultr/scripts
 
-go 1.27.3
+go 1.27.4
 
 require (
 	github.com/go-playground/validator/v10 v10.30.6

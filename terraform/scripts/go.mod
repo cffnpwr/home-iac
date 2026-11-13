@@ -1,6 +1,6 @@
 module github.com/cffnpwr/home-iac/terraform/scripts
 
-go 1.27.3
+go 1.27.4
 
 require github.com/cloudflare/cloudflare-go/v7 v7.14.0
 

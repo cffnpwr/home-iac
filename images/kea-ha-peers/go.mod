@@ -1,6 +1,6 @@
 module github.com/cffnpwr/home-iac/images/kea-ha-peers
 
-go 1.27.3
+go 1.27.4
 
 require (
 	github.com/google/go-cmp v0.7.0
