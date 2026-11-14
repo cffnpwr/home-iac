@@ -74,9 +74,38 @@
       "minimumGroupSize": 4
     },
     {
-      // NOTE: talosctlのバージョンをノードのTalosのバージョンに揃える
-      "matchDepNames": ["talosctl", "siderolabs/talos"],
+      // NOTE: talosctlとTalos APIのクライアントとして使うGoモジュールのバージョンをノードのTalosのバージョンに揃える
+      "matchDepNames": [
+        "talosctl",
+        "siderolabs/talos",
+        "github.com/siderolabs/talos/pkg/machinery"
+      ],
       "groupName": "talos"
+    },
+    {
+      // NOTE: miseで管理するCLIのバージョンをchartがデプロイするKyvernoのバージョンに揃える
+      "matchDepNames": ["kyverno"],
+      "groupName": "kyverno"
+    },
+    {
+      // NOTE: kubesealのCLI・イメージ・Goモジュールのバージョンをchartがデプロイするcontrollerのバージョンに揃える
+      "matchDepNames": [
+        "kubeseal",
+        "docker.io/bitnami/sealed-secrets-kubeseal",
+        "github.com/bitnami/sealed-secrets",
+        "sealed-secrets"
+      ],
+      "groupName": "sealed-secrets"
+    },
+    {
+      // NOTE: operatorのchartとCephClusterのchartはRookの同じバージョンとして公開される
+      "matchDepNames": ["rook-ceph", "rook-ceph-cluster"],
+      "groupName": "rook-ceph"
+    },
+    {
+      // NOTE: miseで管理するkubectlとイメージに含めるkubectlのバージョンを揃える
+      "matchDepNames": ["kubectl", "registry.k8s.io/kubectl"],
+      "groupName": "kubectl"
     }
   ],
   "kubernetes": {
