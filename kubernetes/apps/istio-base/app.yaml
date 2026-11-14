@@ -3,6 +3,6 @@ namespace: istio-system
 chart:
   repoURL: https://blob.istio.io/istio-release/charts
   name: base
-  version: 1.31.4
+  version: 1.32.0
 syncOptions:
   - CreateNamespace=true
