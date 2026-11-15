@@ -3,5 +3,5 @@ namespace: reloader
 chart:
   repoURL: https://stakater.github.io/stakater-charts
   name: reloader
-  version: 2.2.19
+  version: 2.2.20
 manifests: true
