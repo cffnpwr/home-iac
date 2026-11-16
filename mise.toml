@@ -40,15 +40,25 @@ run = "terraform"
 
 [tasks."tf:bootstrap"]
 description = "terraform/bootstrap/でterraformを実行する"
-dir = "{{config_root}}/terraform/bootstrap/scripts"
+dir = "{{config_root}}"
 # NOTE: go runは実行したプログラムの終了ステータスを返さずterraformが0以外で終了すると1で終了する
 #       --の後の引数をterraformに渡す
-run = "go run ./cmd/tf --repo-root '{{config_root}}' --"
+run = """
+go run github.com/cffnpwr/actions/modules/terraform-r2-backend/cmd/terraform-bootstrap@158a0a70ddf41188fc75468c4b4e8df470b3a98e \
+  --cloudflare-account-id 086a84b440e09bc83330fe07f1966f5d \
+  --root terraform/bootstrap \
+  --sse-customer-key-file terraform/bootstrap/sse-customer-key.age \
+  --"""
 
 [tasks."tf:bootstrap:generate-sse-customer-key"]
 description = "bootstrapのstateのSSE-Cの鍵を生成しageで暗号化してterraform/bootstrap/sse-customer-key.ageに書く"
-dir = "{{config_root}}/terraform/bootstrap/scripts"
-run = "go run ./cmd/generate-sse-customer-key --repo-root '{{config_root}}'"
+dir = "{{config_root}}"
+# NOTE: Sealed Secretsの鍵の退避Jobと同じ宛先に暗号化
+run = """
+go run github.com/cffnpwr/actions/modules/terraform-r2-backend/cmd/generate-sse-customer-key@158a0a70ddf41188fc75468c4b4e8df470b3a98e \
+  --output terraform/bootstrap/sse-customer-key.age \
+  --recipients-file kubernetes/apps/sealed-secrets-backup/recipients.yaml \
+  --recipients-key recipients.txt"""
 
 [tasks."tf:netbird"]
 description = "terraform/netbird/でterraformを実行する"
