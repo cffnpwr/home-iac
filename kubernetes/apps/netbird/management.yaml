@@ -50,7 +50,7 @@ spec:
     spec:
       containers:
         - name: management
-          image: netbirdio/management:0.82.1@sha256:cbdd58b5ea70072afa4684c4ad191522e4cc32e753ba3fdd8dab7ffc16f61120
+          image: netbirdio/management:0.83.0@sha256:58323749db9fd70fdf941fb5b379108463f4fdbe38bf35c1fe053214997f523a
           env:
             - name: NETBIRD_ACCESS_ISSUER
               valueFrom:
