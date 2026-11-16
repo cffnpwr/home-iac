@@ -3,11 +3,12 @@
 この手順書はクラスタを初めて構築するときの手順を説明する。
 次の順に実行する。
 
-1. bootstrapの構築
-2. GitHub Appの作成
-3. クラスタの構築
-4. ローカルサーバーの参加
-5. netbirdの設定
+1. plan用・apply用のGitHub Appの準備
+2. bootstrapの構築
+3. reseal用・backup用のGitHub Appの作成
+4. クラスタの構築
+5. ローカルサーバーの参加
+6. netbirdの設定
 
 ## Prerequisites
 
@@ -20,6 +21,28 @@
 
 Terraformは作成するトークンの名前に`[managed by terraform] home-iac/`を付ける。
 ダッシュボードで作成するトークンの名前には`[managed by terraform] `を付けない。
+
+## plan用・apply用のGitHub Appの準備
+
+plan用・apply用のGitHub AppはdotfilesのCIと共有する。
+GitHub Appの種類と権限は[CIでのplan・apply](./terraform.md#ciでのplanapply)に記載している。
+`terraform/bootstrap/`はGitHub AppのClient IDと秘密鍵を`terraform-plan`・`terraform-apply`のenvironmentに登録する。
+このため、bootstrapの構築の前にGitHub Appを`home-iac`にインストールし、Client IDと秘密鍵を用意する。
+次の手順は`plan`・`apply`の種類ごとに実行する。
+
+GitHub Appが無い場合はcffnpwr/actionsの[create-github-app](https://github.com/cffnpwr/actions/tree/main/modules/github-app)の手順で作成する。
+`create-github-app`の`--repo`に`cffnpwr/home-iac`を指定し、GitHub Appを`home-iac`にインストールする。
+`create-github-app`が表示したClient IDと、定義ファイルの`path`に書き込んだ秘密鍵を[bootstrapの構築](#bootstrapの構築)で使う。
+
+GitHub Appが既にある場合は次の手順で`home-iac`にインストールし、Client IDと秘密鍵を用意する。
+
+1. GitHub Appのinstallationに`home-iac`を追加する。
+   1. GitHubの「Settings」で「Applications」を開き、「Installed GitHub Apps」を選ぶ。
+   2. 対象のGitHub Appの「Configure」を選ぶ。
+   3. 「Repository access」で「Only select repositories」を選び、「Select repositories」で`home-iac`を追加する。
+   4. 「Save」を選ぶ。
+2. GitHub Appの設定画面の「Key pairs」で「New key」を選び、秘密鍵を作成する。
+3. GitHub Appの設定画面に表示されたClient IDと、手順2で作成した秘密鍵を[bootstrapの構築](#bootstrapの構築)で使う。
 
 ## bootstrapの構築
 
@@ -36,6 +59,7 @@ bootstrapのstateを置くBucketもbootstrapが作成するため初回はロー
 
 2. [`terraform/bootstrap/`の環境変数](./terraform.md#terraformbootstrapの環境変数)を設定する。
    netbirdのPATはクラスタの構築後に作成するため、`TF_VAR_netbird_pat_read_only`・`TF_VAR_netbird_pat_read_write`には空文字列を設定する。
+   `TF_VAR_plan_app_*`・`TF_VAR_apply_app_*`には[plan用・apply用のGitHub Appの準備](#plan用apply用のgithub-appの準備)で用意したClient IDと秘密鍵を設定する。
 3. `terraform/bootstrap/backend_override.tf`に次の内容を記載する。
 
    ```hcl
@@ -68,26 +92,28 @@ bootstrapのstateを置くBucketもbootstrapが作成するため初回はロー
    2. Usersで対象のservice userを選ぶ。
    3. API AccessのAccess Control Listで、Any IPv4・Any IPv6を有効にする。
 
-## GitHub Appの作成
+## reseal用・backup用のGitHub Appの作成
 
-CIのjobと鍵の退避Jobが使う4つのGitHub Appをmanifest flowで作成する。
-GitHub Appの種類と権限は[CIでのplan・apply](./terraform.md#ciでのplanapply)にある。
-次の手順は`plan`・`apply`・`reseal`・`backup`の種類ごとに実行する。
+reseal用のGitHub AppはSealedSecretを再暗号化するworkflowが使う。
+backup用のGitHub AppはSealed Secretsの鍵の退避Jobが使う。
+GitHub Appの種類と権限は[CIでのplan・apply](./terraform.md#ciでのplanapply)に記載している。
+2つのGitHub Appを作成するタスクはbootstrapが作成したenvironmentと証明書を使うため、bootstrapの構築の後に実行する。
+次の手順は`reseal`・`backup`の種類ごとに実行する。
 
 1. タスクを実行する。
    タスクはGitHub Appの登録の画面のURLを表示しブラウザで開く。
    ブラウザが開かない場合は表示したURLをブラウザで開く。
-   `backup`では`--cert`にbootstrapのoutputの`sealed_secrets_cert`を書いたファイルを指定する。
-   `--cert`の相対パスはリポジトリのルートを基準にする。
+   `backup`では`SEALED_SECRETS_CERT_FILE`にbootstrapのoutputの`sealed_secrets_cert`を書いたファイルを指定する。
+   `SEALED_SECRETS_CERT_FILE`の相対パスはリポジトリのルートを基準にする。
 
    ```sh
-   mise run github:create-app <種類>
+   mise run github:create-app:<種類>
    ```
 
 2. ブラウザでGitHub Appの名前を確認してCreate GitHub Appを選ぶ。
 3. タスクが表示するインストールの画面で`home-iac`だけにインストールする。
-   タスクはインストールを確認した後にClient IDと秘密鍵をenvironmentに登録する。
-   `backup`では`kubernetes/apps/sealed-secrets-backup/sealed-secrets-backup-github-app.yaml`にSealedSecretを書く。
+   `reseal`ではタスクはインストールを確認した後にClient IDと秘密鍵をenvironmentに登録する。
+   `backup`ではタスクはClient IDと秘密鍵を`kubernetes/apps/sealed-secrets-backup/sealed-secrets-backup-github-app.yaml`のSealedSecretに封入する。
 
 タスクはslug・App ID・Client IDだけを出力し秘密鍵は出力しない。
 登録済みのClient IDを置き換える場合は`--force`を指定する。
@@ -107,10 +133,10 @@ SSHで接続したホストでタスクを実行する場合は、手元のブ�
 2. 転送したポートを`--listen-port`に指定してタスクを実行する。
 
    ```sh
-   mise run github:create-app <種類> --listen-port 8080
+   mise run github:create-app:<種類> --listen-port 8080
    ```
 
-3. タスクが表示したURLを手元のブラウザで開き、[GitHub Appの作成](#github-appの作成)の手順2から続ける。
+3. タスクが表示したURLを手元のブラウザで開き、[reseal用・backup用のGitHub Appの作成](#reseal用backup用のgithub-appの作成)の手順2から続ける。
 
 ## クラスタの構築
 

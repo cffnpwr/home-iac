@@ -234,15 +234,18 @@ applyの後に、SealedSecretを再暗号化するworkflowを実行する。
 `terraform/bootstrap/`だけを変更した場合どちらのworkflowも実行されない。
 
 CIのjobと鍵の退避Jobは次の4種類のGitHub Appのトークンを使う。
-GitHub Appは`mise run github:create-app <種類>`でmanifest flowから作成する（[クラスタの初回構築](./initial-setup.md#github-appの作成)）。
+plan用・apply用のGitHub AppはdotfilesのCIと共有する。
+この2つのGitHub Appの定義はcffnpwr/actionsの`modules/github-app/apps/`にある。
+reseal用・backup用のGitHub Appの定義は`.github/apps/`にある。
+この2つのGitHub Appは`mise run github:create-app:<種類>`で作成する（[クラスタの初回構築](./initial-setup.md#reseal用backup用のgithub-appの作成)）。
 TerraformではGitHub Appの作成とインストールを管理できない。
 
 | 種類 | GitHub App | Repository permissions | Client IDと秘密鍵の登録先 |
 | --- | --- | --- | --- |
-| `plan` | `cffnpwr-home-iac-plan` | Metadata: Read-only・Environments: Read-only | `terraform-plan`の`PLAN_APP_CLIENT_ID`・`PLAN_APP_PRIVATE_KEY` |
-| `apply` | `cffnpwr-home-iac-apply` | Metadata: Read-only・Environments: Read and write | `terraform-apply`の`APPLY_APP_CLIENT_ID`・`APPLY_APP_PRIVATE_KEY` |
-| `reseal` | `cffnpwr-home-iac-reseal` | Contents: Read and write・Pull requests: Read and write | `sealed-secrets-reseal`の`RESEAL_APP_CLIENT_ID`・`RESEAL_APP_PRIVATE_KEY` |
-| `backup` | `cffnpwr-home-iac-key-backup` | Contents: Read and write | `kubernetes/apps/sealed-secrets-backup/sealed-secrets-backup-github-app.yaml`のSealedSecret |
+| `plan` | `cffnpwr-terraform-plan` | Metadata: Read-only・Environments: Read-only | `terraform/bootstrap/`が`terraform-plan`の`PLAN_APP_CLIENT_ID`・`PLAN_APP_PRIVATE_KEY`に登録 |
+| `apply` | `cffnpwr-terraform-apply` | Metadata: Read-only・Environments: Read and write | `terraform/bootstrap/`が`terraform-apply`の`APPLY_APP_CLIENT_ID`・`APPLY_APP_PRIVATE_KEY`に登録 |
+| `reseal` | `cffnpwr-home-iac-reseal` | Contents: Read and write・Pull requests: Read and write | タスクが`sealed-secrets-reseal`の`RESEAL_APP_CLIENT_ID`・`RESEAL_APP_PRIVATE_KEY`に登録 |
+| `backup` | `cffnpwr-home-iac-key-backup` | Contents: Read and write | タスクが`kubernetes/apps/sealed-secrets-backup/sealed-secrets-backup-github-app.yaml`のSealedSecretに封入 |
 
 ### Talos APIのクライアント証明書の更新
 
