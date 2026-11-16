@@ -1,0 +1,15 @@
+kind: SealedSecret
+apiVersion: bitnami.com/v1alpha1
+metadata:
+  name: grafana-smtp
+  namespace: grafana
+  annotations:
+    home-iac/cert-sha256: 1075837bdc565fd7eab5c1cdffa7e30b075b96df33757af974b241b20cf63525
+    home-iac/data-hmac-sha256: f9f4b3a319d763981a4d9b2323f311a250b272493bf1816d0075ff84f5b11422
+spec:
+  template:
+    metadata:
+      name: grafana-smtp
+      namespace: grafana
+  encryptedData:
+    smtp-password: AgA1fyMkfH7GqvSzHWa0mOO8/34snrY0AqzP+lJvnJyHimo1b26QQnGEQ8nXSpizKTLaWJ1Q0D1V5QmsU2407k9mGd8fvqEhouRMADIPbD6a77Cl6I/OILpJNlAkCvYgSmKmDaIhKhC9JM2aazefnNrUggW3B0G8ufPssaGGe+ADqrP93ps5IvaA93q13gV2lBBQTdoXhkmBxb5bxvBDZxut1aFvdaxBFp4iEnqhklQNUkArq0BO19FEFvfxVvB/xwvmSLr7lPPwvmpXBN1WUV2MciKGmt3P8lDtwudqFe7lo57doT9zi/kvKCSnIbHsuxA6xdQ7670ppBkIjFYTXassDo5bxImcM6gGaVDnHGri8CQiiq2oIktRZZwo+4tfFVuBvsa6E7XJ5OZtu2o2Hlm72AC/A/SuAksEZTWpJ9//QaKIk3DXRsJwHcagrhRJdJxqd4mNfCo91+lE6v+FiitN7wGtpvqJ4W4dfTtnoUQRqZrIy+USIsAaUi1O0FNxUeZjzb4M4Wf8fs99qzwqKoQaANmMf86q1Nf+coiDdp07HhViXwIP74WEb2WwFciFzZBWahV9tQkXTyPLWunLnCB7kx+BQdmVTV3Y/CCRbn4hE3hRV8mhaWq5FowFmlARE1rEUbQTElA6+KIeFA1L2wRHsuikhlUOA9MvRqMhidhhCHy3U2MmfyohZPlzjGeh/8lNY/gJNmfr8R/pjHlv4szg8YVzYbWXKka2IfBs6MqVMTwIMtm+LjbZn85ZVrhKp+J59NvkQA==
