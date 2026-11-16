@@ -29,12 +29,12 @@ CIのjobはこのBucketを読めるがSSE-Cの鍵を渡さないため、bootstr
 
 ### `terraform/bootstrap/`の環境変数
 
-`mise run tf:bootstrap`は`terraform/bootstrap/scripts/cmd/tf`を経由して`terraform`を実行する。
-`cmd/tf`は`CLOUDFLARE_API_TOKEN`のトークンからS3 backendの認証情報を作る。
-`AWS_SSE_CUSTOMER_KEY`が未設定の場合`cmd/tf`は`sse-customer-key.age`を復号してSSE-Cの鍵にする。
+`mise run tf:bootstrap`はcffnpwr/actionsの`terraform-bootstrap`を経由して`terraform`を実行する。
+`terraform-bootstrap`は`CLOUDFLARE_API_TOKEN`のトークンからS3 backendの認証情報を作る。
+`AWS_SSE_CUSTOMER_KEY`が未設定の場合`terraform-bootstrap`は`sse-customer-key.age`を復号してSSE-Cの鍵にする。
 復号には`AGE_IDENTITY_FILE`のidentityを使う。
 `AGE_IDENTITY_FILE`の相対パスはリポジトリのルートを基準にする。
-タスクは`go run`で`cmd/tf`を実行するため、`terraform`が0以外の終了ステータスで終了するとタスクは終了ステータス1で終了する。
+タスクは`go run`で`terraform-bootstrap`を実行するため、`terraform`が0以外の終了ステータスで終了するとタスクは終了ステータス1で終了する。
 
 | 環境変数 | 内容 |
 | --- | --- |
@@ -45,12 +45,16 @@ CIのjobはこのBucketを読めるがSSE-Cの鍵を渡さないため、bootstr
 | `TF_VAR_netbird_pat_read_only` | `terraform-plan`の`NB_PAT`に登録する、読み取り専用のサービスユーザーのPAT |
 | `TF_VAR_netbird_pat_read_write` | `terraform-apply`の`NB_PAT`に登録する、管理者のサービスユーザーのPAT |
 | `TF_VAR_google_workspace_access_client_secret` | AccessがGoogle Workspaceにログインするときに使う、OAuthクライアントのシークレット |
+| `TF_VAR_plan_app_client_id` | `terraform-plan`の`PLAN_APP_CLIENT_ID`に登録する、plan用のGitHub AppのClient ID |
+| `TF_VAR_plan_app_private_key` | `terraform-plan`の`PLAN_APP_PRIVATE_KEY`に登録する、plan用のGitHub Appの秘密鍵 |
+| `TF_VAR_apply_app_client_id` | `terraform-apply`の`APPLY_APP_CLIENT_ID`に登録する、apply用のGitHub AppのClient ID |
+| `TF_VAR_apply_app_private_key` | `terraform-apply`の`APPLY_APP_PRIVATE_KEY`に登録する、apply用のGitHub Appの秘密鍵 |
 
 GitHub providerは`GITHUB_TOKEN`環境変数のトークンを使い未設定なら`gh auth token`のトークンを使う。
 
 #### ageのidentityファイル
 
-`AWS_SSE_CUSTOMER_KEY`が未設定の場合、`terraform/bootstrap/scripts/cmd/tf`は`sse-customer-key.age`からSSE-Cの鍵を復号する。
+`AWS_SSE_CUSTOMER_KEY`が未設定の場合`terraform-bootstrap`は`sse-customer-key.age`からSSE-Cの鍵を復号する。
 `sse-customer-key.age`は`terraform/bootstrap/`にある。
 `sse-customer-key.age`は`kubernetes/apps/sealed-secrets-backup/recipients.yaml`の宛先で暗号化されている。
 宛先は、`recipients.yaml`のConfigMapの`data["recipients.txt"]`に1行ずつ書いてある。
@@ -114,7 +118,7 @@ identityファイルだけでは復号できず、復号には参照先の鍵が
    export AGE_IDENTITY_FILE="$HOME/yubikey-identity.txt"
    ```
 
-リポジトリのディレクトリで`mise run tf:bootstrap`を実行すると、`cmd/tf`は`terraform`を実行する前に`sse-customer-key.age`を復号する。
+`mise run tf:bootstrap`を実行すると、`terraform-bootstrap`は`terraform`を実行する前に`sse-customer-key.age`を復号する。
 復号では、`PIN policy:`・`Touch policy:`の値に応じて次の操作を行なう。
 
 | 値 | 操作 |
@@ -125,7 +129,7 @@ identityファイルだけでは復号できず、復号には参照先の鍵が
 | `Touch policy:`が`Never` | タッチは求められない |
 
 YubiKeyに触れないまま時間が経過すると、YubiKeyがタイムアウトして復号は失敗する。
-復号に失敗すると、`cmd/tf`はエラーを表示して終了し、`terraform`を実行しない。
+復号に失敗すると、`terraform-bootstrap`はエラーを表示して終了し、`terraform`を実行しない。
 復号に成功すると、`terraform`の出力が表示される。
 
 YubiKeyのPIV PINの初期値は`123456`、PUKの初期値は`12345678`である。
@@ -175,7 +179,7 @@ identityファイルの`# access control:`の行に、その値が書いてあ�
 #### bootstrap用のトークン
 
 bootstrap用のトークンはCloudflareのダッシュボードでアカウントのトークン（Account API Tokens）として作成する。
-`cmd/tf`はアカウントのトークンの検証APIでトークンのIDを取得するためユーザーのトークンは使えない。
+`terraform-bootstrap`はアカウントのトークンの検証APIでトークンのIDを取得するためユーザーのトークンは使えない。
 `terraform/bootstrap/`が管理するリソースに合わせて次の権限を付ける。
 
 | 権限 | 使うリソース |
@@ -230,15 +234,18 @@ applyの後に、SealedSecretを再暗号化するworkflowを実行する。
 `terraform/bootstrap/`だけを変更した場合どちらのworkflowも実行されない。
 
 CIのjobと鍵の退避Jobは次の4種類のGitHub Appのトークンを使う。
-GitHub Appは`mise run github:create-app <種類>`でmanifest flowから作成する（[クラスタの初回構築](./initial-setup.md#github-appの作成)）。
+plan用・apply用のGitHub AppはdotfilesのCIと共有する。
+この2つのGitHub Appの定義はcffnpwr/actionsの`modules/github-app/apps/`にある。
+reseal用・backup用のGitHub Appの定義は`.github/apps/`にある。
+この2つのGitHub Appは`mise run github:create-app:<種類>`で作成する（[クラスタの初回構築](./initial-setup.md#reseal用backup用のgithub-appの作成)）。
 TerraformではGitHub Appの作成とインストールを管理できない。
 
 | 種類 | GitHub App | Repository permissions | Client IDと秘密鍵の登録先 |
 | --- | --- | --- | --- |
-| `plan` | `cffnpwr-home-iac-plan` | Metadata: Read-only・Environments: Read-only | `terraform-plan`の`PLAN_APP_CLIENT_ID`・`PLAN_APP_PRIVATE_KEY` |
-| `apply` | `cffnpwr-home-iac-apply` | Metadata: Read-only・Environments: Read and write | `terraform-apply`の`APPLY_APP_CLIENT_ID`・`APPLY_APP_PRIVATE_KEY` |
-| `reseal` | `cffnpwr-home-iac-reseal` | Contents: Read and write・Pull requests: Read and write | `sealed-secrets-reseal`の`RESEAL_APP_CLIENT_ID`・`RESEAL_APP_PRIVATE_KEY` |
-| `backup` | `cffnpwr-home-iac-key-backup` | Contents: Read and write | `kubernetes/apps/sealed-secrets-backup/sealed-secrets-backup-github-app.yaml`のSealedSecret |
+| `plan` | `cffnpwr-terraform-plan` | Metadata: Read-only・Environments: Read-only | `terraform/bootstrap/`が`terraform-plan`の`PLAN_APP_CLIENT_ID`・`PLAN_APP_PRIVATE_KEY`に登録 |
+| `apply` | `cffnpwr-terraform-apply` | Metadata: Read-only・Environments: Read and write | `terraform/bootstrap/`が`terraform-apply`の`APPLY_APP_CLIENT_ID`・`APPLY_APP_PRIVATE_KEY`に登録 |
+| `reseal` | `cffnpwr-home-iac-reseal` | Contents: Read and write・Pull requests: Read and write | タスクが`sealed-secrets-reseal`の`RESEAL_APP_CLIENT_ID`・`RESEAL_APP_PRIVATE_KEY`に登録 |
+| `backup` | `cffnpwr-home-iac-key-backup` | Contents: Read and write | タスクが`kubernetes/apps/sealed-secrets-backup/sealed-secrets-backup-github-app.yaml`のSealedSecretに封入 |
 
 ### Talos APIのクライアント証明書の更新
 

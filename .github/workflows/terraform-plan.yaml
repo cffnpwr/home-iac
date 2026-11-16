@@ -46,11 +46,6 @@ jobs:
           path: ~/.terraform.d/plugin-cache
           key: terraform-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('terraform/.terraform.lock.hcl', 'terraform/bootstrap/.terraform.lock.hcl', 'terraform/netbird/.terraform.lock.hcl') }}
           restore-keys: terraform-${{ runner.os }}-${{ runner.arch }}-
-      - run: terraform -chdir="$ROOT" init -input=false
-        env:
-          ROOT: ${{ matrix.root }}
-          AWS_ACCESS_KEY_ID: ${{ matrix.root == 'terraform' && secrets.AWS_ACCESS_KEY_ID || secrets.NETBIRD_AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ matrix.root == 'terraform' && secrets.AWS_SECRET_ACCESS_KEY || secrets.NETBIRD_AWS_SECRET_ACCESS_KEY }}
       - id: app-token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
@@ -63,12 +58,11 @@ jobs:
         with:
           setup-key: ${{ secrets.NETBIRD_SETUP_KEY }}
           wait-address: 192.168.0.129:50000
-      # NOTE: rootごとにPRのコメントを分けるため、targetにrootのディレクトリを指定
       - if: matrix.root == 'terraform'
-        run: tfcmt -var "target:$ROOT" plan -patch -disable-label -- terraform -chdir="$ROOT" plan -input=false -lock=false
+        uses: cffnpwr/actions/.github/actions/terraform-plan@41c85e705ed527974540a1bb0f9d57d7f7cc5281 # main
+        with:
+          root: ${{ matrix.root }}
         env:
-          ROOT: ${{ matrix.root }}
-          GITHUB_TOKEN: ${{ github.token }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -80,10 +74,10 @@ jobs:
           TF_VAR_sealed_secrets_cert: ${{ vars.SEALED_SECRETS_CERT }}
           TF_VAR_google_workspace_access_identity_provider_id: ${{ vars.GOOGLE_WORKSPACE_ACCESS_IDENTITY_PROVIDER_ID }}
       - if: matrix.root == 'terraform/netbird'
-        run: tfcmt -var "target:$ROOT" plan -patch -disable-label -- terraform -chdir="$ROOT" plan -input=false -lock=false
+        uses: cffnpwr/actions/.github/actions/terraform-plan@41c85e705ed527974540a1bb0f9d57d7f7cc5281 # main
+        with:
+          root: ${{ matrix.root }}
         env:
-          ROOT: ${{ matrix.root }}
-          GITHUB_TOKEN: ${{ github.token }}
           AWS_ACCESS_KEY_ID: ${{ secrets.NETBIRD_AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.NETBIRD_AWS_SECRET_ACCESS_KEY }}
           NB_PAT: ${{ secrets.NB_PAT }}

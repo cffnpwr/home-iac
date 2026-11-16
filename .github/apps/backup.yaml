@@ -1,0 +1,9 @@
+name: cffnpwr-home-iac-key-backup
+url: https://github.com/cffnpwr/home-iac
+permissions:
+  # NOTE: 鍵の退避Jobがrepository_dispatchを送信するため、Contentsのwrite権限が必要
+  contents: write
+# NOTE: SealedSecretへの封入はkubernetes/scripts/create-backup-github-app.shが行なう
+destination:
+  type: privateKeyFile
+  path: sealed-secrets-backup-github-app.pem

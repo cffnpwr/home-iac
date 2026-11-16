@@ -40,25 +40,41 @@ run = "terraform"
 
 [tasks."tf:bootstrap"]
 description = "terraform/bootstrap/でterraformを実行する"
-dir = "{{config_root}}/terraform/bootstrap/scripts"
+dir = "{{config_root}}"
 # NOTE: go runは実行したプログラムの終了ステータスを返さずterraformが0以外で終了すると1で終了する
 #       --の後の引数をterraformに渡す
-run = "go run ./cmd/tf --repo-root '{{config_root}}' --"
+run = """
+go run github.com/cffnpwr/actions/modules/terraform-r2-backend/cmd/terraform-bootstrap@41c85e705ed527974540a1bb0f9d57d7f7cc5281 \
+  --cloudflare-account-id 086a84b440e09bc83330fe07f1966f5d \
+  --root terraform/bootstrap \
+  --sse-customer-key-file terraform/bootstrap/sse-customer-key.age \
+  --"""
 
 [tasks."tf:bootstrap:generate-sse-customer-key"]
 description = "bootstrapのstateのSSE-Cの鍵を生成しageで暗号化してterraform/bootstrap/sse-customer-key.ageに書く"
-dir = "{{config_root}}/terraform/bootstrap/scripts"
-run = "go run ./cmd/generate-sse-customer-key --repo-root '{{config_root}}'"
+dir = "{{config_root}}"
+# NOTE: Sealed Secretsの鍵の退避Jobと同じ宛先に暗号化
+run = """
+go run github.com/cffnpwr/actions/modules/terraform-r2-backend/cmd/generate-sse-customer-key@41c85e705ed527974540a1bb0f9d57d7f7cc5281 \
+  --output terraform/bootstrap/sse-customer-key.age \
+  --recipients-file kubernetes/apps/sealed-secrets-backup/recipients.yaml \
+  --recipients-key recipients.txt"""
 
 [tasks."tf:netbird"]
 description = "terraform/netbird/でterraformを実行する"
 dir = "{{config_root}}/terraform/netbird"
 run = "terraform"
 
-[tasks."github:create-app"]
-description = "GitHub Appをmanifest flowで作成しClient IDと秘密鍵を登録する（plan・apply・reseal・backup）"
-dir = "{{config_root}}/terraform/bootstrap/scripts"
-run = "go run ./cmd/create-github-app --repo-root '{{config_root}}'"
+[tasks."github:create-app:reseal"]
+description = "SealedSecretの再暗号化のGitHub Appをmanifest flowで作成しClient IDと秘密鍵をenvironmentに登録する"
+dir = "{{config_root}}"
+run = "go run github.com/cffnpwr/actions/modules/github-app/cmd/create-github-app@41c85e705ed527974540a1bb0f9d57d7f7cc5281 --config .github/apps/reseal.yaml --repo cffnpwr/home-iac"
+
+[tasks."github:create-app:backup"]
+description = "鍵の退避JobのGitHub Appをmanifest flowで作成しClient IDと秘密鍵をSealedSecretに封入する"
+dir = "{{config_root}}"
+env = { CREATE_GITHUB_APP = "github.com/cffnpwr/actions/modules/github-app/cmd/create-github-app@41c85e705ed527974540a1bb0f9d57d7f7cc5281" }
+run = "sh kubernetes/scripts/create-backup-github-app.sh"
 
 [tasks."sealed-secrets:seal-terraform-outputs"]
 description = "Terraformのoutputの値を、cert.pemの証明書でSealedSecretに封入する"
@@ -78,9 +94,7 @@ depends = [
   "lint:helm",
   "lint:shell",
   "lint:markdown",
-  "lint:go:terraform",
   "lint:go:vultr",
-  "lint:go:bootstrap",
   "lint:go:kea-ha-peers",
   "lint:go:gopls",
 ]
@@ -126,19 +140,9 @@ description = "Markdownを検査する"
 run = "rumdl check ."
 
 # NOTE: golangci-lintは既定で起動時にファイルロックを取得し、5秒以内に取得できないと失敗するため、並列実行を許可
-[tasks."lint:go:terraform"]
-description = "terraform/scriptsのGoを検査する"
-dir = "{{config_root}}/terraform/scripts"
-run = "golangci-lint run --allow-parallel-runners"
-
 [tasks."lint:go:vultr"]
 description = "terraform/modules/vultr/scriptsのGoを検査する"
 dir = "{{config_root}}/terraform/modules/vultr/scripts"
-run = "golangci-lint run --allow-parallel-runners"
-
-[tasks."lint:go:bootstrap"]
-description = "terraform/bootstrap/scriptsのGoを検査する"
-dir = "{{config_root}}/terraform/bootstrap/scripts"
 run = "golangci-lint run --allow-parallel-runners"
 
 [tasks."lint:go:kea-ha-peers"]

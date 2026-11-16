@@ -1,0 +1,11 @@
+name: cffnpwr-home-iac-reseal
+url: https://github.com/cffnpwr/home-iac
+permissions:
+  # NOTE: reseal-sealed-secrets.yamlがgit pushでブランチを更新するため、Contentsのwrite権限が必要
+  contents: write
+  # NOTE: PRを作成するため、Pull requestsのwrite権限が必要
+  pull_requests: write
+destination:
+  type: environment
+  environment: sealed-secrets-reseal
+  credentialPrefix: RESEAL
