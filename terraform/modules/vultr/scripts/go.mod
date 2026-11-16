@@ -4,7 +4,7 @@ go 1.27.3
 
 require (
 	github.com/go-playground/validator/v10 v10.30.6
-	github.com/siderolabs/talos/pkg/machinery v1.14.5
+	github.com/siderolabs/talos/pkg/machinery v1.14.6
 	github.com/vultr/govultr/v3 v3.34.0
 	golang.org/x/oauth2 v0.38.0
 	k8s.io/api v0.37.2
@@ -92,7 +92,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.6 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
-	golang.org/x/net v0.60.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/term v0.47.0 // indirect
