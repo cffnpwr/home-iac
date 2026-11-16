@@ -4,3 +4,6 @@ resources:
   - namespace.yaml
   - postgres.yaml
   - networkpolicy.yaml
+  - grafana-oidc.yaml
+  - grafana-r2.yaml
+  - grafana-smtp.yaml
