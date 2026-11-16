@@ -31,3 +31,23 @@ spec:
               protocol: UDP
             - port: "53"
               protocol: TCP
+---
+# NOTE: AlloyがCoreDNSのメトリクスを収集するため、AlloyからCoreDNSの9153番ポートへの通信を許可
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: coredns-metrics
+  namespace: kube-system
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s-app: kube-dns
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: alloy
+      toPorts:
+        - ports:
+            - port: "9153"
+              protocol: TCP

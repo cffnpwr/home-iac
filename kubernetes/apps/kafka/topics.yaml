@@ -1,0 +1,22 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: mimir-ingest
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: kafka
+spec:
+  # NOTE: パーティション数は1ゾーンあたりのingesterの数以上にする。ingesterは1ゾーンに1台のため1にする
+  #       ref: https://github.com/grafana/mimir/blob/mimir-3.2.3/docs/sources/mimir/configure/configure-kafka-backend.md
+  partitions: 1
+  # NOTE: Strimziの推奨に従い、3台のブローカーに複製し、2つのレプリカへの書き込みで成功とする
+  #       ref: https://github.com/strimzi/strimzi-kafka-operator/blob/1.3.1/documentation/modules/operators/con-topic-replication.adoc
+  #       ref: https://github.com/grafana/mimir/blob/mimir-3.2.3/pkg/storage/ingest/writer_client.go#L110
+  replicas: 3
+  config:
+    min.insync.replicas: 2
+    # NOTE: ingesterは停止中に書き込まれたレコードを、起動後にKafkaから読み出す。そのため保持期間がingesterの停止を許容できる時間になる
+    #       mimir-distributedのchartが作るKafkaの保持期間を設定
+    #       ref: https://github.com/grafana/mimir/blob/mimir-3.2.3/docs/sources/mimir/get-started/about-grafana-mimir-architecture/about-ingest-storage-architecture/index.md
+    #       ref: https://github.com/grafana/mimir/blob/mimir-distributed-6.2.2/operations/helm/charts/mimir-distributed/values.yaml#L3204
+    retention.ms: 86400000

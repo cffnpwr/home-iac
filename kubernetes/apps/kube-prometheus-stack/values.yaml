@@ -1,0 +1,166 @@
+defaultRules:
+  rules:
+    # NOTE: Kubernetes / Compute Resources / *のダッシュボードが参照するrecording rule
+    k8sContainerCpuUsageSecondsTotal: true
+    k8sContainerMemoryCache: true
+    k8sContainerMemoryRss: true
+    k8sContainerMemorySwap: true
+    k8sContainerMemoryWorkingSetBytes: true
+    k8sContainerResource: true
+    k8sPodOwner: true
+    node: true
+    # NOTE: Node Exporter / USE Methodのダッシュボードが参照するrecording rule
+    #       このダッシュボードはNode Exporterと連動して作られ、個別に無効化できないため、データを表示できるようにする
+    nodeExporterRecording: true
+    # NOTE: Kubernetes / API serverのダッシュボードが参照するrecording rule
+    kubeApiserverAvailability: true
+    kubeApiserverHistogram: true
+    # NOTE: 上記のダッシュボードが参照しないrecording rule
+    kubeApiserverBurnrate: false
+    kubelet: false
+    kubePrometheusGeneral: false
+    kubePrometheusNodeRecording: false
+    kubeSchedulerRecording: false
+    windows: false
+    # NOTE: alert ruleはGrafanaの画面でGrafana-managed alert ruleとして管理するため、alerting ruleを作らない
+    alertmanager: false
+    etcd: false
+    configReloaders: false
+    general: false
+    kubeApiserverSlos: false
+    kubeControllerManager: false
+    kubeProxy: false
+    kubernetesApps: false
+    kubernetesResources: false
+    kubernetesStorage: false
+    kubernetesSystem: false
+    kubeSchedulerAlerting: false
+    kubeStateMetrics: false
+    network: false
+    nodeExporterAlerting: false
+    prometheus: false
+    prometheusOperator: false
+
+# NOTE: alertはGrafanaのAlertmanagerが通知するため、Alertmanagerを使わない
+alertmanager:
+  enabled: false
+
+# NOTE: GrafanaはgrafanaのApplicationで導入するため、ダッシュボードのConfigMapだけを出力
+grafana:
+  enabled: false
+  forceDeployDashboards: true
+
+# NOTE: メトリクスはAlloyが収集してMimirに送るため、Prometheusを使わない
+prometheus:
+  enabled: false
+
+kubeApiServer:
+  serviceMonitor:
+    # NOTE: chartの既定値のauthorizationは、Prometheusとあわせて作られるSecretを参照するため削除
+    #       Alloyのscrape classのservice-account-tokenが、AlloyのService Accountのトークンで認証する
+    authorization: null
+    scrapeClass: service-account-token
+
+kubeControllerManager:
+  # NOTE: Talosはkube-controller-managerにサービング証明書を渡さず、kube-controller-managerは自己署名の証明書を使うため、
+  #       chartの既定値のtlsConfig.insecureSkipVerify: trueのままにする
+  #       ref: https://github.com/siderolabs/talos/blob/v1.14.6/internal/app/machined/pkg/controllers/k8s/control_plane_final.go#L125-L126
+  serviceMonitor:
+    # NOTE: chartの既定値のauthorizationは、Prometheusとあわせて作られるSecretを参照するため削除
+    #       Alloyのscrape classのservice-account-tokenが、AlloyのService Accountのトークンで認証する
+    authorization: null
+    scrapeClass: service-account-token
+
+kubeScheduler:
+  # NOTE: Talosはkube-schedulerにサービング証明書を渡さず、kube-schedulerは自己署名の証明書を使うため、
+  #       chartの既定値のtlsConfig.insecureSkipVerify: trueのままにする
+  #       ref: https://github.com/siderolabs/talos/blob/v1.14.6/internal/app/machined/pkg/controllers/k8s/control_plane_final.go#L125-L126
+  serviceMonitor:
+    # NOTE: chartの既定値のauthorizationは、Prometheusとあわせて作られるSecretを参照するため削除
+    #       Alloyのscrape classのservice-account-tokenが、AlloyのService Accountのトークンで認証する
+    authorization: null
+    scrapeClass: service-account-token
+
+kubeEtcd:
+  service:
+    # NOTE: etcdのmetricsを中継するkube-rbac-proxy（etcd-metrics-proxy.yaml）を収集対象にする
+    port: 2382
+    targetPort: 2382
+    selector:
+      app.kubernetes.io/name: etcd-metrics-proxy
+  serviceMonitor:
+    port: https-metrics
+    scheme: https
+    tlsConfig:
+      # NOTE: kube-rbac-proxyは自己署名の証明書を使うため、Alloyはこの証明書を検証しない
+      insecureSkipVerify: true
+    # NOTE: chartの既定値のauthorizationは、Prometheusとあわせて作られるSecretを参照するため削除
+    #       kube-rbac-proxyがAlloyのService Accountのトークンを認可するため、scrape classのservice-account-tokenでリクエストにトークンを付ける
+    authorization: null
+    scrapeClass: service-account-token
+
+coreDns:
+  serviceMonitor:
+    # NOTE: chartの既定値のauthorizationは、Prometheusとあわせて作られるSecretを参照するため削除
+    #       CoreDNSのmetricsはHTTPで認証を行なわないため、トークンを付けるscrape classも指定しない
+    authorization: null
+
+# NOTE: kube-proxyは無効にしており（Ciliumのkube-proxy replacementを使用）、収集対象が無いため、ServiceMonitor・ダッシュボード・ルールを作らない
+kubeProxy:
+  enabled: false
+
+kubelet:
+  serviceMonitor:
+    # NOTE: chartの既定値のauthorizationは、Prometheusとあわせて作られるSecretを参照するため削除
+    #       Alloyのscrape classのservice-account-tokenが、AlloyのService Accountのトークンで認証する
+    authorization: null
+    scrapeClass: service-account-token
+    tlsConfig:
+      # NOTE: kubeletのサービング証明書はserverTLSBootstrapでクラスタのCAが署名するため、kube-root-ca.crtで検証
+      insecureSkipVerify: false
+    # NOTE: 収集対象を/metricsと/metrics/cadvisorに限定
+    probes: false
+
+nodeExporter:
+  operatingSystems:
+    # NOTE: ノードはTalos Linuxだけのため、AIX・macOSのダッシュボードを作らない
+    aix:
+      enabled: false
+    darwin:
+      enabled: false
+
+prometheusOperator:
+  # NOTE: v1のEndpointsのAPIはKubernetes 1.33で非推奨のため、kubeletのServiceのEndpointSliceだけを作成
+  kubeletEndpointsEnabled: false
+  kubeletEndpointSliceEnabled: true
+  serviceMonitor:
+    # NOTE: Prometheus Operatorのメトリクスを参照するのはalerting ruleだけで、ダッシュボード・recording ruleは参照しないため収集しない
+    selfMonitor: false
+  resources:
+    # TODO: 実測後に見直す
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+kube-state-metrics:
+  resources:
+    # TODO: 実測後に見直す
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+prometheus-node-exporter:
+  # NOTE: Node ExporterはhostNetwork・hostPID・hostPathを使い、PodSecurityのbaselineで拒否されるため、
+  #       privilegedを許可する専用のnamespaceに配置
+  namespaceOverride: node-exporter
+  resources:
+    # TODO: 実測後に見直す
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 128Mi

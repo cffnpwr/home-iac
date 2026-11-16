@@ -63,6 +63,41 @@ locals {
     }),
     yamlencode({
       apiVersion = "v1alpha1"
+      kind       = "KubeSchedulerConfig"
+      extraArgs = {
+        # NOTE: 別のノードのAlloyが/metricsを取得するため、Talosの既定値の127.0.0.1ではなく全インターフェースで待ち受ける
+        #       Talosが生成するstatic podのprobeはlocalhostに接続するため、ノードのIPアドレスだけで待ち受けることはできない
+        #       ref: https://github.com/siderolabs/talos/blob/v1.14.6/internal/app/machined/pkg/controllers/k8s/control_plane_final.go#L395
+        #       ref: https://github.com/siderolabs/talos/blob/v1.14.6/internal/app/machined/pkg/controllers/k8s/internal/k8stemplates/scheduler.go#L37-L74
+        bind-address = "0.0.0.0"
+      }
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
+      kind       = "KubeControllerManagerConfig"
+      extraArgs = {
+        # NOTE: 別のノードのAlloyが/metricsを取得するため、Talosの既定値の127.0.0.1ではなく全インターフェースで待ち受ける
+        #       Talosが生成するstatic podのprobeはlocalhostに接続するため、ノードのIPアドレスだけで待ち受けることはできない
+        #       ref: https://github.com/siderolabs/talos/blob/v1.14.6/internal/app/machined/pkg/controllers/k8s/control_plane_final.go#L274
+        #       ref: https://github.com/siderolabs/talos/blob/v1.14.6/internal/app/machined/pkg/controllers/k8s/internal/k8stemplates/controller-manager.go#L85-L110
+        bind-address = "0.0.0.0"
+      }
+    }),
+    yamlencode({
+      cluster = {
+        etcd = {
+          extraArgs = {
+            # NOTE: etcdがクライアント証明書を要求する2383番ポートのmetricsは、etcdのすべてのデータを読み書きできる証明書でしか取得できない
+            #       そのため、ノードの中だけで平文のmetricsを公開し、kube-rbac-proxyがKubernetesの認可を行なってから中継する
+            #       Talosはこの設定を変更してもetcdを再起動しないため、適用後にノードの再起動が必要
+            #       ref: https://github.com/siderolabs/talos/blob/v1.14.6/internal/app/machined/pkg/system/services/etcd.go#L451-L470
+            listen-metrics-urls = "http://127.0.0.1:2381"
+          }
+        }
+      }
+    }),
+    yamlencode({
+      apiVersion = "v1alpha1"
       kind       = "Layer2VIPConfig"
       name       = local.talos_cluster_vip
       # NOTE: 各モジュールのLinkAliasConfigがLANのインターフェースに付ける別名

@@ -1,0 +1,85 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: mimir-distributor
+  namespace: mimir
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: mimir
+      app.kubernetes.io/instance: mimir
+      app.kubernetes.io/component: distributor
+  ingress:
+    # NOTE: Alloyが収集したメトリクスをremote writeで送るためAlloyからの接続を許可
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: alloy
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: mimir-ruler
+  namespace: mimir
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: mimir
+      app.kubernetes.io/instance: mimir
+      app.kubernetes.io/component: ruler
+  ingress:
+    # NOTE: Alloyのmimir.rules.kubernetesが、PrometheusRuleのruleをrulerのAPIで登録するためAlloyからの接続を許可
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: alloy
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: mimir-query-frontend
+  namespace: mimir
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: mimir
+      app.kubernetes.io/instance: mimir
+      app.kubernetes.io/component: query-frontend
+  ingress:
+    # NOTE: GrafanaがデータソースとしてPromQLのクエリを送るためgrafanaのnamespaceからの接続を許可
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: grafana
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: mimir-rollout-operator
+  namespace: mimir
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: rollout-operator
+      app.kubernetes.io/instance: mimir
+  ingress:
+    # NOTE: kube-apiserverがPodのeviction・StatefulSetの更新のときにrollout-operatorのAdmission Webhookを呼ぶため接続を許可
+    #       webhookのServiceの443は、Podの8443に転送される
+    - fromEntities:
+        # NOTE: 別のノードのkube-apiserverからの通信のidentityはremote-nodeとなる
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "8443"
+              protocol: TCP

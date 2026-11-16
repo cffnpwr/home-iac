@@ -1,0 +1,19 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: prometheus-operator-webhook
+  namespace: monitoring
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+      app.kubernetes.io/component: prometheus-operator
+  ingress:
+    # NOTE: kube-apiserverがPrometheusRule・AlertmanagerConfigの変更・検証のwebhookを呼ぶため接続を許可
+    - fromEntities:
+        # NOTE: 別のノードのkube-apiserverからの通信のidentityはremote-nodeとなる
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "10250"
+              protocol: TCP

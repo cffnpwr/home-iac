@@ -8,12 +8,13 @@ spec:
       # NOTE: cilium-healthのendpointを対象から外すためnamespaceを持つendpointだけを選択
       - key: k8s:io.kubernetes.pod.namespace
         operator: Exists
-      # NOTE: VPNの通信を中継するNetBirdのルーティングピアと、別のポリシーで扱うmetrics-serverを除外
+      # NOTE: VPNの通信を中継するNetBirdのルーティングピアと、別のポリシーで扱うmetrics-server・Alloyを除外
       - key: app.kubernetes.io/name
         operator: NotIn
         values:
           - networkrouter
           - metrics-server
+          - alloy
   # NOTE: ノード以外への通信を変えないように既定拒否を無効化
   enableDefaultDeny:
     ingress: false
@@ -55,4 +56,39 @@ spec:
             - port: "6444"
               endPort: 10249
             - port: "10251"
+              endPort: 65535
+---
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: alloy-node-port-deny
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s:io.kubernetes.pod.namespace: monitoring
+      app.kubernetes.io/name: alloy
+  # NOTE: ノード以外への通信を変えないように既定拒否を無効化
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  # NOTE: Alloyがノードのコンポーネントからメトリクスを取得するため、kube-apiserverの6443に加えて次のポートも拒否の対象から除外
+  #       etcdのメトリクスを中継するkube-rbac-proxyの2382・Node Exporterの9100・kubeletの10250・kube-controller-managerの10257・kube-schedulerの10259
+  egressDeny:
+    - toEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "1"
+              endPort: 2381
+            - port: "2383"
+              endPort: 6442
+            - port: "6444"
+              endPort: 9099
+            - port: "9101"
+              endPort: 10249
+            - port: "10251"
+              endPort: 10256
+            - port: "10258"
+            - port: "10260"
               endPort: 65535
