@@ -59,16 +59,15 @@ jobs:
       # NOTE: S3 backendの認証情報は、CLOUDFLARE_API_TOKENのトークンから作る
       #       認証情報をマスクしてstepのoutputに書きクラスタのrootのapplyのstepにだけ渡す
       - id: r2-credentials
-        run: go -C terraform/scripts run ./cmd/r2-credentials
-        env:
-          CLOUDFLARE_ACCOUNT_ID: 086a84b440e09bc83330fe07f1966f5d
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        uses: cffnpwr/actions/.github/actions/r2-credentials@41c85e705ed527974540a1bb0f9d57d7f7cc5281 # main
+        with:
+          account-id: 086a84b440e09bc83330fe07f1966f5d
+          api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Apply terraform
-        run: |
-          terraform -chdir=terraform init -input=false
-          tfcmt -var target:terraform apply -- terraform -chdir=terraform apply -input=false -auto-approve
+        uses: cffnpwr/actions/.github/actions/terraform-apply@41c85e705ed527974540a1bb0f9d57d7f7cc5281 # main
+        with:
+          root: terraform
         env:
-          GITHUB_TOKEN: ${{ github.token }}
           AWS_ACCESS_KEY_ID: ${{ steps.r2-credentials.outputs.aws-access-key-id }}
           AWS_SECRET_ACCESS_KEY: ${{ steps.r2-credentials.outputs.aws-secret-access-key }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -83,11 +82,10 @@ jobs:
       #       2つのrootは独立しているため、クラスタのrootの成否に関係なく実行
       - name: Apply terraform/netbird
         if: ${{ !cancelled() && steps.app-token.outcome == 'success' }}
-        run: |
-          terraform -chdir=terraform/netbird init -input=false
-          tfcmt -var target:terraform/netbird apply -- terraform -chdir=terraform/netbird apply -input=false -auto-approve
+        uses: cffnpwr/actions/.github/actions/terraform-apply@41c85e705ed527974540a1bb0f9d57d7f7cc5281 # main
+        with:
+          root: terraform/netbird
         env:
-          GITHUB_TOKEN: ${{ github.token }}
           AWS_ACCESS_KEY_ID: ${{ secrets.NETBIRD_AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.NETBIRD_AWS_SECRET_ACCESS_KEY }}
           NB_PAT: ${{ secrets.NB_PAT }}

@@ -44,7 +44,7 @@ dir = "{{config_root}}"
 # NOTE: go runは実行したプログラムの終了ステータスを返さずterraformが0以外で終了すると1で終了する
 #       --の後の引数をterraformに渡す
 run = """
-go run github.com/cffnpwr/actions/modules/terraform-r2-backend/cmd/terraform-bootstrap@158a0a70ddf41188fc75468c4b4e8df470b3a98e \
+go run github.com/cffnpwr/actions/modules/terraform-r2-backend/cmd/terraform-bootstrap@41c85e705ed527974540a1bb0f9d57d7f7cc5281 \
   --cloudflare-account-id 086a84b440e09bc83330fe07f1966f5d \
   --root terraform/bootstrap \
   --sse-customer-key-file terraform/bootstrap/sse-customer-key.age \
@@ -55,7 +55,7 @@ description = "bootstrapのstateのSSE-Cの鍵を生成しageで暗号化してt
 dir = "{{config_root}}"
 # NOTE: Sealed Secretsの鍵の退避Jobと同じ宛先に暗号化
 run = """
-go run github.com/cffnpwr/actions/modules/terraform-r2-backend/cmd/generate-sse-customer-key@158a0a70ddf41188fc75468c4b4e8df470b3a98e \
+go run github.com/cffnpwr/actions/modules/terraform-r2-backend/cmd/generate-sse-customer-key@41c85e705ed527974540a1bb0f9d57d7f7cc5281 \
   --output terraform/bootstrap/sse-customer-key.age \
   --recipients-file kubernetes/apps/sealed-secrets-backup/recipients.yaml \
   --recipients-key recipients.txt"""
@@ -68,12 +68,12 @@ run = "terraform"
 [tasks."github:create-app:reseal"]
 description = "SealedSecretの再暗号化のGitHub Appをmanifest flowで作成しClient IDと秘密鍵をenvironmentに登録する"
 dir = "{{config_root}}"
-run = "go run github.com/cffnpwr/actions/modules/github-app/cmd/create-github-app@158a0a70ddf41188fc75468c4b4e8df470b3a98e --config .github/apps/reseal.yaml --repo cffnpwr/home-iac"
+run = "go run github.com/cffnpwr/actions/modules/github-app/cmd/create-github-app@41c85e705ed527974540a1bb0f9d57d7f7cc5281 --config .github/apps/reseal.yaml --repo cffnpwr/home-iac"
 
 [tasks."github:create-app:backup"]
 description = "鍵の退避JobのGitHub Appをmanifest flowで作成しClient IDと秘密鍵をSealedSecretに封入する"
 dir = "{{config_root}}"
-env = { CREATE_GITHUB_APP = "github.com/cffnpwr/actions/modules/github-app/cmd/create-github-app@158a0a70ddf41188fc75468c4b4e8df470b3a98e" }
+env = { CREATE_GITHUB_APP = "github.com/cffnpwr/actions/modules/github-app/cmd/create-github-app@41c85e705ed527974540a1bb0f9d57d7f7cc5281" }
 run = "sh kubernetes/scripts/create-backup-github-app.sh"
 
 [tasks."sealed-secrets:seal-terraform-outputs"]
@@ -94,7 +94,6 @@ depends = [
   "lint:helm",
   "lint:shell",
   "lint:markdown",
-  "lint:go:terraform",
   "lint:go:vultr",
   "lint:go:kea-ha-peers",
   "lint:go:gopls",
@@ -141,11 +140,6 @@ description = "Markdownを検査する"
 run = "rumdl check ."
 
 # NOTE: golangci-lintは既定で起動時にファイルロックを取得し、5秒以内に取得できないと失敗するため、並列実行を許可
-[tasks."lint:go:terraform"]
-description = "terraform/scriptsのGoを検査する"
-dir = "{{config_root}}/terraform/scripts"
-run = "golangci-lint run --allow-parallel-runners"
-
 [tasks."lint:go:vultr"]
 description = "terraform/modules/vultr/scriptsのGoを検査する"
 dir = "{{config_root}}/terraform/modules/vultr/scripts"
