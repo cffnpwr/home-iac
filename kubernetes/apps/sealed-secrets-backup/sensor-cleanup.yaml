@@ -49,7 +49,7 @@ spec:
                     restartPolicy: Never
                     containers:
                       - name: cleanup
-                        image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:50459f8921b46468799c43e62e489f31da8ffc3da023d4a677b0618432b6aadd
+                        image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:091974457e16cd468761100185aab0378a0a677ff0554d123b818e71792b1fcc
                         command: [/bin/sh, /opt/sealed-secrets-key-cleanup/cleanup.sh]
                         env:
                           # NOTE: Sensorのparametersが、イベントが示すSealedSecret名で値を置換
