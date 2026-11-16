@@ -187,3 +187,31 @@ resource "github_actions_environment_variable" "terraform_ci_sealed_secrets_cert
   variable_name = "SEALED_SECRETS_CERT"
   value         = tls_self_signed_cert.sealed_secrets.cert_pem
 }
+
+resource "github_actions_environment_variable" "terraform_plan_app_client_id" {
+  repository    = "home-iac"
+  environment   = github_repository_environment.terraform_plan.environment
+  variable_name = "PLAN_APP_CLIENT_ID"
+  value         = var.plan_app_client_id
+}
+
+resource "github_actions_environment_secret" "terraform_plan_app_private_key" {
+  repository  = "home-iac"
+  environment = github_repository_environment.terraform_plan.environment
+  secret_name = "PLAN_APP_PRIVATE_KEY"
+  value       = var.plan_app_private_key
+}
+
+resource "github_actions_environment_variable" "terraform_apply_app_client_id" {
+  repository    = "home-iac"
+  environment   = github_repository_environment.terraform_apply.environment
+  variable_name = "APPLY_APP_CLIENT_ID"
+  value         = var.apply_app_client_id
+}
+
+resource "github_actions_environment_secret" "terraform_apply_app_private_key" {
+  repository  = "home-iac"
+  environment = github_repository_environment.terraform_apply.environment
+  secret_name = "APPLY_APP_PRIVATE_KEY"
+  value       = var.apply_app_private_key
+}

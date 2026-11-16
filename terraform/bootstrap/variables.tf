@@ -29,3 +29,26 @@ variable "google_workspace_access_client_secret" {
   type        = string
   sensitive   = true
 }
+
+# NOTE: GitHub AppのClient IDと秘密鍵はTerraformで作れないため、変数で受け取る
+variable "plan_app_client_id" {
+  description = "CIのplanがGitHub providerのトークンの発行に使うGitHub AppのClient ID"
+  type        = string
+}
+
+variable "plan_app_private_key" {
+  description = "CIのplanがGitHub providerのトークンの発行に使うGitHub Appの秘密鍵"
+  type        = string
+  sensitive   = true
+}
+
+variable "apply_app_client_id" {
+  description = "CIのapplyがGitHub providerのトークンの発行に使うGitHub AppのClient ID"
+  type        = string
+}
+
+variable "apply_app_private_key" {
+  description = "CIのapplyがGitHub providerのトークンの発行に使うGitHub Appの秘密鍵"
+  type        = string
+  sensitive   = true
+}

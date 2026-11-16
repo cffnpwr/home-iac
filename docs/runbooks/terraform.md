@@ -45,6 +45,10 @@ CIのjobはこのBucketを読めるがSSE-Cの鍵を渡さないため、bootstr
 | `TF_VAR_netbird_pat_read_only` | `terraform-plan`の`NB_PAT`に登録する、読み取り専用のサービスユーザーのPAT |
 | `TF_VAR_netbird_pat_read_write` | `terraform-apply`の`NB_PAT`に登録する、管理者のサービスユーザーのPAT |
 | `TF_VAR_google_workspace_access_client_secret` | AccessがGoogle Workspaceにログインするときに使う、OAuthクライアントのシークレット |
+| `TF_VAR_plan_app_client_id` | `terraform-plan`の`PLAN_APP_CLIENT_ID`に登録する、plan用のGitHub AppのClient ID |
+| `TF_VAR_plan_app_private_key` | `terraform-plan`の`PLAN_APP_PRIVATE_KEY`に登録する、plan用のGitHub Appの秘密鍵 |
+| `TF_VAR_apply_app_client_id` | `terraform-apply`の`APPLY_APP_CLIENT_ID`に登録する、apply用のGitHub AppのClient ID |
+| `TF_VAR_apply_app_private_key` | `terraform-apply`の`APPLY_APP_PRIVATE_KEY`に登録する、apply用のGitHub Appの秘密鍵 |
 
 GitHub providerは`GITHUB_TOKEN`環境変数のトークンを使い未設定なら`gh auth token`のトークンを使う。
 
