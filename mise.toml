@@ -27,7 +27,7 @@ golangci-lint = "2.15.0"
 "go:golang.org/x/tools/gopls" = "0.24.0"
 python = "3.14.8"
 k9s = "0.51.0"
-kyverno = "1.19.2"
+kyverno = "1.20.0"
 
 [tasks.fmt]
 description = "Terraform・YAML・Markdown・Goを整形する"
