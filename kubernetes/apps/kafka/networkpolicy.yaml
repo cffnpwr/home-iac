@@ -1,0 +1,22 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kafka-brokers
+  namespace: kafka
+spec:
+  # NOTE: kafka-kafka-bootstrapのServiceと同じく、brokerの役割を持つKafkaのノードを選択
+  endpointSelector:
+    matchLabels:
+      strimzi.io/cluster: kafka
+      strimzi.io/broker-role: "true"
+  ingress:
+    # NOTE: Kafkaを使うアプリがplainのlistenerでブローカーに接続するため、アプリのnamespaceからの接続を許可
+    #       対象はMimir（mimirのnamespace）のdistributor（書き込み）・ingester（読み出し）・query-frontend（offsetの取得）
+    #       Kafkaを使うアプリ（Tempo等）を追加するときは、そのnamespaceをfromEndpointsに追加する
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: mimir
+      toPorts:
+        - ports:
+            - port: "9092"
+              protocol: TCP

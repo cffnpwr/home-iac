@@ -1,0 +1,94 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: dual-role
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: kafka
+spec:
+  replicas: 3
+  roles:
+    - controller
+    - broker
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        class: ceph-block
+        # TODO: 実測後に見直す
+        size: 10Gi
+        kraftMetadata: shared
+  resources:
+    # TODO: 実測後に見直す
+    requests:
+      cpu: 200m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
+  template:
+    pod:
+      # NOTE: 1つのノードの停止で複数のブローカーが止まらないようにブローカーを別々のノードに配置
+      #       ref: https://github.com/strimzi/strimzi-kafka-operator/blob/1.3.1/documentation/modules/configuring/proc-scheduling-brokers-on-different-worker-nodes.adoc
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  strimzi.io/cluster: kafka
+                  strimzi.io/pool-name: dual-role
+              topologyKey: kubernetes.io/hostname
+---
+apiVersion: kafka.strimzi.io/v1
+kind: Kafka
+metadata:
+  name: kafka
+  namespace: kafka
+spec:
+  kafka:
+    version: 4.3.2
+    # NOTE: metadataVersionは、Kafkaのバージョンの更新が完了した後に更新する
+    #       ref: https://github.com/strimzi/strimzi-kafka-operator/blob/1.3.1/documentation/modules/upgrading/proc-upgrade-kafka-kraft.adoc
+    metadataVersion: 4.3-IV0
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+    config:
+      # NOTE: 3台のうち1台が停止しても書き込めるよう、レプリケーション係数を3、min.insync.replicasを2にする
+      #       ref: https://github.com/strimzi/strimzi-kafka-operator/blob/1.3.1/documentation/modules/managing/con-broker-config-properties.adoc
+      #       ref: https://github.com/strimzi/strimzi-kafka-operator/blob/1.3.1/documentation/modules/configuring/con-config-kafka-broker-configuration.adoc
+      offsets.topic.replication.factor: 3
+      transaction.state.log.replication.factor: 3
+      transaction.state.log.min.isr: 2
+      default.replication.factor: 3
+      min.insync.replicas: 2
+      # NOTE: MimirとTempoは最大16000000バイトのレコードのバッチを書き込むため、ブローカーが受け付けるバッチの最大のサイズを合わせる
+      #       ref: https://github.com/grafana/mimir/blob/mimir-3.2.3/docs/sources/mimir/configure/configure-kafka-backend.md#apache-kafka
+      #       ref: https://github.com/grafana/tempo/blob/v3.1.1/pkg/ingest/config.go#L69-L70
+      message.max.bytes: 16000000
+      # NOTE: フォロワーが複製のために取得するサイズをmessage.max.bytesに合わせる
+      #       ref: https://github.com/strimzi/strimzi-kafka-operator/blob/1.3.1/documentation/modules/configuring/con-config-large-messages.adoc
+      replica.fetch.max.bytes: 16000000
+      # NOTE: トピックの作成をKafkaTopicに限定するためクライアントの要求によるトピックの自動作成を無効化
+      #       ref: https://github.com/strimzi/strimzi-kafka-operator/blob/1.3.1/documentation/modules/managing/con-broker-config-properties.adoc
+      #       ref: https://github.com/grafana/tempo/blob/v3.1.1/pkg/ingest/config.go#L255-L291
+      auto.create.topics.enable: false
+    template:
+      podDisruptionBudget:
+        maxUnavailable: 1
+  entityOperator:
+    # NOTE: KafkaTopicを同期するTopic Operatorのみを有効化
+    #       ref: https://github.com/strimzi/strimzi-kafka-operator/blob/1.3.1/documentation/modules/configuring/ref-kafka-entity-operator.adoc
+    topicOperator:
+      resources:
+        # TODO: 実測後に見直す
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 512Mi
+    template:
+      podDisruptionBudget:
+        maxUnavailable: 1

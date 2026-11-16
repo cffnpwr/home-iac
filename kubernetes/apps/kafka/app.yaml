@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+namespace: kafka
+syncOptions:
+  - CreateNamespace=true
+# NOTE: Kafka・KafkaNodePool・KafkaTopicのCRDを作るstrimziのApplicationの同期完了までの再試行
+retry:
+  limit: 10
+  backoff:
+    duration: 30s
+    factor: 2
+    maxDuration: 10m
