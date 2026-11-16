@@ -44,6 +44,16 @@
       "matchStrings": ["\\stalos_version\\s*=\\s*\"(?<currentValue>v[^\"]+)\""],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "siderolabs/talos"
+    },
+    {
+      // NOTE: miseのタスクがgo runで実行する、cffnpwr/actionsのGoのプログラムのmainのコミット
+      "customType": "regex",
+      "managerFilePatterns": ["/^mise\\.toml$/"],
+      "matchStrings": ["github\\.com/cffnpwr/actions/[^@\\s]+@(?<currentDigest>[0-9a-f]{40})"],
+      "currentValueTemplate": "main",
+      "datasourceTemplate": "git-refs",
+      "packageNameTemplate": "https://github.com/cffnpwr/actions",
+      "depNameTemplate": "cffnpwr/actions"
     }
   ],
   "packageRules": [
