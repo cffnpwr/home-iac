@@ -83,6 +83,15 @@ output "sealed_secrets" {
         cloudflare-tunnel-name = cloudflare_zero_trust_tunnel_cloudflared.home.name
       }
     }
+    "kubernetes/apps/mimir/mimir-r2.yaml" = {
+      namespace = "mimir"
+      name      = "mimir-r2"
+      data = {
+        access-key-id = cloudflare_account_token.mimir.id
+        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
+        secret-access-key = sha256(cloudflare_account_token.mimir.value)
+      }
+    }
   }
   sensitive = true
 }
