@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+# NOTE: monitoringのnamespaceは、alloyのApplicationも同期する
+namespace: monitoring
+chart:
+  repoURL: https://prometheus-community.github.io/helm-charts
+  name: kube-prometheus-stack
+  version: 93.3.0
+syncOptions:
+  - CreateNamespace=true
+manifests: true
+# NOTE: ServiceMonitor・PrometheusRuleは、同じApplicationで作るPrometheus OperatorのCRDの登録が完了する前に作成すると失敗するため再試行
+retry:
+  limit: 10
+  backoff:
+    duration: 30s
+    factor: 2
+    maxDuration: 10m

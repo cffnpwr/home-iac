@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: node-exporter
+  labels:
+    # NOTE: Node Exporterがノードのメトリクスの収集に使うhostNetwork・hostPID・hostPathを許可
+    pod-security.kubernetes.io/enforce: privileged
