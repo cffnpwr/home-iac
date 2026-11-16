@@ -92,6 +92,31 @@ output "sealed_secrets" {
         secret-access-key = sha256(cloudflare_account_token.mimir.value)
       }
     }
+    "kubernetes/apps/grafana/grafana-oidc.yaml" = {
+      namespace = "grafana"
+      name      = "grafana-oidc"
+      data = {
+        issuer        = "https://${data.cloudflare_zero_trust_organization.this.auth_domain}/cdn-cgi/access/sso/oidc/${cloudflare_zero_trust_access_application.grafana.saas_app.client_id}"
+        client-id     = cloudflare_zero_trust_access_application.grafana.saas_app.client_id
+        client-secret = cloudflare_zero_trust_access_application.grafana.saas_app.client_secret
+      }
+    }
+    "kubernetes/apps/grafana/grafana-r2.yaml" = {
+      namespace = "grafana"
+      name      = "grafana-r2"
+      data = {
+        db-access-key-id = cloudflare_account_token.grafana_db.id
+        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
+        db-secret-access-key = sha256(cloudflare_account_token.grafana_db.value)
+      }
+    }
+    "kubernetes/apps/grafana/grafana-smtp.yaml" = {
+      namespace = "grafana"
+      name      = "grafana-smtp"
+      data = {
+        smtp-password = cloudflare_account_token.grafana_smtp.value
+      }
+    }
   }
   sensitive = true
 }

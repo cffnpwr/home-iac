@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+namespace: grafana
+chart:
+  repoURL: ghcr.io/grafana-community/helm-charts
+  name: grafana
+  version: 14.4.1
+manifests: true
+ignoreDifferences:
+  # NOTE: Secretの変更時にReloaderがPodのテンプレートへ追加するアノテーション
+  - group: apps
+    kind: Deployment
+    name: grafana
+    jsonPointers:
+      - /spec/template/metadata/annotations/reloader.stakater.com~1last-reloaded-from
+# NOTE: dashboardsのsidecarのRoleを置くmonitoringのnamespaceを作る、kube-prometheus-stack・alloyのApplicationの同期完了までの再試行
+retry:
+  limit: 10
+  backoff:
+    duration: 30s
+    factor: 2
+    maxDuration: 10m
