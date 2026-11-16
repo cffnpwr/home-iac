@@ -25,7 +25,7 @@ spec:
         # NOTE: sidecarがKeaの起動前に設定を書き出してPeerの増減時に更新
         - name: kea-ha-peers
           restartPolicy: Always
-          image: ghcr.io/cffnpwr/home-iac/kea-ha-peers:main@sha256:6de4d3f85cae94128ee75e886beeb73b985a1ad4f727957e1f40636c92bddc19
+          image: ghcr.io/cffnpwr/home-iac/kea-ha-peers:main@sha256:7d064e11e3fe5c01445f0df4e33ecc501985c796123a0ee83cafb07da0c0ac79
           args:
             - -node-name=$(NODE_NAME)
             - -label-selector=topology.kubernetes.io/zone=home
