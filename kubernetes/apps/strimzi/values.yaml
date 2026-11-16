@@ -1,0 +1,36 @@
+# NOTE: leader electionで1つのレプリカだけが調整を行なうため、可用性のために2つにする
+replicas: 2
+# NOTE: レプリカが同時に調整を行なわないよう、chartの既定値と同じ値を明示
+leaderElection:
+  enable: true
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        name: strimzi-cluster-operator
+        strimzi.io/kind: cluster-operator
+    matchLabelKeys:
+      - pod-template-hash
+    nodeTaintsPolicy: Honor
+podDisruptionBudget:
+  enabled: true
+  # NOTE: chartの既定値のminAvailableはmaxUnavailableと同時に設定できないため削除
+  minAvailable: null
+  maxUnavailable: 1
+resources:
+  # TODO: chartの既定値。実測後に見直す
+  requests:
+    cpu: 200m
+    memory: 384Mi
+  limits:
+    # NOTE: limitsにはmemoryだけを設定するため、chartの既定値のcpuを削除
+    cpu: null
+    memory: 384Mi
+# NOTE: Strimziが生成するNetworkPolicyは、Kafkaのlistenerへの接続をすべてのnamespaceに許可する
+#       Ciliumは許可したルールの和集合で通信を許可するため、kafkaのnetworkpolicy.yamlで接続元を限定できるよう生成を無効化
+#       operator・Entity Operator・ブローカーの間の通信は、同じnamespaceからの接続の許可（network-policy-generator）で許可される
+#       ref: https://github.com/strimzi/strimzi-kafka-operator/blob/1.3.1/documentation/modules/security/proc-restricting-access-to-listeners-using-network-policies.adoc
+#       ref: https://github.com/cilium/cilium/blob/v1.20.4/Documentation/security/policy/intro.rst#rule-basics
+generateNetworkPolicy: false
