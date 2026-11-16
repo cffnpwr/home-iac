@@ -1,0 +1,130 @@
+alloy:
+  # NOTE: Grafana Labsへの匿名の利用統計の送信を無効化
+  #       ref: https://grafana.com/docs/alloy/latest/data-collection/
+  enableReporting: false
+  configMap:
+    content: |-
+      prometheus.remote_write "mimir" {
+        endpoint {
+          url = "http://mimir-distributor.mimir.svc.cluster.local:8080/api/v1/push"
+        }
+      }
+
+      prometheus.operator.servicemonitors "default" {
+        forward_to = [prometheus.remote_write.mimir.receiver]
+
+        // NOTE: v1のEndpointsのAPIはKubernetes 1.33で非推奨のため、EndpointSliceから収集対象を探す
+        kubernetes_role = "endpointslice"
+
+        // NOTE: 収集対象をAlloyのPodで分担するため、clusteringに参加
+        clustering {
+          enabled = true
+        }
+
+        // NOTE: kube-prometheus-stackのPrometheusと同じ間隔で収集するため、Prometheus Operatorの既定のscrape間隔に設定
+        scrape {
+          default_scrape_interval = "30s"
+        }
+
+        // NOTE: kubelet・kube-apiserver・kube-scheduler・kube-controller-manager・etcdの前に置くkube-rbac-proxyは、
+        //       Service Accountのトークンで認証と認可を行なうため、AlloyのService Accountのトークンを付与
+        scrape_class {
+          name = "service-account-token"
+
+          authorization {
+            type             = "Bearer"
+            credentials_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+          }
+        }
+      }
+
+      prometheus.operator.podmonitors "default" {
+        forward_to = [prometheus.remote_write.mimir.receiver]
+
+        // NOTE: 収集対象をAlloyのPodで分担するため、clusteringに参加
+        clustering {
+          enabled = true
+        }
+
+        // NOTE: kube-prometheus-stackのPrometheusと同じ間隔で収集するため、Prometheus Operatorの既定のscrape間隔に設定
+        scrape {
+          default_scrape_interval = "30s"
+        }
+      }
+
+      mimir.rules.kubernetes "default" {
+        address = "http://mimir-ruler.mimir.svc.cluster.local:8080"
+      }
+  # NOTE: 収集対象をAlloyのPodで分担するため、clusteringを有効化
+  clustering:
+    enabled: true
+  resources:
+    # TODO: 実測後に見直す
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+
+configReloader:
+  resources:
+    # TODO: 実測後に見直す
+    requests:
+      cpu: 10m
+      memory: 50Mi
+    limits:
+      memory: 128Mi
+
+controller:
+  # NOTE: clusteringのPodが互いを見つけるため、Podに固定のネットワークidentityを与えるStatefulSetで動かす
+  #       ref: https://grafana.com/docs/alloy/latest/configure/clustering/configure-alloy/
+  type: statefulset
+  replicas: 2
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 1
+  # NOTE: nodeTaintsPolicy: Honorで、Podが許容しないtaintを持つノード（drain中にcordonされたノード等）をskewの計算から除外
+  #       StatefulSetのPodはDeploymentが付けるpod-template-hashのラベルを持たないため、matchLabelKeysを指定しない
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: alloy
+          app.kubernetes.io/instance: alloy
+      nodeTaintsPolicy: Honor
+
+# NOTE: chartの既定値は使わないコンポーネントの権限（すべてのnamespaceのSecretの読み取り等）を含むため、使うコンポーネントの権限だけにする
+rbac:
+  rules:
+    # NOTE: prometheus.operator.servicemonitors・podmonitorsがServiceMonitor・PodMonitorを、mimir.rules.kubernetesがPrometheusRuleを読む
+    - apiGroups: ["monitoring.coreos.com"]
+      resources: ["servicemonitors", "podmonitors", "prometheusrules"]
+      verbs: ["get", "list", "watch"]
+    # NOTE: ServiceMonitorの収集対象を、EndpointSlice・Service・Podから探す
+    - apiGroups: ["discovery.k8s.io"]
+      resources: ["endpointslices"]
+      verbs: ["get", "list", "watch"]
+    # NOTE: PodMonitorの収集対象と、ServiceMonitorの収集対象のPod・Serviceのラベルを読む
+    - apiGroups: [""]
+      resources: ["services", "pods"]
+      verbs: ["get", "list", "watch"]
+    # NOTE: kubelet・kube-apiserver・kube-scheduler・kube-controller-managerのServiceMonitorのtlsConfigが参照するkube-root-ca.crtを読む
+    - apiGroups: [""]
+      resources: ["configmaps"]
+      verbs: ["get"]
+  clusterRules:
+    # NOTE: mimir.rules.kubernetesがPrometheusRuleのnamespaceを読む
+    - apiGroups: [""]
+      resources: ["namespaces"]
+      verbs: ["get", "list", "watch"]
+    # NOTE: kubeletの/metrics・/metrics/cadvisorはnodes/metricsのgetで認可される
+    - apiGroups: [""]
+      resources: ["nodes/metrics"]
+      verbs: ["get"]
+    # NOTE: kube-apiserver・kube-scheduler・kube-controller-managerと、etcdの前に置くkube-rbac-proxyの/metricsは、
+    #       nonResourceURLの/metricsへのgetで認可される
+    #       ref: https://kubernetes.io/docs/concepts/cluster-administration/system-metrics/
+    - nonResourceURLs: ["/metrics"]
+      verbs: ["get"]

@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=../../schemas/app.schema.json
+# NOTE: monitoringのnamespaceは、kube-prometheus-stackのApplicationも同期する
+#       ServiceMonitor・PodMonitor・PrometheusRuleのCRDは、kube-prometheus-stackのApplicationが作成
+namespace: monitoring
+chart:
+  repoURL: https://grafana.github.io/helm-charts
+  name: alloy
+  version: 1.16.0
+syncOptions:
+  - CreateNamespace=true
