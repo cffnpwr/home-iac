@@ -17,6 +17,23 @@ cephClusterSpec:
     useAllDevices: false
     # NOTE: TalosのRawVolumeConfig（ceph_osd）が作るパーティションだけをOSDに使う
     devicePathFilter: ^/dev/disk/by-partlabel/r-osd$
+  # NOTE: OSD・monのメモリrequestsをchartの既定値から使用量を基に減らす
+  #       CephはOSDのosd_memory_targetをrequestsとlimits×0.8の小さい方にするため、
+  #       OSDのメモリのrequestsはCephが推奨するosd_memory_targetの下限（2GB）に合わせる
+  #       limitsはchartの既定値
+  resources:
+    osd:
+      limits:
+        memory: "4Gi"
+      requests:
+        cpu: "250m"
+        memory: "2Gi"
+    mon:
+      limits:
+        memory: "2Gi"
+      requests:
+        cpu: "100m"
+        memory: "512Mi"
   # NOTE: CSIのcephxの鍵は、Linux 7.0より前のカーネルのクライアントのためにAESを使う（chartの既定値）。
   #       ノードのカーネルは7.0より前のため、AES256Kへの移行を求める警告を止める
   healthCheck:
