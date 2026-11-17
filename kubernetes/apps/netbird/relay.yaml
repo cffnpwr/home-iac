@@ -53,7 +53,7 @@ spec:
         topology.kubernetes.io/zone: vultr
       containers:
         - name: relay
-          image: netbirdio/relay:0.83.0@sha256:e42eb6426c4115b2f51c33e613e30f76308c00ce4c81c5d727af57b73295e62e
+          image: netbirdio/relay:0.83.1@sha256:7b52c1077c964ea01535c311a5e57d7c1c9b7ff4c974ff42995772e4c3546d1a
           env:
             - name: NB_LISTEN_ADDRESS
               value: :80
