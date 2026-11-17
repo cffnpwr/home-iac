@@ -3,7 +3,7 @@ lockfile = true
 lockfile_platforms = ["macos-arm64", "linux-x64", "linux-arm64"]
 
 [tools]
-uv = "0.13.7"
+uv = "0.13.8"
 terraform = "1.17.2"
 tflint = "0.66.0"
 "aqua:suzuki-shunsuke/tfcmt" = "4.14.20"
