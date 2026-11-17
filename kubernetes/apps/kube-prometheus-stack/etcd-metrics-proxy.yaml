@@ -41,6 +41,9 @@ spec:
       # NOTE: etcdが動くcontrol planeにだけ配置
       nodeSelector:
         node-role.kubernetes.io/control-plane: ""
+      # NOTE: control planeのメモリのrequestsに空きが無い場合も配置するため、優先度が0のPodをプリエンプションの対象にできる優先度を設定
+      #       同じ優先度のCephのmgr・MDSとcontrol planeのコンポーネントはプリエンプションの対象にならない
+      priorityClassName: system-cluster-critical
       # NOTE: etcdのmetricsは127.0.0.1だけで待ち受けるため、ノードのnetwork namespaceで動かす
       hostNetwork: true
       securityContext:
