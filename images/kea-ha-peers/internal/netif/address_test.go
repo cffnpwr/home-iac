@@ -25,7 +25,7 @@ func TestSelectSubnetAddress(t *testing.T) {
 			want: netip.MustParseAddr("192.168.1.129"),
 		},
 		{
-			name:      "[negative] サブネットに含まれるアドレスが無いときErrNoAddressInSubnetになる",
+			name:      "[negative] サブネットに含まれるアドレスがないときErrNoAddressInSubnetになる",
 			addresses: []netip.Addr{netip.MustParseAddr("192.168.2.1")},
 			wantErr:   ErrNoAddressInSubnet,
 		},

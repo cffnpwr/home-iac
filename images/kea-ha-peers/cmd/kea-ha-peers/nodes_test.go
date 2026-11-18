@@ -23,7 +23,7 @@ func TestFindSelf(t *testing.T) {
 		wantErr  error
 	}{
 		{
-			name:     "[positive] 自ノードのLANのアドレスとCiliumInternalIPを返す",
+			name:     "[positive] 自ノードのLANアドレスとCiliumInternalIPを返す",
 			nodeName: "cpwr-rpi4",
 			nodes: []cluster.Node{
 				{
@@ -46,7 +46,7 @@ func TestFindSelf(t *testing.T) {
 			},
 		},
 		{
-			name:     "[negative] 自ノードのCiliumNodeが無いときerrSelfNotFoundになる",
+			name:     "[negative] 自ノードのCiliumNodeがないときerrSelfNotFoundになる",
 			nodeName: "cpwr-rpi4",
 			nodes: []cluster.Node{
 				{
@@ -58,7 +58,7 @@ func TestFindSelf(t *testing.T) {
 			wantErr: errSelfNotFound,
 		},
 		{
-			name:     "[negative] CiliumInternalIPが無いときerrNoCiliumInternalIPになる",
+			name:     "[negative] CiliumInternalIPがないときerrNoCiliumInternalIPになる",
 			nodeName: "cpwr-rpi4",
 			nodes: []cluster.Node{
 				{
@@ -69,7 +69,7 @@ func TestFindSelf(t *testing.T) {
 			wantErr: errNoCiliumInternalIP,
 		},
 		{
-			name:     "[negative] サブネットに含まれるInternalIPが無いときerrNoLANAddressInSelfNodeになる",
+			name:     "[negative] サブネットに含まれるInternalIPがないときerrNoLANAddressInSelfNodeになる",
 			nodeName: "cpwr-rpi4",
 			nodes: []cluster.Node{
 				{

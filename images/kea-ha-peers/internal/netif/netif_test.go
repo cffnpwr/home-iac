@@ -31,7 +31,7 @@ func TestFindInterfaceName(t *testing.T) {
 			want:    "end0",
 		},
 		{
-			name:    "[negative] アドレスを持つインターフェイスが無いときErrInterfaceNotFoundになる",
+			name:    "[negative] アドレスを持つインターフェイスがないときErrInterfaceNotFoundになる",
 			address: netip.MustParseAddr("192.168.0.131"),
 			wantErr: ErrInterfaceNotFound,
 		},
