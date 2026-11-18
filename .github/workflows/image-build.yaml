@@ -74,7 +74,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: cffnpwr/actions/.github/workflows/docker-build.yaml@a826b45dc00531b0bbeb70dc624015f32040bc34 # main
+    uses: cffnpwr/actions/.github/workflows/docker-build.yaml@88085acca51e69d57d9be1117c49a5ade952d72a # main
     with:
       image: ghcr.io/cffnpwr/home-iac/${{ matrix.name }}
       context: images/${{ matrix.name }}
