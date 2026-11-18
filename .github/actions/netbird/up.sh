@@ -3,7 +3,7 @@ set -euo pipefail
 
 management_url=https://nb.cffnpwr.dev:443
 
-# NOTE: setup keyが空だと、`netbird up`はSSOのログインを待ち続けてjobのtimeoutまで終わらないためエラーにする
+# NOTE: setup keyが空だと`netbird up`がSSOログインを待ち続け、jobのtimeoutまで終了しないためエラーにする
 if [[ -z $SETUP_KEY ]]; then
   echo "::error::The setup key is empty."
   exit 1
@@ -12,7 +12,7 @@ fi
 netbird=$(mise which netbird)
 sudo "$netbird" service install
 sudo "$netbird" service start
-# NOTE: postがピアを削除するためのnetbirdのパス
+# NOTE: postでピアを削除するために使うnetbirdのパス
 echo "netbird=$netbird" >> "$GITHUB_STATE"
 
 # NOTE: コマンドラインの引数に平文を含めないため、setup keyをファイルで渡す

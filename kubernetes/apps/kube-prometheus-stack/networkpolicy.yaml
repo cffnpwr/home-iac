@@ -9,9 +9,9 @@ spec:
       app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
       app.kubernetes.io/component: prometheus-operator
   ingress:
-    # NOTE: kube-apiserverがPrometheusRule・AlertmanagerConfigの変更・検証のwebhookを呼ぶため接続を許可
+    # NOTE: kube-apiserverがPrometheusRule・AlertmanagerConfigの変換・検証webhookを呼ぶため接続を許可
     - fromEntities:
-        # NOTE: 別のノードのkube-apiserverからの通信のidentityはremote-nodeとなる
+        # NOTE: 別ノードのkube-apiserverからの通信はidentityがremote-nodeとなる
         - remote-node
       toPorts:
         - ports:

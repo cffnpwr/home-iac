@@ -21,7 +21,7 @@ metadata:
     # NOTE: Pocket IDは設定・認証情報を起動したときにしか読まないため、Secretが変わったときにPodを作り直す
     secret.reloader.stakater.com/reload: pocket-id-cloudflare,pocket-id-keys,pocket-id-postgres-app
 spec:
-  # NOTE: Pocket IDは複数のレプリカに対応していないためreplicasは1に固定する
+  # NOTE: Pocket IDは複数レプリカに対応していないためreplicasを1に固定する
   # TODO: v3にアップグレードしたらreplicasを増やす
   replicas: 1
   strategy:
@@ -69,7 +69,7 @@ spec:
               value: "465"
             - name: SMTP_TLS
               value: tls
-            # NOTE: Email ServiceのSMTPのユーザー名は`api_token`固定
+            # NOTE: Email ServiceのSMTPユーザー名は`api_token`固定
             - name: SMTP_USER
               value: api_token
             - name: SMTP_PASSWORD

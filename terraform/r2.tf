@@ -1,7 +1,7 @@
 locals {
   cloudflare_account_id = "086a84b440e09bc83330fe07f1966f5d"
   # NOTE: アカウントトークンには説明を設定できないため、ダッシュボードで人が作成したトークンと名前で区別する
-  #       他のリポジトリが作成したトークンと区別するため、リポジトリ名も付ける
+  #       ほかのリポジトリが作成したトークンと区別するため、リポジトリ名も付ける
   cloudflare_account_token_name_prefix = "[managed by terraform] home-iac/"
 }
 

@@ -29,7 +29,7 @@ spec:
       app.kubernetes.io/name: grafana
       app.kubernetes.io/instance: grafana
   ingress:
-    # NOTE: 2台のGrafanaのAlertmanagerが、通知の重複を防ぐため送信状況をTCPとUDPの9094でgossipするため、Grafana同士の接続を許可
+    # NOTE: 通知の重複を防ぐため、2台のGrafanaのAlertmanagerが送信状況をTCP・UDPの9094番ポートでgossipできるようGrafana間の接続を許可
     #       ref: https://github.com/grafana/grafana/blob/v13.3.1/docs/sources/alerting/set-up/configure-high-availability/_index.md
     - fromEndpoints:
         - matchLabels:

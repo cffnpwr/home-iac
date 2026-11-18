@@ -1,4 +1,4 @@
-{{- /* NOTE: kea-ha-peersが、自宅のノードから検出したピアでKeaの設定を生成 */ -}}
+{{- /* NOTE: kea-ha-peersが自宅ノードから検出したピアでKeaの設定を生成 */ -}}
 {
   "Dhcp4": {
     "interfaces-config": {
@@ -37,7 +37,7 @@
               "max-response-delay": 60000,
               "max-ack-delay": 5000,
               "max-unacked-clients": 10,
-              {{- /* NOTE: 各サーバーは、自ノードのcilium_hostのアドレスであるurlで待ち受け */}}
+              {{- /* NOTE: 各サーバーは自ノードのcilium_hostのアドレスであるurlで待ち受け */}}
               "peers": [
                 {{- range $i, $peer := .Peers }}
                 {{- if $i }},{{ end }}

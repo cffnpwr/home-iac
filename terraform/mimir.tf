@@ -1,5 +1,5 @@
 # NOTE: Mimirのブロックとrulerのルール
-#       古いブロックの削除はMimir compactorが削除する
+#       古いブロックはMimir compactorが削除する
 resource "cloudflare_r2_bucket" "mimir" {
   account_id = local.cloudflare_account_id
   name       = "home-iac-mimir"

@@ -38,7 +38,7 @@ var (
 type Node struct {
 	Name        string
 	InternalIPs []netip.Addr
-	// ノードのcilium_hostのアドレス。無い場合はゼロ値
+	// ノードのcilium_hostのアドレス（ない場合はゼロ値）
 	CiliumInternalIP netip.Addr
 }
 

@@ -18,11 +18,11 @@ metadata:
   name: vaultwarden
   namespace: vaultwarden
   annotations:
-    # NOTE: vaultwardenは設定・鍵・認証情報を起動したときにしか読まないため、Secretの変更時にPodを作り直す
+    # NOTE: vaultwardenは設定・鍵・認証情報を起動したときにしか読まないため、Secretが変わったときにPodを作り直す
     secret.reloader.stakater.com/reload: vaultwarden-r2,vaultwarden-sso,vaultwarden-keys,vaultwarden-postgres-app
 spec:
   replicas: 1
-  # NOTE: vaultwardenは複数のレプリカに対応しない。更新時の停止を避けるため、新しいPodの準備ができてから古いPodを止める
+  # NOTE: vaultwardenは複数レプリカに対応しないため、更新時は新しいPodの準備ができてから古いPodを止める
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -65,13 +65,13 @@ spec:
             #       openidはvaultwardenが追加する
             - name: SSO_SCOPES
               value: email profile offline_access
-            # NOTE: 管理画面の認証は、/adminを保護するAccessのapplicationで行なう
-            #       管理画面で設定を保存すると、読み取り専用のconfig.jsonへの書き込みに失敗するため、設定を保存しない
+            # NOTE: 管理画面の認証は/adminを保護するAccessのapplicationで行なう
+            #       管理画面から設定を保存すると読み取り専用のconfig.jsonへの書き込みに失敗するため、管理画面による設定の保存を無効化
             - name: DISABLE_ADMIN_TOKEN
               value: "true"
             - name: CONFIG_FILE
               value: /etc/vaultwarden/config/config.json
-            # NOTE: vaultwardenは、この値に.pemを付けたファイルを読む
+            # NOTE: vaultwardenはこの値に.pemを付けたファイルを読む
             - name: RSA_KEY_FILENAME
               value: /etc/vaultwarden/rsa-key/rsa_key
             - name: DATA_FOLDER
@@ -85,11 +85,11 @@ spec:
               value: s3://home-iac-vaultwarden-data/sends?endpoint=https%3A%2F%2F086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com&region=auto&default_storage_class=STANDARD
             - name: ICON_CACHE_FOLDER
               value: s3://home-iac-vaultwarden-data/icon_cache?endpoint=https%3A%2F%2F086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com&region=auto&default_storage_class=STANDARD
-            # NOTE: Web Vaultが、添付ファイルの署名付きURLへ接続するためのCSPの許可
-            #       vaultwardenは、バケット名をホスト名に含むvirtual-hosted styleのURLを使う
+            # NOTE: Web Vaultが添付ファイルの署名付きURLへ接続できるようにするためのCSP設定
+            #       vaultwardenはバケット名をホスト名に含むvirtual-hosted styleのURLを使う
             - name: ALLOWED_CONNECT_SRC
               value: https://home-iac-vaultwarden-data.086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com
-            # NOTE: S3バックエンドは、AWS SDKの既定の方法で認証情報を読む
+            # NOTE: S3バックエンドはAWS SDKの既定の方法で認証情報を読む
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -126,7 +126,7 @@ spec:
               mountPath: /etc/vaultwarden/rsa-key
               readOnly: true
       volumes:
-        # NOTE: DBはPostgreSQL、添付ファイル等はR2に置くため、DATA_FOLDERには永続化するデータが無い
+        # NOTE: DBはPostgreSQL、添付ファイル等はR2に置くため、DATA_FOLDERには永続化するデータがない
         - name: data
           emptyDir: {}
         - name: tmp

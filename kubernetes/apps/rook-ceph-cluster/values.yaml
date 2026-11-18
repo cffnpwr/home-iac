@@ -1,6 +1,6 @@
 operatorNamespace: rook-ceph
 cephClusterSpec:
-  # NOTE: Cephのデーモンを、永続化用のノード（terraform/main.tfのlocal.serversでceph_osdを指定したノード）に限定
+  # NOTE: Cephのデーモンを永続化用ノード（terraform/main.tfのlocal.serversでceph_osdを指定したノード）に限定
   placement:
     all:
       nodeAffinity:
@@ -19,7 +19,7 @@ cephClusterSpec:
     devicePathFilter: ^/dev/disk/by-partlabel/r-osd$
   # NOTE: OSD・monのメモリrequestsをchartの既定値から使用量を基に減らす
   #       CephはOSDのosd_memory_targetをrequestsとlimits×0.8の小さい方にするため、
-  #       OSDのメモリのrequestsはCephが推奨するosd_memory_targetの下限（2GB）に合わせる
+  #       OSDのメモリrequestsはCephが推奨するosd_memory_targetの下限（2GB）に合わせる
   #       limitsはchartの既定値
   resources:
     osd:
@@ -34,7 +34,7 @@ cephClusterSpec:
       requests:
         cpu: "100m"
         memory: "512Mi"
-  # NOTE: CSIのcephxの鍵は、Linux 7.0より前のカーネルのクライアントのためにAESを使う（chartの既定値）。
+  # NOTE: CSIのcephx鍵は、Linux 7.0より前のカーネルクライアント向けにAESを使う（chartの既定値）。
   #       ノードのカーネルは7.0より前のため、AES256Kへの移行を求める警告を止める
   healthCheck:
     muteHealthWarning:
@@ -48,7 +48,7 @@ cephClusterSpec:
         policy: mute
 # NOTE: オブジェクトストレージは使わない
 cephObjectStores: []
-# NOTE: chartの既定値のCephFSを、MDSの要求量だけ変えて定義する。リストはchartの既定値と結合されないため、既定値をすべて記述
+# NOTE: リストはchartの既定値と結合されないため、MDSの要求量だけ変えてchartで既定のCephFSをすべて記述
 cephFileSystems:
   - name: ceph-filesystem
     spec:
@@ -66,7 +66,7 @@ cephFileSystems:
         resources:
           limits:
             memory: "4Gi"
-          # NOTE: CephFSのボリュームが無く、MDSの使用量はCPU 3m・メモリ35Mi程度のためdrainで退避するPodの要求量を減らす
+          # NOTE: CephFSのボリュームがなく、MDSの使用量はCPU 3m・メモリ35Mi程度のため、drainで退避するPodの要求量を減らす
           requests:
             cpu: "100m"
             memory: "256Mi"

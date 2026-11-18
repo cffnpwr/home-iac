@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=../../schemas/app.schema.json
 namespace: netbird
-# NOTE: CRDを作るgateway-api・cert-managerのApplicationの同期完了までの再試行
+# NOTE: CRDを作成するgateway-api・cert-manager Applicationの同期完了まで再試行
 retry:
   limit: 10
   backoff:

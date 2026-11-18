@@ -33,7 +33,7 @@ spec:
           .map(r, r.http.paths.filter(p, has(p.backend.service)).map(p, p.backend.service))
           .flatten()
     # NOTE: CiliumNetworkPolicyはPodのポートを指定するためServiceからtargetPortとPodのselectorを取得
-    #       selectorの無いServiceは空のendpointSelectorでnamespaceの全Podを選択するため除外
+    #       selectorのないServiceは空のendpointSelectorでnamespace内の全Podを選択するため除外
     - name: targets
       expression: >-
         variables.backends

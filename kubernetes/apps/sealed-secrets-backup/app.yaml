@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=../../schemas/app.schema.json
 namespace: sealed-secrets
-# NOTE: CRDを作るargo-eventsのApplicationの同期完了までの再試行
+# NOTE: CRDを作成するargo-events Applicationの同期完了まで再試行
 retry:
   limit: 10
   backoff:

@@ -14,7 +14,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// Terraformのplanが応答の無い接続で止まり続けないための上限
+// Terraformのplanが応答のない接続で止まり続けないための上限
 const requestTimeout = 30 * time.Second
 
 type query struct {

@@ -13,7 +13,7 @@ affinity:
             app.kubernetes.io/instance: metrics-server
         topologyKey: kubernetes.io/hostname
 resources:
-  # TODO: chartの既定値。実測後に見直す
+  # TODO: chartの既定値のため実測後に見直す
   requests:
     cpu: 100m
     memory: 200Mi

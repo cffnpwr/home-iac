@@ -28,13 +28,13 @@ resource "tls_cert_request" "talos_client" {
 resource "tls_locally_signed_cert" "talos_client" {
   cert_request_pem = tls_cert_request.talos_client.cert_request_pem
   ca_cert_pem      = base64decode(local.talos_machine_secrets.certs.os.cert)
-  # NOTE: tls providerはED25519 PRIVATE KEYのPEMを読めないため、鍵の本文の形式（PKCS#8）に合わせてPRIVATE KEYに変える
+  # NOTE: tls providerはED25519 PRIVATE KEYのPEMを読めないため、鍵本体の形式（PKCS#8）に合わせてPRIVATE KEYに変える
   #       CAの鍵をstateに保存しないようwrite-onlyの属性で渡す
   ca_private_key_pem_wo         = replace(base64decode(local.talos_machine_secrets.certs.os.key), "ED25519 PRIVATE KEY", "PRIVATE KEY")
   ca_private_key_pem_wo_version = 1
 
   validity_period_hours = 8760
   early_renewal_hours   = 720
-  # NOTE: server_authを含む証明書はTalosのapidのクライアント証明書の検証を通らない
+  # NOTE: server_authを含む証明書はTalosのapidによるクライアント証明書検証を通らない
   allowed_uses = ["digital_signature", "client_auth"]
 }

@@ -22,6 +22,6 @@ configMapGenerator:
     namespace: sealed-secrets
     files:
       - cleanup.sh
-# NOTE: Sensor内のJobの雛形のConfigMap名をkustomizeが書き換えないためハッシュを無効化
+# NOTE: Sensor内のJobテンプレートにあるConfigMap名をkustomizeが書き換えないため、ハッシュの付与を無効化
 generatorOptions:
   disableNameSuffixHash: true

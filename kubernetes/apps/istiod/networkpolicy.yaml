@@ -17,9 +17,9 @@ spec:
         - ports:
             - port: "15012"
               protocol: TCP
-    # NOTE: kube-apiserverがsidecarの注入・設定の検証のwebhookを呼ぶため接続を許可
+    # NOTE: kube-apiserverがsidecar注入・設定検証のwebhookを呼ぶため接続を許可
     - fromEntities:
-        # NOTE: 別のノードのkube-apiserverからの通信のidentityはremote-nodeとなる
+        # NOTE: 別ノードのkube-apiserverからの通信はidentityがremote-nodeとなる
         - remote-node
       toPorts:
         - ports:

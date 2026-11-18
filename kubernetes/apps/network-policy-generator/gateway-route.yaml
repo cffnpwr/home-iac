@@ -38,7 +38,7 @@ spec:
           .filter(b, (!has(b.group) || b.group == "") && (!has(b.kind) || b.kind == "Service") &&
             (!has(b.namespace) || b.namespace == object.metadata.namespace))
     # NOTE: CiliumNetworkPolicyはPodのポートを指定するためServiceからtargetPortとPodのselectorを取得
-    #       selectorの無いServiceは空のendpointSelectorでnamespaceの全Podを選択するため除外
+    #       selectorのないServiceは空のendpointSelectorでnamespace内の全Podを選択するため除外
     - name: targets
       expression: >-
         variables.backends

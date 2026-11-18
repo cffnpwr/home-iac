@@ -56,8 +56,8 @@ prometheus:
 
 kubeApiServer:
   serviceMonitor:
-    # NOTE: chartの既定値のauthorizationは、Prometheusとあわせて作られるSecretを参照するため削除
-    #       Alloyのscrape classのservice-account-tokenが、AlloyのService Accountのトークンで認証する
+    # NOTE: chartにおけるauthorizationの既定値はPrometheusとあわせて作られるSecretを参照するため削除
+    #       Alloyのscrape classであるservice-account-tokenで、AlloyのService Accountトークンを用いて認証する
     authorization: null
     scrapeClass: service-account-token
     metricRelabelings:
@@ -99,7 +99,7 @@ kubeApiServer:
         regex: (apiserver_client_certificate_expiration_seconds_bucket|apiserver_client_certificate_expiration_seconds_count)
         targetLabel: __tmp_keep
         replacement: "true"
-      # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / API server」が表示する、上の監視項目に無いメトリクス
+      # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / API server」が表示する、上の監視項目にないメトリクス
       - action: replace
         sourceLabels: [__name__]
         regex: (go_goroutines|process_cpu_seconds_total|process_resident_memory_bytes|workqueue_adds_total|workqueue_depth|workqueue_queue_duration_seconds_bucket)
@@ -122,8 +122,8 @@ kubeControllerManager:
   #       chartの既定値のtlsConfig.insecureSkipVerify: trueのままにする
   #       ref: https://github.com/siderolabs/talos/blob/v1.14.6/internal/app/machined/pkg/controllers/k8s/control_plane_final.go#L125-L126
   serviceMonitor:
-    # NOTE: chartの既定値のauthorizationは、Prometheusとあわせて作られるSecretを参照するため削除
-    #       Alloyのscrape classのservice-account-tokenが、AlloyのService Accountのトークンで認証する
+    # NOTE: chartにおけるauthorizationの既定値はPrometheusとあわせて作られるSecretを参照するため削除
+    #       Alloyのscrape classであるservice-account-tokenで、AlloyのService Accountトークンを用いて認証する
     authorization: null
     scrapeClass: service-account-token
     metricRelabelings:
@@ -135,7 +135,7 @@ kubeControllerManager:
         regex: (kubernetes_build_info)
         targetLabel: __tmp_keep
         replacement: "true"
-      # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / Controller Manager」が表示する、上の監視項目に無いメトリクス
+      # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / Controller Manager」が表示する、上の監視項目にないメトリクス
       - action: replace
         sourceLabels: [__name__]
         regex: (go_goroutines|process_cpu_seconds_total|process_resident_memory_bytes|rest_client_request_duration_seconds_bucket|rest_client_requests_total|workqueue_adds_total|workqueue_depth|workqueue_queue_duration_seconds_bucket)
@@ -152,8 +152,8 @@ kubeScheduler:
   #       chartの既定値のtlsConfig.insecureSkipVerify: trueのままにする
   #       ref: https://github.com/siderolabs/talos/blob/v1.14.6/internal/app/machined/pkg/controllers/k8s/control_plane_final.go#L125-L126
   serviceMonitor:
-    # NOTE: chartの既定値のauthorizationは、Prometheusとあわせて作られるSecretを参照するため削除
-    #       Alloyのscrape classのservice-account-tokenが、AlloyのService Accountのトークンで認証する
+    # NOTE: chartにおけるauthorizationの既定値はPrometheusとあわせて作られるSecretを参照するため削除
+    #       Alloyのscrape classであるservice-account-tokenで、AlloyのService Accountトークンを用いて認証する
     authorization: null
     scrapeClass: service-account-token
     metricRelabelings:
@@ -165,7 +165,7 @@ kubeScheduler:
         regex: (kubernetes_build_info)
         targetLabel: __tmp_keep
         replacement: "true"
-      # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / Scheduler」が表示する、上の監視項目に無いメトリクス
+      # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / Scheduler」が表示する、上の監視項目にないメトリクス
       - action: replace
         sourceLabels: [__name__]
         regex: (go_goroutines|process_cpu_seconds_total|process_resident_memory_bytes|rest_client_request_duration_seconds_bucket|rest_client_requests_total|scheduler_pod_scheduling_sli_duration_seconds_bucket|scheduler_pod_scheduling_sli_duration_seconds_count|scheduler_scheduling_algorithm_duration_seconds_bucket|scheduler_scheduling_algorithm_duration_seconds_count|scheduler_scheduling_attempt_duration_seconds_bucket|scheduler_scheduling_attempt_duration_seconds_count)
@@ -190,8 +190,8 @@ kubeEtcd:
     tlsConfig:
       # NOTE: kube-rbac-proxyは自己署名の証明書を使うため、Alloyはこの証明書を検証しない
       insecureSkipVerify: true
-    # NOTE: chartの既定値のauthorizationは、Prometheusとあわせて作られるSecretを参照するため削除
-    #       kube-rbac-proxyがAlloyのService Accountのトークンを認可するため、scrape classのservice-account-tokenでリクエストにトークンを付ける
+    # NOTE: chartにおけるauthorizationの既定値はPrometheusとあわせて作られるSecretを参照するため削除
+    #       kube-rbac-proxyがAlloyのService Accountトークンを認可するため、scrape classのservice-account-tokenでリクエストにトークンを付与
     authorization: null
     scrapeClass: service-account-token
     metricRelabelings:
@@ -239,7 +239,7 @@ kubeEtcd:
         regex: (etcd_mvcc_db_total_size_in_bytes|etcd_mvcc_db_total_size_in_use_in_bytes|etcd_server_quota_backend_bytes)
         targetLabel: __tmp_keep
         replacement: "true"
-      # NOTE: ダッシュボードでの調査: ダッシュボード「etcd」が表示する、上の監視項目に無いメトリクス
+      # NOTE: ダッシュボードでの調査: ダッシュボード「etcd」が表示する、上の監視項目にないメトリクス
       - action: replace
         sourceLabels: [__name__]
         regex: (etcd_network_client_grpc_received_bytes_total|etcd_network_client_grpc_sent_bytes_total|etcd_network_peer_received_bytes_total|etcd_network_peer_sent_bytes_total|grpc_server_started_total|process_resident_memory_bytes)
@@ -253,7 +253,7 @@ kubeEtcd:
 
 coreDns:
   serviceMonitor:
-    # NOTE: chartの既定値のauthorizationは、Prometheusとあわせて作られるSecretを参照するため削除
+    # NOTE: chartにおけるauthorizationの既定値はPrometheusとあわせて作られるSecretを参照するため削除
     #       CoreDNSのmetricsはHTTPで認証を行なわないため、トークンを付けるscrape classも指定しない
     authorization: null
     metricRelabelings:
@@ -265,7 +265,7 @@ coreDns:
         regex: (coredns_dns_request_duration_seconds_bucket|coredns_dns_responses_total)
         targetLabel: __tmp_keep
         replacement: "true"
-      # NOTE: ダッシュボードでの調査: ダッシュボード「CoreDNS」が表示する、上の監視項目に無いメトリクス
+      # NOTE: ダッシュボードでの調査: ダッシュボード「CoreDNS」が表示する、上の監視項目にないメトリクス
       - action: replace
         sourceLabels: [__name__]
         regex: (coredns_cache_entries|coredns_cache_hits_total|coredns_cache_misses_total|coredns_dns_request_size_bytes_bucket|coredns_dns_requests_total|coredns_dns_response_size_bytes_bucket)
@@ -277,14 +277,14 @@ coreDns:
       - action: labeldrop
         regex: __tmp_keep
 
-# NOTE: kube-proxyは無効にしており（Ciliumのkube-proxy replacementを使用）、収集対象が無いため、ServiceMonitor・ダッシュボード・ルールを作らない
+# NOTE: kube-proxyは無効化しており（Ciliumのkube-proxy replacementを使用）、収集対象がないため、ServiceMonitor・ダッシュボード・ルールを作らない
 kubeProxy:
   enabled: false
 
 kubelet:
   serviceMonitor:
-    # NOTE: chartの既定値のauthorizationは、Prometheusとあわせて作られるSecretを参照するため削除
-    #       Alloyのscrape classのservice-account-tokenが、AlloyのService Accountのトークンで認証する
+    # NOTE: chartにおけるauthorizationの既定値はPrometheusとあわせて作られるSecretを参照するため削除
+    #       Alloyのscrape classであるservice-account-tokenで、AlloyのService Accountトークンを用いて認証する
     authorization: null
     scrapeClass: service-account-token
     tlsConfig:
@@ -325,7 +325,7 @@ kubelet:
         regex: (kubelet_evictions|kubelet_node_name|kubelet_running_pods)
         targetLabel: __tmp_keep
         replacement: "true"
-      # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / Kubelet」が表示する、上の監視項目に無いメトリクス
+      # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / Kubelet」が表示する、上の監視項目にないメトリクス
       - action: replace
         sourceLabels: [__name__]
         regex: (go_goroutines|kubelet_cgroup_manager_duration_seconds_bucket|kubelet_cgroup_manager_duration_seconds_count|kubelet_node_config_error|kubelet_pleg_relist_duration_seconds_count|kubelet_pleg_relist_interval_seconds_bucket|kubelet_pod_start_duration_seconds_bucket|kubelet_pod_start_duration_seconds_count|kubelet_pod_worker_duration_seconds_count|kubelet_running_containers|kubelet_runtime_operations_duration_seconds_bucket|kubelet_runtime_operations_errors_total|kubelet_runtime_operations_total|process_cpu_seconds_total|process_resident_memory_bytes|rest_client_request_duration_seconds_bucket|rest_client_requests_total|storage_operation_duration_seconds_bucket|storage_operation_duration_seconds_count|volume_manager_total_volumes)
@@ -361,7 +361,7 @@ kubelet:
         regex: (container_memory_cache|container_memory_rss|container_memory_swap|container_memory_working_set_bytes)
         targetLabel: __tmp_keep
         replacement: "true"
-      # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / Compute Resources / *」が表示する、上の監視項目に無いメトリクス
+      # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / Compute Resources / *」が表示する、上の監視項目にないメトリクス
       - action: replace
         sourceLabels: [__name__]
         regex: (container_fs_reads_bytes_total|container_fs_reads_total|container_fs_writes_bytes_total|container_fs_writes_total|container_network_receive_bytes_total|container_network_receive_packets_dropped_total|container_network_receive_packets_total|container_network_transmit_bytes_total|container_network_transmit_packets_dropped_total|container_network_transmit_packets_total)
@@ -372,8 +372,8 @@ kubelet:
         regex: "true"
       - action: labeldrop
         regex: __tmp_keep
-      # NOTE: chartの既定値と同じ規則でCNI等が作るインターフェース（cali・cilium・lxc等）のネットワークのメトリクスを削除する
-      #       chartはこの規則を、hostNetworkのコンテナのネットワークのメトリクスを収集しないための規則と説明している
+      # NOTE: chartの既定値と同じルールでCNI等が作るインターフェイス（cali・cilium・lxc等）のネットワークメトリクスを削除する
+      #       chartはこのルールを、hostNetworkで動くコンテナのネットワークメトリクスを収集しないためのものと説明している
       #       ref: https://github.com/prometheus-community/helm-charts/blob/kube-prometheus-stack-93.3.0/charts/kube-prometheus-stack/values.yaml#L2001-L2006
       - sourceLabels: [__name__, interface]
         action: drop
@@ -392,7 +392,7 @@ nodeExporter:
       enabled: false
 
 prometheusOperator:
-  # NOTE: v1のEndpointsのAPIはKubernetes 1.33で非推奨のため、kubeletのServiceのEndpointSliceだけを作成
+  # NOTE: v1のEndpoints APIはKubernetes 1.33で非推奨のため、kubelet ServiceのEndpointSliceだけを作成
   kubeletEndpointsEnabled: false
   kubeletEndpointSliceEnabled: true
   serviceMonitor:
@@ -497,7 +497,7 @@ kube-state-metrics:
             regex: (kube_node_status_capacity)
             targetLabel: __tmp_keep
             replacement: "true"
-          # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / Compute Resources / *」が表示する、上の監視項目に無いメトリクス
+          # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / Compute Resources / *」が表示する、上の監視項目にないメトリクス
           - action: replace
             sourceLabels: [__name__]
             regex: (kube_job_owner|kube_namespace_status_phase|kube_resourcequota)
@@ -579,19 +579,19 @@ prometheus-node-exporter:
           regex: (node_filefd_allocated|node_filefd_maximum)
           targetLabel: __tmp_keep
           replacement: "true"
-        # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / Compute Resources / *」が表示する、上の監視項目に無いメトリクス
+        # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / Compute Resources / *」が表示する、上の監視項目にないメトリクス
         - action: replace
           sourceLabels: [__name__]
           regex: (node_memory_Buffers_bytes|node_memory_Cached_bytes|node_memory_MemFree_bytes|node_memory_Slab_bytes)
           targetLabel: __tmp_keep
           replacement: "true"
-        # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / Networking / *」が表示する、上の監視項目に無いメトリクス
+        # NOTE: ダッシュボードでの調査: ダッシュボード「Kubernetes / Networking / *」が表示する、上の監視項目にないメトリクス
         - action: replace
           sourceLabels: [__name__]
           regex: (node_netstat_TcpExt_TCPSynRetrans|node_netstat_Tcp_OutSegs|node_netstat_Tcp_RetransSegs)
           targetLabel: __tmp_keep
           replacement: "true"
-        # NOTE: ダッシュボードでの調査: ダッシュボード「Node Exporter / *」が表示する、上の監視項目に無いメトリクス
+        # NOTE: ダッシュボードでの調査: ダッシュボード「Node Exporter / *」が表示する、上の監視項目にないメトリクス
         - action: replace
           sourceLabels: [__name__]
           regex: (node_disk_io_time_seconds_total|node_disk_read_bytes_total|node_disk_written_bytes_total|node_exporter_build_info|node_load15|node_load5|node_network_receive_bytes_total|node_network_receive_drop_total|node_network_transmit_bytes_total|node_network_transmit_drop_total|node_time_seconds|node_uname_info)

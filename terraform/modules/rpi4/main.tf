@@ -13,7 +13,7 @@ resource "talos_image_factory_schematic" "this" {
     }
     customization = {
       # NOTE: machine config適用前にTalos APIへ静的IPで到達するための初期ネットワーク。
-      # デバイス名を省略すると名前順で最初の非loopbackインターフェースが選ばれ、オンボードEthernetになるとは限らないため、end0を明示する
+      # デバイス名を省略すると名前順で最初の非loopbackインターフェイスが選ばれ、オンボードEthernetになるとは限らないため、end0を明示する
       extraKernelArgs = [
         "ip=${var.address}::${var.gateway}:${var.prefix_length}::end0::${join(":", var.nameservers)}",
       ]
@@ -40,7 +40,7 @@ data "talos_machine_configuration" "this" {
       kind       = "LinkAliasConfig"
       name       = "net0"
       selector = {
-        # NOTE: インターフェース名が実機で確定しないため、RPi4オンボードEthernetのドライバ名で選択する
+        # NOTE: インターフェイス名が実機で確定しないため、RPi4オンボードEthernetのドライバ名で選択する
         match = "link.driver == \"bcmgenet\""
       }
     }),
@@ -92,7 +92,7 @@ resource "talos_machine" "this" {
   node                  = var.address
   endpoint              = var.address
   image                 = data.talos_image_factory_urls.this.urls.installer
-  # NOTE: Kubernetesのコンポーネントのイメージはtalos_clusterがupgrade-k8sの手順で更新する
+  # NOTE: Kubernetesコンポーネントのイメージはtalos_clusterがupgrade-k8sの手順で更新する
   ignore_kubernetes_upgrade_drift = true
   drain_on_upgrade                = true
   kubeconfig_wo                   = var.kubeconfig

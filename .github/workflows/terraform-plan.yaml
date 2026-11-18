@@ -5,7 +5,7 @@ on:
       - main
     paths:
       - "terraform/**"
-      # NOTE: bootstrapのrootは手元でapplyするためCIのplanの対象外
+      # NOTE: bootstrapのrootは手元でapplyするため、CIでのplanの対象外
       - "!terraform/bootstrap/**"
       - "mise.toml"
       - "mise.lock"

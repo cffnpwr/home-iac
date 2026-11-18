@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ApplicationSetのパラメーター",
-  "description": "`kubernetes/apps/applicationset.yaml`のApplicationSetが、`kubernetes/apps/<name>/app.yaml`から<name>のApplicationを生成するときのパラメーター。型はArgo CDのApplicationのCRDに合わせる",
+  "description": "`kubernetes/apps/applicationset.yaml`のApplicationSetが`kubernetes/apps/<name>/app.yaml`から<name>のApplicationを生成するときのパラメーター。型はArgo CDのApplication CRDに合わせる",
   "type": "object",
   "additionalProperties": false,
   "required": ["namespace"],
@@ -44,7 +44,7 @@
       "type": "boolean"
     },
     "talosBootstrap": {
-      "description": "Talosのinline manifestで初回導入するか。trueの場合、同期後にtalosのmanagedFieldsのエントリを削除する。chartを指定したApplicationでのみ有効",
+      "description": "Talosのinline manifestで初回導入するか。trueの場合、同期後にmanagedFieldsからtalosのエントリを削除する。chartを指定したApplicationでのみ有効",
       "type": "boolean"
     },
     "syncOptions": {
@@ -112,7 +112,7 @@
           "type": "integer"
         },
         "refresh": {
-          "description": "再試行で、最初のリビジョンの代わりに最新のリビジョンを使うか",
+          "description": "再試行時に最初のリビジョンの代わりに最新のリビジョンを使うか",
           "type": "boolean"
         },
         "backoff": {

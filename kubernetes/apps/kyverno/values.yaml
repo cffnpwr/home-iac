@@ -7,7 +7,7 @@ admissionController:
   replicas: 3
   podDisruptionBudget:
     enabled: true
-    # NOTE: chartの既定値のminAvailableはmaxUnavailableと同時に設定できないため削除
+    # NOTE: chartで既定のminAvailableはmaxUnavailableと同時に設定できないため削除
     minAvailable: null
     maxUnavailable: 1
   topologySpreadConstraints:
@@ -23,11 +23,11 @@ admissionController:
       nodeTaintsPolicy: Honor
 
 backgroundController:
-  # NOTE: leader electionで1つのレプリカだけが生成を処理するため、可用性のために2つにする
+  # NOTE: leader electionで1つのレプリカだけが生成を処理するため、可用性を確保できるようレプリカ数を2にする
   replicas: 2
   podDisruptionBudget:
     enabled: true
-    # NOTE: chartの既定値のminAvailableはmaxUnavailableと同時に設定できないため削除
+    # NOTE: chartで既定のminAvailableはmaxUnavailableと同時に設定できないため削除
     minAvailable: null
     maxUnavailable: 1
   topologySpreadConstraints:

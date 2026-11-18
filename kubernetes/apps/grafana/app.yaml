@@ -12,7 +12,7 @@ ignoreDifferences:
     name: grafana
     jsonPointers:
       - /spec/template/metadata/annotations/reloader.stakater.com~1last-reloaded-from
-# NOTE: dashboardsのsidecarのRoleを置くmonitoringのnamespaceを作る、kube-prometheus-stack・alloyのApplicationの同期完了までの再試行
+# NOTE: dashboards用sidecarのRoleを置くmonitoring namespaceを作成するApplicationの同期完了まで再試行
 retry:
   limit: 10
   backoff:

@@ -1,6 +1,6 @@
 locals {
   vaultwarden_hostname = "vaultwarden.${data.cloudflare_zone.cffnpwr_dev.name}"
-  # NOTE: vaultwardenがDOMAINから生成するSSOのコールバック。クライアントの種類ごとの転送先へは、vaultwardenが転送
+  # NOTE: vaultwardenがDOMAINから生成するSSOのコールバックURL。クライアント種別ごとの転送先へはvaultwardenが転送
   vaultwarden_access_redirect_uri = "https://${local.vaultwarden_hostname}/identity/connect/oidc-signin"
 }
 
@@ -86,7 +86,7 @@ resource "cloudflare_zero_trust_access_application" "vaultwarden_admin" {
   account_id = local.cloudflare_account_id
   name       = "vaultwarden-admin"
   type       = "self_hosted"
-  # NOTE: パスの末尾のワイルドカードは、ワイルドカードを除いたパス自体に一致しないため、/adminを別に指定
+  # NOTE: パス末尾のワイルドカードはワイルドカードを除いたパス自体に一致しないため、/adminを個別に指定
   destinations = [
     {
       type = "public"
@@ -128,13 +128,13 @@ resource "cloudflare_account_token" "vaultwarden_db" {
   }]
 }
 
-# NOTE: vaultwardenのS3バックエンドが置く、添付ファイル・Send・アイコンのキャッシュ
+# NOTE: vaultwardenのS3バックエンドが保存する添付ファイル・Send・アイコンのキャッシュ
 resource "cloudflare_r2_bucket" "vaultwarden_data" {
   account_id = local.cloudflare_account_id
   name       = "home-iac-vaultwarden-data"
 }
 
-# NOTE: Web Vaultが、添付ファイルの署名付きURLをブラウザから取得するため
+# NOTE: Web Vaultが添付ファイルの署名付きURLをブラウザから取得するため
 resource "cloudflare_r2_bucket_cors" "vaultwarden_data" {
   account_id  = local.cloudflare_account_id
   bucket_name = cloudflare_r2_bucket.vaultwarden_data.name

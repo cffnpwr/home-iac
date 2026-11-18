@@ -1,4 +1,4 @@
-# NOTE: Let's Encryptはワイルドカードの証明書をDNS-01でのみ発行する。ClusterIssuerのletsencryptはDNS-01を使う
+# NOTE: Let's Encryptはワイルドカード証明書をDNS-01でのみ発行するため、DNS-01を使うClusterIssuerのletsencryptを指定
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -28,7 +28,7 @@ data:
             topology.kubernetes.io/zone: vultr
           containers:
             - name: istio-proxy
-              # NOTE: istiodのchartの既定値（requests cpu 100m・memory 128Mi、limits cpu 2000m・memory 1024Mi）から下げる
+              # NOTE: istiod chartの既定値（requests cpu 100m・memory 128Mi、limits cpu 2000m・memory 1024Mi）から下げる
               resources:
                 # TODO: 実測後に見直す
                 requests:
@@ -39,11 +39,11 @@ data:
   service: |
     metadata:
       annotations:
-        # NOTE: Node IPAMが割り当てるIPアドレスを、VultrノードのIPアドレスに限定
+        # NOTE: Node IPAMが割り当てるIPアドレスをVultrノードのIPアドレスに限定
         io.cilium.nodeipam/match-node-labels: topology.kubernetes.io/zone=vultr
     spec:
       type: LoadBalancer
-      # NOTE: CiliumのNode IPAMに、ノードのIPアドレスをLoadBalancerのIPアドレスとして割り当てさせる
+      # NOTE: CiliumのNode IPAMでノードのIPアドレスをLoadBalancerのIPアドレスとして割り当てる
       loadBalancerClass: io.cilium/node
       # NOTE: クライアントの送信元IPアドレスを保持する
       externalTrafficPolicy: Local
@@ -72,7 +72,7 @@ spec:
         certificateRefs:
           - kind: Secret
             name: cffnpwr-dev-wildcard-tls
-      # NOTE: サービスごとのnamespaceのRouteが、ホスト名を指定して接続する
+      # NOTE: サービスごとのnamespaceにあるRouteがホスト名を指定して接続する
       allowedRoutes:
         namespaces:
           from: All

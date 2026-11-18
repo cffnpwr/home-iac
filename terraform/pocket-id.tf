@@ -1,4 +1,4 @@
-# NOTE: SMTPでのメール送信に使用するパスワードとしてのCloudflare API Tokenを作成
+# NOTE: SMTPでメールを送信するときのパスワードとして使うCloudflare API Tokenを作成
 resource "cloudflare_account_token" "pocket_id_smtp" {
   account_id = local.cloudflare_account_id
   name       = "${local.cloudflare_account_token_name_prefix}pocket-id-smtp"

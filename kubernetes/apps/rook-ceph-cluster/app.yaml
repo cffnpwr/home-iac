@@ -4,7 +4,7 @@ chart:
   repoURL: https://charts.rook.io/release
   name: rook-ceph-cluster
   version: v1.21.2
-# NOTE: CephのCRDを作るrook-cephのApplicationの同期完了までの再試行
+# NOTE: CephのCRDを作成するrook-ceph Applicationの同期完了まで再試行
 retry:
   limit: 10
   backoff:

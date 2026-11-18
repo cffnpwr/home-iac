@@ -12,7 +12,7 @@ drivers:
     enabled: true
     name: rook-ceph.rbd.csi.ceph.com
     # NOTE: chartの既定値1がDriverに明示されるため、operatorの既定値2が使われない
-    #       ノードの分散は、operatorが既定で付与するhostnameのrequiredのpodAntiAffinityを使う
+    #       ノードの分散には、operatorが既定で付与するhostnameのrequiredなpodAntiAffinityを使う
     controllerPlugin:
       replicas: 2
   cephfs:

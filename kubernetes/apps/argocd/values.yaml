@@ -4,7 +4,7 @@ global:
 configs:
   cm:
     admin.enabled: false
-    # NOTE: $argocd-oidc:<key>は、`app.kubernetes.io/part-of: argocd`のラベルを持つSecretのargocd-oidcの値
+    # NOTE: $argocd-oidc:<key>は`app.kubernetes.io/part-of: argocd`ラベルを持つSecret（argocd-oidc）の値を参照
     oidc.config: |
       name: Cloudflare Access
       issuer: $argocd-oidc:issuer
@@ -21,7 +21,7 @@ configs:
     # NOTE: cloudflaredからはHTTPで受ける
     server.insecure: true
   rbac:
-    # NOTE: ログインした全員に付くため、グループに属さないユーザーにロールを与えないよう空にする
+    # NOTE: ログインした全員に適用されるため、グループに属さないユーザーへのロール付与を防ぐよう空にする
     policy.default: ""
     policy.csv: |
       g, app-argocd-admin, role:admin
@@ -73,7 +73,7 @@ server:
   pdb:
     enabled: true
     maxUnavailable: 1
-  # NOTE: nodeTaintsPolicy: Honorで、Podが許容しないtaintを持つノード（drain中にcordonされたノード等）をskewの計算から除外
+  # NOTE: nodeTaintsPolicy: HonorでPodが許容しないtaintを持つノード（drain中にcordonされたノード等）をskewの計算から除外
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: kubernetes.io/hostname

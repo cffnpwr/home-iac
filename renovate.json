@@ -7,7 +7,7 @@
   ],
   "customManagers": [
     {
-      // NOTE: ApplicationSetのパラメーターのchartはArgo CDのマニフェストではないため、argocd managerの対象外
+      // NOTE: ApplicationSetのパラメーターにあるchartはArgo CDのマニフェストではないため、argocd managerの対象外
       "customType": "jsonata",
       "fileFormat": "yaml",
       "managerFilePatterns": ["/^kubernetes/apps/[^/]+/app\\.yaml$/"],
@@ -17,7 +17,7 @@
       "datasourceTemplate": "helm"
     },
     {
-      // NOTE: スキームの無いrepoURLは、Argo CDがOCIのリポジトリとして扱うchart
+      // NOTE: スキームのないrepoURLはArgo CDがOCIリポジトリとして扱うchart
       "customType": "jsonata",
       "fileFormat": "yaml",
       "managerFilePatterns": ["/^kubernetes/apps/[^/]+/app\\.yaml$/"],
@@ -27,7 +27,7 @@
       "datasourceTemplate": "docker"
     },
     {
-      // NOTE: images/vaultwardenがソースからビルドする、vaultwardenのタグとそのコミット
+      // NOTE: images/vaultwardenがソースからビルドするvaultwardenのタグとコミット
       "customType": "regex",
       "managerFilePatterns": ["/^images/vaultwarden/Dockerfile$/"],
       "matchStrings": [
@@ -38,7 +38,7 @@
     },
     {
       // NOTE: ノードにインストールするTalosのバージョン
-      //       talos_config_versionはクラスタの作成時のバージョンに固定するため対象外
+      //       talos_config_versionはクラスタ作成時のバージョンに固定するため対象外
       "customType": "regex",
       "managerFilePatterns": ["/^terraform/versions\\.tf$/"],
       "matchStrings": ["\\stalos_version\\s*=\\s*\"(?<currentValue>v[^\"]+)\""],
@@ -46,7 +46,7 @@
       "depNameTemplate": "siderolabs/talos"
     },
     {
-      // NOTE: miseのタスクがgo runで実行する、cffnpwr/actionsのGoのプログラムのmainのコミット
+      // NOTE: miseのタスクがgo runで実行するcffnpwr/actionsのmainブランチのコミット
       "customType": "regex",
       "managerFilePatterns": ["/^mise\\.toml$/"],
       "matchStrings": ["github\\.com/cffnpwr/actions/[^@\\s]+@(?<currentDigest>[0-9a-f]{40})"],
@@ -58,12 +58,12 @@
   ],
   "packageRules": [
     {
-      // NOTE: Keaはマイナーバージョンが奇数のバージョンを開発版として公開するため、偶数の安定版に限定
+      // NOTE: Keaはマイナーバージョンが奇数のものを開発版として公開するため、偶数の安定版に限定
       "matchPackageNames": ["jonasal/kea-dhcp4"],
       "allowedVersions": "/^[0-9]+\\.[0-9]*[02468]\\.[0-9]+-alpine$/"
     },
     {
-      // NOTE: ソースからビルドするバイナリと、web-vault等を使う公式のイメージのバージョンを揃える
+      // NOTE: ソースからビルドするバイナリと、web-vault等を取得する公式イメージのバージョンを揃える
       "matchFileNames": ["images/vaultwarden/Dockerfile"],
       "matchPackageNames": [
         "dani-garcia/vaultwarden",
@@ -72,8 +72,8 @@
       "groupName": "vaultwarden"
     },
     {
-      // NOTE: netbirdのサーバーのコンポーネントと、CIで使うCLIのバージョンを揃える
-      //       GitHub ReleasesとDocker imageの公開の時間差で一部だけのPRが作成されないよう、全コンポーネントの更新が揃うまで待機
+      // NOTE: netbirdのサーバーコンポーネントとCIで使うCLIのバージョンを揃える
+      //       GitHub ReleasesとDockerイメージの公開時刻の差で一部の更新だけのPRが作られないよう、全コンポーネントが揃うまで待機
       "matchDepNames": [
         "github:netbirdio/netbird",
         "netbirdio/signal",
@@ -84,7 +84,7 @@
       "minimumGroupSize": 4
     },
     {
-      // NOTE: talosctlとTalos APIのクライアントとして使うGoモジュールのバージョンをノードのTalosのバージョンに揃える
+      // NOTE: talosctlとTalos APIクライアントのGoモジュールをノードのTalosのバージョンに揃える
       "matchDepNames": [
         "talosctl",
         "siderolabs/talos",
@@ -93,12 +93,12 @@
       "groupName": "talos"
     },
     {
-      // NOTE: miseで管理するCLIのバージョンをchartがデプロイするKyvernoのバージョンに揃える
+      // NOTE: miseで管理するCLIのバージョンを、chartでデプロイするKyvernoのバージョンに揃える
       "matchDepNames": ["kyverno"],
       "groupName": "kyverno"
     },
     {
-      // NOTE: kubesealのCLI・イメージ・Goモジュールのバージョンをchartがデプロイするcontrollerのバージョンに揃える
+      // NOTE: kubesealのCLI・イメージ・Goモジュールのバージョンをchartでデプロイするcontrollerのバージョンに揃える
       "matchDepNames": [
         "kubeseal",
         "docker.io/bitnami/sealed-secrets-kubeseal",
@@ -119,7 +119,7 @@
     }
   ],
   "kubernetes": {
-    // NOTE: kubernetes managerには既定のファイルパターンが無い
+    // NOTE: kubernetes managerには既定のファイルパターンがない
     "managerFilePatterns": ["/^kubernetes/apps/.+\\.yaml$/"]
   }
 }

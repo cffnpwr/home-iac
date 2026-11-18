@@ -1,4 +1,4 @@
-# NOTE: 入力の値の更新は、手元で-replaceを指定してapplyする
+# NOTE: 入力値を更新するときは、手元で-replaceを指定してapplyする
 resource "github_actions_environment_secret" "terraform_ci_pocket_id_access_client_secret" {
   for_each = toset(["terraform-plan", "terraform-apply"])
 

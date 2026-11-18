@@ -4,7 +4,7 @@ set -eu
 # shellcheck disable=SC3040
 set -o pipefail
 
-# NOTE: 封入に使う、controllerの最新の証明書のパス
+# NOTE: 封入に使うcontrollerの最新証明書のパス
 cert=kubernetes/apps/sealed-secrets/cert.pem
 
 work_dir=$(mktemp -d)
@@ -12,7 +12,7 @@ trap 'rm -rf "$work_dir"' EXIT
 
 terraform -chdir=terraform output -json sealed_secrets > "$work_dir/sealed_secrets.json"
 
-# NOTE: HMACの鍵と初期の証明書はCIではenvironmentのシークレット、手元ではbootstrapのoutputから読む
+# NOTE: HMAC鍵と初期証明書はCIではenvironmentのシークレット、手元ではbootstrapのoutputから取得
 if [ -f "$cert" ]; then
   echo "Using $cert."
 else
@@ -24,7 +24,7 @@ else
     terraform -chdir=terraform/bootstrap output -raw sealed_secrets_cert > "$cert"
   fi
 fi
-# NOTE: 証明書として読めない内容での封入の防止
+# NOTE: 証明書として読めない内容での封入を防止
 openssl x509 -in "$cert" -noout
 
 cert_sha256=$(openssl x509 -in "$cert" -noout -fingerprint -sha256 | cut -d = -f 2 | tr -d : | tr '[:upper:]' '[:lower:]')
@@ -36,7 +36,7 @@ fi
 jq -r 'keys[]' "$work_dir/sealed_secrets.json" > "$work_dir/paths.txt"
 
 while IFS= read -r path; do
-  # NOTE: resourcesに列挙していないファイルは、kustomizeの適用対象外
+  # NOTE: resourcesに列挙していないファイルはkustomizeの適用対象外となるため追加
   kustomization=$(dirname "$path")/kustomization.yaml
   resource=$(basename "$path")
   export resource
@@ -56,7 +56,7 @@ while IFS= read -r path; do
   fi
 
   echo "$path: sealing"
-  # NOTE: 既存のファイルにある、controllerが作るSecretのテンプレート（data・labels等）を引き継ぐ
+  # NOTE: 既存ファイルにある、controllerが生成するSecretのテンプレート（data・labels等）を引き継ぐ
   template='{}'
   if [ -f "$path" ]; then
     template=$(yq -o json '.spec.template // {} | del(.metadata.name, .metadata.namespace, .metadata.creationTimestamp)' "$path")

@@ -86,7 +86,7 @@ variable "node_labels" {
 
 variable "kubeconfig" {
   type        = string
-  description = "Talosのアップグレードの前にノードをdrainするためのkubeconfig"
+  description = "Talosのアップグレード前にノードをdrainするためのkubeconfig"
   sensitive   = true
   ephemeral   = true
 }
@@ -110,12 +110,12 @@ variable "extensions" {
 
 variable "link_name" {
   type        = string
-  description = "LANに接続するインターフェースのTalos上の名前。machine config適用前の初期ネットワークに使う"
+  description = "LANに接続するインターフェイスのTalos上の名前。machine config適用前の初期ネットワークに使う"
 }
 
 variable "link_driver" {
   type        = string
-  description = "LANに接続するインターフェースのドライバ名"
+  description = "LANに接続するインターフェイスのドライバ名"
 }
 
 variable "install_disk_selector" {
@@ -125,7 +125,7 @@ variable "install_disk_selector" {
 
 variable "secure_boot" {
   type        = bool
-  description = "Secure Boot用のISOとinstallerを使うか。GRUBでインストールしたノードは、再インストールしないとSecure Bootへ移行できない"
+  description = "Secure Boot用のISOとinstallerを使うか。GRUBでインストールしたノードは再インストールしないとSecure Bootへ移行できない"
 }
 
 variable "ceph_osd" {

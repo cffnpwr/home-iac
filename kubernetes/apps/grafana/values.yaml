@@ -1,17 +1,17 @@
-# NOTE: Grafanaは設定・認証情報を起動したときにしか読まないため、Secretの変更時にPodを作り直す
+# NOTE: Grafanaは設定・認証情報を起動したときにしか読まないため、Secretが変わったときにPodを作り直す
 annotations:
   secret.reloader.stakater.com/reload: grafana-oidc,grafana-postgres-app,grafana-smtp
 
 replicas: 2
-# NOTE: 2台のGrafanaのAlertmanagerが、通知の重複を防ぐため送信状況をgossipで共有するので、互いのPodのIPアドレスを返すheadless Serviceを作成
+# NOTE: 通知の重複を防ぐため、2台のGrafanaのAlertmanagerが送信状況をgossipで共有できるよう、各PodのIPアドレスを返すheadless Serviceを作成
 #       ref: https://github.com/grafana/grafana/blob/v13.3.1/docs/sources/alerting/set-up/configure-high-availability/_index.md
 headlessService: true
-# NOTE: Istioはポート名の`-`より前の部分でプロトコルを判定するため、headless ServiceのgossipのポートをTCPとして扱わせる
+# NOTE: Istioはポート名の`-`より前の部分でプロトコルを判定するため、headless ServiceのgossipポートをTCPとして扱わせる
 #       ref: https://github.com/istio/istio.io/blob/release-1.32/content/en/docs/ops/configuration/traffic-management/protocol-selection/index.md
 gossipPortName: tcp-gossip
 podDisruptionBudget:
   maxUnavailable: 1
-# NOTE: nodeTaintsPolicy: Honorで、Podが許容しないtaintを持つノード（drain中にcordonされたノード等）をskewの計算から除外
+# NOTE: nodeTaintsPolicy: HonorでPodが許容しないtaintを持つノード（drain中にcordonされたノード等）をskewの計算から除外
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: kubernetes.io/hostname
@@ -82,7 +82,7 @@ envValueFrom:
       name: grafana-smtp
       key: smtp-password
 env:
-  # NOTE: ログインフォームと基本認証を無効にするため、初回の起動時に管理者のユーザーを作らない
+  # NOTE: ログインフォームと基本認証を無効にするため、初回起動時に管理者ユーザーを作らない
   GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: "true"
 
 grafana.ini:
@@ -116,7 +116,7 @@ grafana.ini:
     use_pkce: true
     use_refresh_token: true
     role_attribute_path: "contains(groups[*], 'app-grafana-admin') && 'Admin' || 'Viewer'"
-  # NOTE: Grafana-managed alert ruleのemailのcontact pointが通知に使うSMTPサーバー
+  # NOTE: Grafana-managed alert ruleでemailのcontact pointが通知に使うSMTPサーバー
   smtp:
     enabled: true
     # NOTE: Cloudflare Email ServiceのSMTPは465番ポートのimplicit TLSだけを受け付ける
@@ -124,13 +124,13 @@ grafana.ini:
     #       ref: https://developers.cloudflare.com/email-service/api/send-emails/smtp/
     #       ref: https://github.com/grafana/grafana/blob/v13.3.1/docs/sources/setup-grafana/configure-grafana/_index.md
     host: smtp.mx.cloudflare.net:465
-    # NOTE: Email ServiceのSMTPのユーザー名は`api_token`固定
+    # NOTE: Email ServiceのSMTPユーザー名は`api_token`固定
     user: api_token
     password: $__env{SMTP_PASSWORD}
     from_address: noreply@cffnpwr.dev
   unified_alerting:
     # NOTE: AlertmanagerのgossipをPodのIPアドレスで待ち受け、headless Serviceで互いを見つける
-    #       Kubernetesでは、Podの作り直しでIPアドレスが変わるため、停止したピアへの再接続を試みる時間を短くする
+    #       KubernetesではPodの作り直しでIPアドレスが変わるため、停止したピアへの再接続を試みる時間を短くする
     #       ref: https://github.com/grafana/grafana/blob/v13.3.1/docs/sources/alerting/set-up/configure-high-availability/_index.md
     ha_listen_address: ${POD_IP}:9094
     ha_advertise_address: ${POD_IP}:9094
@@ -146,7 +146,7 @@ datasources:
         type: prometheus
         access: proxy
         url: http://mimir-query-frontend.mimir.svc.cluster.local:8080/prometheus
-        # NOTE: kube-prometheus-stackのダッシュボードは、データソースの変数の既定値で既定のデータソースを使うため既定にする
+        # NOTE: kube-prometheus-stackのダッシュボードはデータソース変数の既定値で既定のデータソースを参照するため、既定に設定
         isDefault: true
         editable: false
         jsonData:
@@ -159,7 +159,7 @@ datasources:
           #       ref: https://github.com/grafana/grafana/blob/v13.3.1/docs/sources/datasources/prometheus/configure/_index.md
           manageAlerts: false
 
-# NOTE: 既定のClusterRoleはすべてのnamespaceのSecretの読み取りを許可するため、namespaceごとのRoleを作成
+# NOTE: 既定のClusterRoleは全namespaceのSecret読み取りを許可するため、namespaceごとのRoleを作成
 rbac:
   namespaced: true
   namespaces:

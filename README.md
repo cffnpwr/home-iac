@@ -10,14 +10,14 @@ cffnpwrの自宅クラスタを管理するIaCリポジトリです。
 
 ## How to setup
 
-1. このリポジトリをクローンします。
+1. このリポジトリをクローンします
 
    ```sh
    git clone https://github.com/cffnpwr/home-iac.git
    cd home-iac
    ```
 
-2. `mise install`でツールをインストールします。
+2. `mise install`でツールをインストールします
 
    ```sh
    mise install
@@ -25,7 +25,7 @@ cffnpwrの自宅クラスタを管理するIaCリポジトリです。
 
 ## How to deploy
 
-クラスタの初回構築は[クラスタの初回構築](./docs/runbooks/initial-setup.md)の手順で行います。
+クラスタの初回構築は[クラスタの初回構築](./docs/runbooks/initial-setup.md)の手順を実行します。
 
 ## License
 

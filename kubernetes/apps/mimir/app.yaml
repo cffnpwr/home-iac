@@ -4,7 +4,7 @@ chart:
   repoURL: https://grafana.github.io/helm-charts
   name: mimir-distributed
   version: 6.2.2
-  # NOTE: AlloyとGrafanaが、リリース名から付くServiceの名前（mimir-distributor等）で接続するため明示
+  # NOTE: AlloyとGrafanaがリリース名から決まるService名（mimir-distributor等）で接続するため明示
   releaseName: mimir
 syncOptions:
   - CreateNamespace=true

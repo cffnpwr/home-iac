@@ -2,7 +2,7 @@
 namespace: kafka
 syncOptions:
   - CreateNamespace=true
-# NOTE: Kafka・KafkaNodePool・KafkaTopicのCRDを作るstrimziのApplicationの同期完了までの再試行
+# NOTE: Kafka・KafkaNodePool・KafkaTopicのCRDを作成するstrimzi Applicationの同期完了まで再試行
 retry:
   limit: 10
   backoff:

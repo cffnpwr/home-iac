@@ -86,7 +86,7 @@ locals {
   }
 }
 
-# NOTE: applyのS3 backendの認証情報はworkflowがCLOUDFLARE_API_TOKENから作成
+# NOTE: apply用のS3 backend認証情報はworkflowがCLOUDFLARE_API_TOKENから作成
 resource "github_actions_environment_secret" "terraform_plan_aws_access_key_id" {
   repository  = "home-iac"
   environment = github_repository_environment.terraform_plan.environment

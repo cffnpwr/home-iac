@@ -1,4 +1,4 @@
-# NOTE: namespaceごとに手で定義せずに済むようすべてのnamespaceに同じnamespaceからの接続の許可を生成
+# NOTE: namespaceごとに手動で定義せずに済むよう、すべてのnamespaceに同一namespace内からの接続許可を生成
 apiVersion: policies.kyverno.io/v1
 kind: GeneratingPolicy
 metadata:

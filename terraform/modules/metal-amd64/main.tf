@@ -14,7 +14,7 @@ resource "talos_image_factory_schematic" "this" {
   schematic = yamlencode({
     customization = merge({
       # NOTE: machine config適用前にTalos APIへ静的IPで到達するための初期ネットワーク。
-      #       デバイス名を省略すると名前順で最初の非loopbackインターフェースが選ばれ、bond0等の仮想インターフェースになるため明示
+      #       デバイス名を省略すると名前順で最初の非loopbackインターフェイスが選ばれ、bond0等の仮想インターフェイスになるため明示
       extraKernelArgs = [
         "ip=${var.address}::${var.gateway}:${var.prefix_length}::${var.link_name}::${join(":", var.nameservers)}",
       ]
@@ -23,7 +23,7 @@ resource "talos_image_factory_schematic" "this" {
       }
       }, {
       # NOTE: 鍵は初回の起動時にISOのブートメニューから手動で登録。
-      #       Sidero Labsの鍵に加えて既知のUEFIの証明書も登録し、それらで署名されたOption ROM等も起動可能にする。
+      #       Sidero Labsの鍵に加えて既知のUEFI証明書も登録し、それらで署名されたOption ROM等も起動可能にする。
       #       Secure Bootを使わない場合はschematicに含めず、schematicのIDを変えない
       for key, value in { secureboot = { includeWellKnownCertificates = true } } : key => value if var.secure_boot
     })
@@ -50,7 +50,7 @@ data "talos_machine_configuration" "this" {
       kind       = "LinkAliasConfig"
       name       = "net0"
       selector = {
-        # NOTE: インターフェース名が実機で確定しないため、ドライバ名で選択
+        # NOTE: インターフェイス名が実機で確定しないため、ドライバ名で選択
         match = "link.driver == \"${var.link_driver}\""
       }
     }),
@@ -104,7 +104,7 @@ data "talos_machine_configuration" "this" {
       }
     }),
     ], var.ceph_osd == null ? [] : [
-    # NOTE: RookがOSDに使う、フォーマットしないパーティション。パーティションのラベルはr-osd。
+    # NOTE: RookがOSDに使うフォーマットしないパーティション（ラベルはr-osd）。
     #       ceph-volumeはラベルにcephを含むパーティションをceph-diskのものとみなして拒否するため、名前にcephを含めない
     yamlencode({
       apiVersion = "v1alpha1"
@@ -128,7 +128,7 @@ resource "talos_machine" "this" {
   # NOTE: maintenanceモードの初回適用ではノードへ直接接続する必要があるため、endpointを省略してnodeへ接続
   node  = var.address
   image = local.installer
-  # NOTE: Kubernetesのコンポーネントのイメージはtalos_clusterがupgrade-k8sの手順で更新
+  # NOTE: Kubernetesコンポーネントのイメージはtalos_clusterがupgrade-k8sの手順で更新
   ignore_kubernetes_upgrade_drift = true
   drain_on_upgrade                = true
   kubeconfig_wo                   = var.kubeconfig

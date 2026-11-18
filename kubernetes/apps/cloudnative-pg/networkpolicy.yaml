@@ -10,7 +10,7 @@ spec:
   ingress:
     # NOTE: kube-apiserverがCloudNativePGのwebhookを呼ぶため接続を許可
     - fromEntities:
-        # NOTE: 別のノードのkube-apiserverからの通信のidentityはremote-nodeとなる
+        # NOTE: 別ノードのkube-apiserverからの通信はidentityがremote-nodeとなる
         - remote-node
       toPorts:
         - ports:

@@ -21,7 +21,7 @@ const (
 	modeCheck mode = "check"
 )
 
-// Keaは制御ソケットのディレクトリの権限が0750より緩いと起動しない
+// Keaは制御ソケットを置くディレクトリの権限が0750より緩いと起動しない
 const controlSocketDirMode = 0o750
 
 type options struct {
@@ -49,7 +49,7 @@ func run() error {
 
 	switch opts.mode {
 	case modeCheck:
-		// startupProbeで、最初の設定の書き出しが完了したかを判定
+		// startupProbeで初回の設定書き出しが完了したかを判定
 		if _, statErr := os.Stat(opts.configPath); statErr != nil {
 			return fmt.Errorf("configuration is not written yet: %v", statErr)
 		}

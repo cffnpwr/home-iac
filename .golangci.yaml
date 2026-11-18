@@ -17,7 +17,7 @@ formatters:
 
   settings:
     goimports:
-      # NOTE: リポジトリ内のすべてのGoのモジュールで共有するため、リポジトリのモジュールパスの共通部分を指定
+      # NOTE: リポジトリ内のすべてのGoモジュールで共有するため、モジュールパスの共通部分を指定
       local-prefixes:
         - github.com/cffnpwr/home-iac
 
@@ -112,7 +112,7 @@ linters:
     usetesting:
       os-temp-dir: true
 
-    # NOTE: lintを抑制する理由が無いnolintのディレクティブと、抑制するlinterを指定しないnolintのディレクティブを検出する
+    # NOTE: 抑制理由のないnolintディレクティブと、対象linterを未指定のnolintディレクティブを検出する
     nolintlint:
       require-explanation: true
       require-specific: true

@@ -65,7 +65,7 @@ locals {
       apiVersion = "v1alpha1"
       kind       = "KubeSchedulerConfig"
       extraArgs = {
-        # NOTE: 別のノードのAlloyが/metricsを取得するため、Talosの既定値の127.0.0.1ではなく全インターフェースで待ち受ける
+        # NOTE: 別のノードのAlloyが/metricsを取得するため、Talosの既定値である127.0.0.1ではなく全インターフェイスで待ち受ける
         #       Talosが生成するstatic podのprobeはlocalhostに接続するため、ノードのIPアドレスだけで待ち受けることはできない
         #       ref: https://github.com/siderolabs/talos/blob/v1.14.6/internal/app/machined/pkg/controllers/k8s/control_plane_final.go#L395
         #       ref: https://github.com/siderolabs/talos/blob/v1.14.6/internal/app/machined/pkg/controllers/k8s/internal/k8stemplates/scheduler.go#L37-L74
@@ -76,7 +76,7 @@ locals {
       apiVersion = "v1alpha1"
       kind       = "KubeControllerManagerConfig"
       extraArgs = {
-        # NOTE: 別のノードのAlloyが/metricsを取得するため、Talosの既定値の127.0.0.1ではなく全インターフェースで待ち受ける
+        # NOTE: 別のノードのAlloyが/metricsを取得するため、Talosの既定値である127.0.0.1ではなく全インターフェイスで待ち受ける
         #       Talosが生成するstatic podのprobeはlocalhostに接続するため、ノードのIPアドレスだけで待ち受けることはできない
         #       ref: https://github.com/siderolabs/talos/blob/v1.14.6/internal/app/machined/pkg/controllers/k8s/control_plane_final.go#L274
         #       ref: https://github.com/siderolabs/talos/blob/v1.14.6/internal/app/machined/pkg/controllers/k8s/internal/k8stemplates/controller-manager.go#L85-L110
@@ -88,7 +88,7 @@ locals {
         etcd = {
           extraArgs = {
             # NOTE: etcdがクライアント証明書を要求する2383番ポートのmetricsは、etcdのすべてのデータを読み書きできる証明書でしか取得できない
-            #       そのため、ノードの中だけで平文のmetricsを公開し、kube-rbac-proxyがKubernetesの認可を行なってから中継する
+            #       そのため、ノード内だけで平文のmetricsを公開し、kube-rbac-proxyでKubernetesの認可を行なってから中継する
             #       Talosはこの設定を変更してもetcdを再起動しないため、適用後にノードの再起動が必要
             #       ref: https://github.com/siderolabs/talos/blob/v1.14.6/internal/app/machined/pkg/system/services/etcd.go#L451-L470
             listen-metrics-urls = "http://127.0.0.1:2381"
@@ -100,7 +100,7 @@ locals {
       apiVersion = "v1alpha1"
       kind       = "Layer2VIPConfig"
       name       = local.talos_cluster_vip
-      # NOTE: 各モジュールのLinkAliasConfigがLANのインターフェースに付ける別名
+      # NOTE: 各モジュールのLinkAliasConfigがLANのインターフェイスに付ける別名
       link = "net0"
     }),
     ], [
@@ -180,7 +180,7 @@ locals {
 }
 
 locals {
-  # NOTE: 初回導入と以降のArgo CDの同期で描画を揃えるため、chartの指定をApplicationSetのパラメーターから取得
+  # NOTE: 初回導入時と以降のArgo CDによる同期で描画結果を揃えるため、chartの指定をApplicationSetのパラメーターから取得
   helm_applications = {
     for name in ["cilium", "argocd"] : name => yamldecode(file("${path.module}/../kubernetes/apps/${name}/app.yaml"))
   }
@@ -203,7 +203,7 @@ data "talos_client_configuration" "this" {
   nodes     = [local.rpi4_address]
 }
 
-# NOTE: Talosのアップグレードの前にノードをdrainするためのkubeconfig。stateに残さないようephemeralで生成
+# NOTE: Talosのアップグレード前にノードをdrainするためのkubeconfig。stateに残さないようephemeralで生成
 ephemeral "talos_cluster_kubeconfig" "this" {
   cluster_name    = local.talos_cluster_name
   endpoint        = local.talos_cluster_endpoint
@@ -266,7 +266,7 @@ locals {
       {
         "topology.kubernetes.io/zone" = "home"
       },
-      # NOTE: CephのOSDを置く永続化用のノードの場合はラベルを付与
+      # NOTE: CephのOSDを置く永続化用ノードにはラベルを付与
       server.ceph_osd == null ? {} : {
         "cffnpwr.dev/storage" = "true"
       },
@@ -276,7 +276,7 @@ locals {
 
 # NOTE: control planeのTalosを1台ずつ更新するため、for_eachを使わずにノードごとにモジュールを呼び出し、upgrade_afterで順序を付ける。
 #       同時に更新すると、drain・再起動が重なりetcdのクォーラムを失うおそれがある。
-#       for_eachの同じモジュールの呼び出しでは、インスタンス間で参照すると循環参照になるため順序を付けられない
+#       for_eachによる同一モジュールの呼び出しでは、インスタンス間で参照すると循環参照になるため順序を付けられない
 module "cpwr_svr1" {
   source = "./modules/metal-amd64"
 

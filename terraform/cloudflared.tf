@@ -1,7 +1,7 @@
 resource "cloudflare_zero_trust_tunnel_cloudflared" "home" {
   account_id = local.cloudflare_account_id
   name       = "cffnpwr-home"
-  # NOTE: 公開ルートをCloudflare Tunnel Ingress Controllerから管理するためのリモート管理
+  # NOTE: 公開ルートをCloudflare Tunnel Ingress Controllerから管理するため、リモート管理を有効化
   config_src = "cloudflare"
 }
 
@@ -10,7 +10,7 @@ data "cloudflare_account_api_token_permission_groups_list" "cloudflared_write" {
   name       = "Cloudflare%20One%20Connector%3A%20cloudflared%20Write"
 }
 
-# NOTE: Cloudflare Tunnel Ingress Controllerが、トンネルの公開ルートとDNSレコードの管理に使うトークン
+# NOTE: Cloudflare Tunnel Ingress Controllerがトンネルの公開ルートとDNSレコードの管理に使うトークン
 resource "cloudflare_account_token" "cloudflare_tunnel_ingress_controller" {
   account_id = local.cloudflare_account_id
   name       = "${local.cloudflare_account_token_name_prefix}cloudflare-tunnel-ingress-controller"

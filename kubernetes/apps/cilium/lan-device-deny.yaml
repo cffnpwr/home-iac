@@ -14,7 +14,7 @@ spec:
   enableDefaultDeny:
     ingress: false
     egress: false
-  # NOTE: CIDRの規則はノードのIPアドレスに適用されないため、ノード以外の自宅LANの機器への通信だけを拒否
+  # NOTE: CIDRのルールはノードのIPアドレスに適用されないため、ノード以外の自宅LAN機器への通信だけを拒否
   egressDeny:
     - toCIDR:
         - 192.168.0.0/23

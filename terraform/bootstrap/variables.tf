@@ -12,18 +12,18 @@ variable "cloudflare_api_token_apply" {
 }
 
 variable "netbird_pat_read_only" {
-  description = "CIのplanがnetbird providerで使う読み取り専用のサービスユーザーのPAT"
+  description = "CIのplanがnetbird providerで使う読み取り専用サービスユーザーのPAT"
   type        = string
   sensitive   = true
 }
 
 variable "netbird_pat_read_write" {
-  description = "CIのapplyがnetbird providerで使う管理者のサービスユーザーのPAT"
+  description = "CIのapplyがnetbird providerで使う管理者サービスユーザーのPAT"
   type        = string
   sensitive   = true
 }
 
-# NOTE: クライアントはGoogle Cloudのコンソールでしか作れないためシークレットを変数で受け取る
+# NOTE: クライアントはGoogle Cloudのコンソールでしか作成できないため、シークレットを変数で受け取る
 variable "google_workspace_access_client_secret" {
   description = "AccessがGoogle Workspaceにログインするときに使うOAuthクライアントのシークレット"
   type        = string
@@ -32,23 +32,23 @@ variable "google_workspace_access_client_secret" {
 
 # NOTE: GitHub AppのClient IDと秘密鍵はTerraformで作れないため、変数で受け取る
 variable "plan_app_client_id" {
-  description = "CIのplanがGitHub providerのトークンの発行に使うGitHub AppのClient ID"
+  description = "CIのplanがGitHub provider用のトークン発行に使うGitHub AppのClient ID"
   type        = string
 }
 
 variable "plan_app_private_key" {
-  description = "CIのplanがGitHub providerのトークンの発行に使うGitHub Appの秘密鍵"
+  description = "CIのplanがGitHub provider用のトークン発行に使うGitHub Appの秘密鍵"
   type        = string
   sensitive   = true
 }
 
 variable "apply_app_client_id" {
-  description = "CIのapplyがGitHub providerのトークンの発行に使うGitHub AppのClient ID"
+  description = "CIのapplyがGitHub provider用のトークン発行に使うGitHub AppのClient ID"
   type        = string
 }
 
 variable "apply_app_private_key" {
-  description = "CIのapplyがGitHub providerのトークンの発行に使うGitHub Appの秘密鍵"
+  description = "CIのapplyがGitHub provider用のトークン発行に使うGitHub Appの秘密鍵"
   type        = string
   sensitive   = true
 }

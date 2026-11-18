@@ -77,7 +77,7 @@ spec:
             - name: dhcp
               containerPort: 67
               protocol: UDP
-            # NOTE: HAのdedicated listenerは、peersのうち自分のurlのポートで待ち受け
+            # NOTE: HAのdedicated listenerはpeersのうち自ノードのurlにあるポートで待ち受け
             - name: ha
               containerPort: 18000
           volumeMounts:

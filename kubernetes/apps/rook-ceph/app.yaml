@@ -6,7 +6,7 @@ chart:
   name: rook-ceph
   version: v1.21.2
 manifests: true
-# NOTE: namespaceを作るrook-ceph-namespaceのApplicationの同期完了までの再試行
+# NOTE: namespaceを作成するrook-ceph-namespace Applicationの同期完了まで再試行
 retry:
   limit: 10
   backoff:

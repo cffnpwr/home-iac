@@ -19,7 +19,7 @@ var (
 type selfNode struct {
 	// DHCPを待ち受けるインターフェイスのアドレス
 	lanAddress netip.Addr
-	// HAのピア間の通信に使うcilium_hostのアドレス
+	// HAのピア間通信に使うcilium_hostのアドレス
 	ciliumInternalIP netip.Addr
 }
 

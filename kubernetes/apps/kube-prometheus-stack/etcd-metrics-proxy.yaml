@@ -1,14 +1,14 @@
-# NOTE: Kubernetesの認可を行なってから、etcdがノードの中（127.0.0.1:2381）だけで公開する平文のmetricsをTLSで中継する
+# NOTE: Kubernetesの認可を行なってから、etcdがノード内（127.0.0.1:2381）だけで公開する平文のmetricsをTLSで中継する
 #       etcdがクライアント証明書を要求する2383番ポートのmetricsは、etcdのすべてのデータを読み書きできる証明書でしか取得できないため、
 #       AlloyにはService Accountのトークンで/metricsのgetだけを許可する
-#       kube-prometheus-stackのkube-etcdのServiceがkube-systemのPodだけを選ぶため、kube-systemに置く
+#       kube-prometheus-stackのkube-etcd Serviceがkube-systemのPodだけを選択するため、kube-systemに配置
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: etcd-metrics-proxy
   namespace: kube-system
 ---
-# NOTE: kube-rbac-proxyが、TokenReviewでトークンを認証し、SubjectAccessReviewで認可する
+# NOTE: kube-rbac-proxyがTokenReviewでトークンを認証し、SubjectAccessReviewで認可する
 #       ref: https://github.com/kube-rbac-proxy/kube-rbac-proxy/blob/v0.23.1/examples/non-resource-url/README.md
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -41,7 +41,7 @@ spec:
       # NOTE: etcdが動くcontrol planeにだけ配置
       nodeSelector:
         node-role.kubernetes.io/control-plane: ""
-      # NOTE: control planeのメモリのrequestsに空きが無い場合も配置するため、優先度が0のPodをプリエンプションの対象にできる優先度を設定
+      # NOTE: control planeのメモリrequestsに空きがない場合も配置するため、優先度0のPodをプリエンプションできる優先度を設定
       #       同じ優先度のCephのmgr・MDSとcontrol planeのコンポーネントはプリエンプションの対象にならない
       priorityClassName: system-cluster-critical
       # NOTE: etcdのmetricsは127.0.0.1だけで待ち受けるため、ノードのnetwork namespaceで動かす
@@ -54,10 +54,10 @@ spec:
         - name: kube-rbac-proxy
           image: ghcr.io/kube-rbac-proxy/kube-rbac-proxy:v0.23.1@sha256:f723251bdd90a806b5331b6e9f9287cc2832d3dd9f9479378cdbbddb9856724f
           args:
-            # NOTE: hostNetworkのPodのIPアドレスはノードのIPアドレスのため、ノードのIPアドレスだけで待ち受ける
+            # NOTE: hostNetworkを使うPodのIPアドレスはノードのIPアドレスになるため、ノードのIPアドレスだけで待ち受ける
             - --secure-listen-address=[$(POD_IP)]:2382
             - --upstream=http://127.0.0.1:2381/
-            # NOTE: etcdのmetricsのエンドポイントは/healthも返すため、/metricsだけを中継する
+            # NOTE: etcdのmetricsエンドポイントは/healthも返すため、/metricsだけを中継する
             - --allow-paths=/metrics
             # NOTE: 証明書を指定しないため、kube-rbac-proxyが起動時に自己署名の証明書をメモリ上に作る
             - --tls-min-version=VersionTLS13
