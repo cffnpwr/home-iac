@@ -6,6 +6,7 @@ lockfile_platforms = ["macos-arm64", "linux-x64", "linux-arm64"]
 uv = "0.13.8"
 terraform = "1.17.2"
 tflint = "0.66.0"
+"aqua:sharkdp/fd" = "10.5.2"
 "aqua:suzuki-shunsuke/tfcmt" = "4.14.20"
 talosctl = "1.14.6"
 kubectl = "1.37.2"
@@ -118,10 +119,6 @@ run = [
   "tflint --recursive --config \"$MISE_PROJECT_ROOT/.tflint.hcl\"",
 ]
 
-[tasks."lint:yaml"]
-description = "YAMLを検査する"
-run = "yamllint ."
-
 [tasks."lint:schema"]
 description = "アプリケーション定義をJSON Schemaで検査する"
 run = "check-jsonschema --schemafile kubernetes/schemas/app.schema.json kubernetes/apps/*/app.yaml"
@@ -130,10 +127,15 @@ run = "check-jsonschema --schemafile kubernetes/schemas/app.schema.json kubernet
 description = "Helmのvaluesを検査する"
 run = "sh kubernetes/scripts/check-helm-values.sh"
 
+[tasks."lint:yaml"]
+description = "Lint YAML"
+# yamllintは.gitignoreを読まないため、.gitignoreに従うfdで対象のファイルを列挙
+run = "fd --hidden --exclude .git --type file --extension yaml --extension yml --exec-batch yamllint"
+
 [tasks."lint:shell"]
-description = "シェルスクリプトを検査する"
-# NOTE: gitignoreされた作業用・依存・状態のディレクトリをshellcheckの対象から除外
-run = "find . \\( -name .git -o -name .jj -o -name .tmp -o -name .terraform \\) -prune -o -name '*.sh' -type f -exec shellcheck {} +"
+description = "Lint shell scripts"
+# shellcheckは.gitignoreを読まないため、.gitignoreに従うfdで対象のファイルを列挙
+run = "fd --hidden --exclude .git --type file --extension sh --exec-batch shellcheck"
 
 [tasks."lint:markdown"]
 description = "Markdownを検査する"

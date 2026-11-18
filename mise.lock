@@ -55,6 +55,26 @@ checksum = "sha256:82e319eaf4be6d1268f01940590f59dc5c873955d4d2110b7fd45ce685b57
 url = "https://github.com/numtide/treefmt/releases/download/v2.6.0/treefmt_2.6.0_darwin_arm64.tar.gz"
 url_api = "https://api.github.com/repos/numtide/treefmt/releases/assets/538372971"
 
+[[tools."aqua:sharkdp/fd"]]
+version = "10.5.2"
+backend = "aqua:sharkdp/fd"
+specifiers = ["10.5.2"]
+
+[tools."aqua:sharkdp/fd"."platforms.linux-arm64"]
+checksum = "sha256:4b144f38bd7352cd4c95020b58e8e575476e60edcdf1dc5e0733e3d01efba6dd"
+url = "https://github.com/sharkdp/fd/releases/download/v10.5.2/fd-v10.5.2-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/sharkdp/fd/releases/assets/719978299"
+
+[tools."aqua:sharkdp/fd"."platforms.linux-x64"]
+checksum = "sha256:985e24041e9ef6e9a38e9e088743405dde23d7220aa96740f091862167d9ff28"
+url = "https://github.com/sharkdp/fd/releases/download/v10.5.2/fd-v10.5.2-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/sharkdp/fd/releases/assets/719976301"
+
+[tools."aqua:sharkdp/fd"."platforms.macos-arm64"]
+checksum = "sha256:81bf98a16d3d7230e4a9123fcede243d71ea31a577113476ed43f1cdf4773162"
+url = "https://github.com/sharkdp/fd/releases/download/v10.5.2/fd-v10.5.2-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/sharkdp/fd/releases/assets/719971048"
+
 [[tools."aqua:suzuki-shunsuke/tfcmt"]]
 version = "4.14.20"
 backend = "aqua:suzuki-shunsuke/tfcmt"
@@ -85,20 +105,33 @@ specifiers = ["v0.83.1"]
 
 [tools."github:netbirdio/netbird"."platforms.linux-arm64"]
 checksum = "sha256:ba2dd9b96fda1443b851a3660037557c8e2289c45f7016926fccea5ee42b7411"
-checksum_source = "mise-versions"
 url = "https://github.com/netbirdio/netbird/releases/download/v0.83.1/netbird_0.83.1_linux_arm64.tar.gz"
 url_api = "https://api.github.com/repos/netbirdio/netbird/releases/assets/743589082"
 
 [tools."github:netbirdio/netbird"."platforms.linux-x64"]
 checksum = "sha256:a7c79ea3cb61029c5565277152e1c32cd3ccb5258dc35c86d8d3a5b5793b91da"
-checksum_source = "mise-versions"
 url = "https://github.com/netbirdio/netbird/releases/download/v0.83.1/netbird_0.83.1_linux_amd64.tar.gz"
 url_api = "https://api.github.com/repos/netbirdio/netbird/releases/assets/743589221"
+
+[tools."github:netbirdio/netbird"."platforms.macos-arm64"]
+checksum = "sha256:949c81c6d2c7bbc42d8a0d310ffd1d4ab899dce52748a43d2edc16e83d7e2362"
+url = "https://github.com/netbirdio/netbird/releases/download/v0.83.1/netbird_0.83.1_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/netbirdio/netbird/releases/assets/743589155"
 
 [[tools."github:remko/age-plugin-se"]]
 version = "0.2.1"
 backend = "github:remko/age-plugin-se"
 specifiers = ["0.2.1"]
+
+[tools."github:remko/age-plugin-se"."platforms.linux-arm64"]
+checksum = "sha256:a074feef0aa9615eaf18172def462fe58efdd9982e8913c2c929e1385fd7267d"
+url = "https://github.com/remko/age-plugin-se/releases/download/v0.2.1/age-plugin-se-v0.2.1-aarch64-linux.tgz"
+url_api = "https://api.github.com/repos/remko/age-plugin-se/releases/assets/333525905"
+
+[tools."github:remko/age-plugin-se"."platforms.linux-x64"]
+checksum = "sha256:feb31e615f46f9b852b289d40827c5b96e2151d72b47687b3722d3edae260838"
+url = "https://github.com/remko/age-plugin-se/releases/download/v0.2.1/age-plugin-se-v0.2.1-x86_64-linux.tgz"
+url_api = "https://api.github.com/repos/remko/age-plugin-se/releases/assets/333525944"
 
 [tools."github:remko/age-plugin-se"."platforms.macos-arm64"]
 checksum = "sha256:d88104198f99441ce4b699227eacdb6e72ab67c65b2a31273aa3ccc96ef81f47"
@@ -174,13 +207,11 @@ specifiers = ["0.51.0"]
 
 [tools.k9s."platforms.linux-arm64"]
 checksum = "sha256:3ee05c82e5f9198928a4e86133608ba6a2c10a2244d6a7789e820f78319d640c"
-checksum_source = "mise-versions"
 url = "https://github.com/derailed/k9s/releases/download/v0.51.0/k9s_Linux_arm64.tar.gz"
 url_api = "https://api.github.com/repos/derailed/k9s/releases/assets/440226045"
 
 [tools.k9s."platforms.linux-x64"]
 checksum = "sha256:c3752ad51a5a4015a113819c4eeb6e55a4d0e4b8e652494797532f6fc8161dd7"
-checksum_source = "mise-versions"
 url = "https://github.com/derailed/k9s/releases/download/v0.51.0/k9s_Linux_amd64.tar.gz"
 url_api = "https://api.github.com/repos/derailed/k9s/releases/assets/440224321"
 
@@ -213,19 +244,16 @@ specifiers = ["0.41.2"]
 
 [tools.kubeseal."platforms.linux-arm64"]
 checksum = "sha256:8a73c0b252f6c0e8752a7a749da51f55a6e99dc5603e3bd29ed3c00ff9e82db2"
-checksum_source = "mise-versions"
 url = "https://github.com/bitnami/sealed-secrets/releases/download/v0.41.2/kubeseal-0.41.2-linux-arm64.tar.gz"
 url_api = "https://api.github.com/repos/bitnami/sealed-secrets/releases/assets/678156095"
 
 [tools.kubeseal."platforms.linux-x64"]
 checksum = "sha256:666b5db6788ad1dedb56e2d97064e1cc3779aa77bbd6f4b56b62beeb1941ed79"
-checksum_source = "mise-versions"
 url = "https://github.com/bitnami/sealed-secrets/releases/download/v0.41.2/kubeseal-0.41.2-linux-amd64.tar.gz"
 url_api = "https://api.github.com/repos/bitnami/sealed-secrets/releases/assets/678156109"
 
 [tools.kubeseal."platforms.macos-arm64"]
 checksum = "sha256:4f9ce57bb69c419f1a94e88e0d2d5755b395f7926e34d99bf91bc8e084e27ae4"
-checksum_source = "mise-versions"
 url = "https://github.com/bitnami/sealed-secrets/releases/download/v0.41.2/kubeseal-0.41.2-darwin-arm64.tar.gz"
 url_api = "https://api.github.com/repos/bitnami/sealed-secrets/releases/assets/678156090"
 
