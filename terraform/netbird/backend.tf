@@ -1,10 +1,10 @@
 terraform {
   backend "s3" {
     bucket = "home-iac-tfstate"
-    # NOTE: クラスタのrootと同じバケットに、別のkeyで保存
+    # NOTE: クラスタのrootと同じバケットに別のkeyで保存
     key = "netbird.tfstate"
 
-    # NOTE: R2はAWSではないため、リージョンはauto固定としAWS向けの検証・チェックサムを無効にする。
+    # NOTE: R2はAWSではないため、リージョンはauto固定とし、AWS向けの検証・チェックサムを無効化
     region                      = "auto"
     skip_credentials_validation = true
     skip_metadata_api_check     = true

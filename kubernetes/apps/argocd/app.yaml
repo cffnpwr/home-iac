@@ -5,8 +5,8 @@ chart:
   repoURL: https://argoproj.github.io/argo-helm
   name: argo-cd
   version: 10.18.0
-  # NOTE: Terraformが初回導入のhelm_templateのリリース名として参照するため明示
+  # NOTE: Terraformが初回導入時のhelm_templateでリリース名として参照するため明示
   releaseName: argocd
 talosBootstrap: true
-# NOTE: OIDCのクライアントのSealedSecretを、chartとあわせて同期
+# NOTE: OIDCクライアントのSealedSecretをchartとあわせて同期
 manifests: true

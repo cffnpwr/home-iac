@@ -41,7 +41,7 @@ resource "cloudflare_zero_trust_access_application" "grafana" {
     redirect_uris = [local.grafana_access_redirect_uri]
     # NOTE: GrafanaのセッションをAccessのrefresh tokenで延長するため
     grant_types = ["authorization_code_with_pkce", "refresh_tokens"]
-    # NOTE: Grafanaが、groupsのapp-grafana-adminで管理者のロールを割り当てるため
+    # NOTE: Grafanaがgroupsのapp-grafana-adminで管理者ロールを割り当てるため
     scopes = ["openid", "email", "profile", "groups"]
     # NOTE: ID tokenの有効期間はこの値に関係なく5分
     #       Grafanaはaccess tokenとID tokenのどちらかの期限が切れるとrefreshするため、ID tokenより長くしてもrefreshの間隔は変わらない

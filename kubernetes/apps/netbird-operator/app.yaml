@@ -2,13 +2,13 @@
 # NOTE: APIトークンのSecretとNetworkRouterは、netbirdのApplicationが同じnamespaceに作成
 namespace: netbird
 chart:
-  # NOTE: OCIのリポジトリは、Argo CDの指定方法に合わせて`oci://`を付けない
+  # NOTE: OCIリポジトリにはArgo CDの指定方法に合わせて`oci://`を付けない
   repoURL: ghcr.io/netbirdio/helm-charts
   name: netbird-operator
   version: 0.9.0
 # NOTE: chartがPodDisruptionBudgetを作らないため、PodDisruptionBudgetをchartとあわせて同期
 manifests: true
-# NOTE: namespaceを作るnetbird・CRDを作るcert-managerのApplicationの同期完了までの再試行
+# NOTE: namespaceを作成するnetbirdとCRDを作成するcert-managerの同期完了まで再試行
 retry:
   limit: 10
   backoff:

@@ -14,7 +14,7 @@ spec:
           - rook-ceph-mds
           - rook-ceph-mgr
   ingress:
-    # NOTE: hostNetworkのCSIのPodとノードのカーネルのCephクライアントが接続するためremote-nodeからの接続を許可
+    # NOTE: hostNetworkで動くCSIのPodとノードのカーネル内Cephクライアントが接続するため、remote-nodeからの接続を許可
     - fromEntities:
         - remote-node
       toPorts:

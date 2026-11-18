@@ -5,17 +5,17 @@ on:
       - main
     paths:
       - "terraform/**"
-      # NOTE: bootstrapのrootは手元でapplyするためCIのapplyの対象外
+      # NOTE: bootstrapのrootは手元でapplyするため、CIでのapplyの対象外
       - "!terraform/bootstrap/**"
       - "mise.toml"
       - "mise.lock"
       - ".github/actions/netbird/**"
       - ".github/workflows/terraform-apply.yaml"
-  # NOTE: Talos APIのクライアント証明書を期限切れの前にtls_locally_signed_certのearly_renewal_hoursの期間内で更新
+  # NOTE: Talos APIのクライアント証明書を期限切れ前のearly_renewal_hoursの期間内に更新
   schedule:
     - cron: "0 18 * * 0"
   workflow_dispatch:
-# NOTE: 途中で止めたapplyはstateのロックとリソースの不整合を残すため、実行中のapplyを取り消さない
+# NOTE: applyを途中で止めるとstateのロックやリソースの不整合が残るため、実行中のapplyは取り消さない
 concurrency:
   group: ${{ github.workflow_ref }}
   cancel-in-progress: false
@@ -27,7 +27,7 @@ jobs:
     environment: terraform-apply
     permissions:
       contents: read
-      # NOTE: tfcmtがマージしたPRにapplyの結果をコメントするため
+      # NOTE: マージされたPRにtfcmtがapplyの結果をコメントするため
       pull-requests: write
     env:
       TF_IN_AUTOMATION: "true"
@@ -56,8 +56,8 @@ jobs:
         with:
           setup-key: ${{ secrets.NETBIRD_SETUP_KEY }}
           wait-address: 192.168.0.129:50000
-      # NOTE: S3 backendの認証情報は、CLOUDFLARE_API_TOKENのトークンから作る
-      #       認証情報をマスクしてstepのoutputに書きクラスタのrootのapplyのstepにだけ渡す
+      # NOTE: S3 backendの認証情報はCLOUDFLARE_API_TOKENから作成する
+      #       認証情報をマスクしてstepのoutputに書き込み、クラスタのrootをapplyするstepにだけ渡す
       - id: r2-credentials
         uses: cffnpwr/actions/.github/actions/r2-credentials@88085acca51e69d57d9be1117c49a5ade952d72a # main
         with:
@@ -78,7 +78,7 @@ jobs:
           TF_VAR_sealed_secrets_private_key: ${{ secrets.SEALED_SECRETS_PRIVATE_KEY }}
           TF_VAR_sealed_secrets_cert: ${{ vars.SEALED_SECRETS_CERT }}
           TF_VAR_google_workspace_access_identity_provider_id: ${{ vars.GOOGLE_WORKSPACE_ACCESS_IDENTITY_PROVIDER_ID }}
-      # NOTE: netbirdのrootはクラスタのrootが使う接続のポリシーを変更しうるため、クラスタのrootの後に実行
+      # NOTE: netbirdのrootはクラスタへの接続ポリシーを変更しうるため、クラスタのrootの後に実行
       #       2つのrootは独立しているため、クラスタのrootの成否に関係なく実行
       - name: Apply terraform/netbird
         if: ${{ !cancelled() && steps.app-token.outcome == 'success' }}
@@ -95,7 +95,7 @@ jobs:
     uses: $/.github/workflows/reseal-sealed-secrets.yaml
     permissions:
       contents: read
-    # NOTE: environmentのシークレットも呼び出し元が渡す必要がある。呼び出し先のjobはenvironmentの値を優先して使う
+    # NOTE: environmentのシークレットも呼び出し元から渡す必要があり、呼び出し先のjobではenvironmentの値が優先される
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

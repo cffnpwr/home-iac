@@ -11,7 +11,7 @@ repository=cffnpwr/home-iac
 event_type=sealed-secrets-key-added
 github_api=https://api.github.com
 
-# NOTE: PEMの改行の差を無視して比べるための、ヘッダー行・フッター行を除いたbase64の抽出
+# NOTE: PEMの改行の差を無視して比較するため、ヘッダー行・フッター行を除いたbase64部分を抽出
 pem_body() {
   grep -v -e '-----' | tr -d '\r\n'
 }
@@ -31,7 +31,7 @@ kubectl get secrets -n "${controller_namespace}" -l sealedsecrets.bitnami.com/se
 backed_up_latest=false
 while read -r uid name <&3; do
   cert=$(kubectl get secrets -n "${controller_namespace}" "${name}" -o jsonpath='{.data.tls\.crt}' | base64 -d | pem_body)
-  # NOTE: 平文の鍵を一時ファイルに書き出さないための、パイプでの暗号化
+  # NOTE: 平文の鍵を一時ファイルに書き出さないようパイプで暗号化
   kubectl get secrets -n "${controller_namespace}" "${name}" -o yaml \
     | age --encrypt --recipients-file "${RECIPIENTS_FILE}" --output "${WORK_DIR}/key.yaml.age"
   rclone copyto --ignore-existing "${WORK_DIR}/key.yaml.age" "${bucket}/sealed-secrets-key-${uid}.yaml.age"
@@ -41,7 +41,7 @@ while read -r uid name <&3; do
   fi
 done 3< "${WORK_DIR}/keys.txt"
 
-# NOTE: 退避していない鍵の証明書での封入を防ぐため、最新の鍵の退避後だけ証明書を送信
+# NOTE: 未退避の鍵に対応する証明書での封入を防ぐため、最新の鍵を退避した後だけ証明書を送信
 if [ "${backed_up_latest}" != true ]; then
   echo "the key of the latest certificate is not backed up" >&2
   exit 1

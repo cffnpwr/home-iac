@@ -4,7 +4,7 @@ metadata:
   name: kea-dhcp4
   namespace: kea
 ---
-# NOTE: kea-ha-peersが、自宅のノードのCiliumNodeからHAのピアとDHCPのインターフェイスを検出
+# NOTE: kea-ha-peersが自宅ノードのCiliumNodeからHAのピアとDHCPのインターフェイスを検出
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:

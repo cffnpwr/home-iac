@@ -48,7 +48,7 @@ func TestAssign(t *testing.T) {
 			},
 		},
 		{
-			name:      "[positive] アドレスが無いとき空になる",
+			name:      "[positive] アドレスがないとき空になる",
 			addresses: nil,
 			want:      []Peer{},
 		},

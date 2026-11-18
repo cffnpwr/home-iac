@@ -12,7 +12,7 @@
 - 鍵が更新されたときの再暗号化では`kubectl`でクラスタに接続できる
 
 暗号化にはリポジトリの`kubernetes/apps/sealed-secrets/cert.pem`を使う。
-この証明書はsealed-secrets controllerが新しい鍵を追加したときに実行される`.github/workflows/reseal-sealed-secrets.yaml`のworkflowが更新する。
+sealed-secrets controllerが新しい鍵を追加すると、`.github/workflows/reseal-sealed-secrets.yaml`がこの証明書を更新する。
 
 各手順では次の変数を使う。
 
@@ -30,9 +30,9 @@ SealedSecretは単一の値からもSecretのマニフェストからも作成�
 
 コマンドの`<value-command>`は値を標準出力へ書き出すコマンドで置き換える。
 `<value-command>`の出力は末尾の改行も含めて値になる。
-値は標準入力で渡すためコマンドラインの引数に平文を含めずに済む。
+値は標準入力で渡すため、コマンドラインの引数に平文を含めずに済む。
 
-1. 値を暗号化しSealedSecretのファイルを作成する
+1. 値を暗号化してSealedSecretのファイルを作成する
 
    ```sh
    <value-command> \
@@ -50,7 +50,7 @@ SealedSecretは単一の値からもSecretのマニフェストからも作成�
 複数のキーをまとめて暗号化する場合はSecretのマニフェストを`kubeseal`に渡す。
 
 1. Secretのマニフェストを作成する。
-   値は`stringData`に平文で書くか`data`にBase64で書く
+   値は`stringData`に平文で書くか、`data`にBase64で書く
 
    ```yaml
    apiVersion: v1
@@ -72,7 +72,7 @@ SealedSecretは単一の値からもSecretのマニフェストからも作成�
      <key>: <base64-encoded-value>
    ```
 
-2. マニフェストを暗号化しSealedSecretのファイルを作成する
+2. マニフェストを暗号化してSealedSecretのファイルを作成する
 
    ```sh
    kubeseal --cert "$cert" --format json < <secret-file> \
@@ -85,15 +85,15 @@ SealedSecretは単一の値からもSecretのマニフェストからも作成�
 
 ## キーの追加・値の更新
 
-1. 対象のファイルの`home-iac/cert-sha256`が`$cert_sha256`と一致することを確認する。
-   1つのファイルの中で暗号化に使った証明書を揃えるため、一致しない場合は先に[鍵が更新されたときの再暗号化](#鍵が更新されたときの再暗号化)を行なう
+1. 対象ファイルの`home-iac/cert-sha256`が`$cert_sha256`と一致することを確認する。
+   1つのファイル内で暗号化に使う証明書を揃えるため、一致しない場合は先に[鍵が更新されたときの再暗号化](#鍵が更新されたときの再暗号化)を行なう
 
    ```sh
    yq '.metadata.annotations["home-iac/cert-sha256"]' kubernetes/apps/<app>/<name>.yaml
    echo "$cert_sha256"
    ```
 
-2. 値を暗号化しファイルの`spec.encryptedData`に書き込む。
+2. 値を暗号化してファイルの`spec.encryptedData`に書き込む。
    既存のキーを指定した場合は値を置き換える。
    `<value-command>`は[単一の値から作成する](#単一の値から作成する)と同じく置き換える
 
@@ -103,9 +103,9 @@ SealedSecretは単一の値からもSecretのマニフェストからも作成�
    yq -i '.spec.encryptedData["<key>"] = strenv(encrypted)' kubernetes/apps/<app>/<name>.yaml
    ```
 
-3. 変更をmainにマージしArgo CDが同期するまで待つ
-4. Podは起動した後に変わったSecretの値を環境変数に反映しないため、値を更新した場合はSecretを環境変数で参照するPodを再起動する。
-   Reloaderの対象のSecretはReloaderがPodを再起動する。
+3. 変更をmainにマージし、Argo CDが同期するまで待つ
+4. Podは起動後に変わったSecretの値を環境変数へ反映しないため、値を更新した場合はSecretを環境変数で参照するPodを再起動する。
+   Reloaderの対象となるSecretでは、ReloaderがPodを再起動する。
    Deployment・DaemonSet・StatefulSetのPodは`kubectl rollout restart`で再起動する
 
    ```sh
@@ -123,20 +123,20 @@ SealedSecretは単一の値からもSecretのマニフェストからも作成�
 ## 鍵が更新されたときの再暗号化
 
 sealed-secrets controllerが新しい鍵を追加すると、再暗号化するworkflowがすべてのSealedSecretを新しい鍵で暗号化し直すPRを作成する。
-workflowはTerraformのoutputの値を`cert.pem`の証明書で暗号化する。
+workflowはTerraformのoutputにある値を`cert.pem`の証明書で暗号化する。
 その後、workflowはnetbird経由でクラスタに接続し、既存のすべてのSealedSecretをcontrollerで再暗号化する。
-古い鍵を削除するJobはすべてのSealedSecretを最新の鍵で復号できる場合だけ古い鍵を削除する。
-このため再暗号化した変更がクラスタに同期されるまで古い鍵は削除されない。
+古い鍵を削除するJobは、すべてのSealedSecretを最新の鍵で復号できる場合だけ古い鍵を削除する。
+このため、再暗号化した変更がクラスタに同期されるまで古い鍵は削除されない。
 
-workflowがクラスタに接続できない場合は`cert.pem`を更新するPRをマージした後に次の手順で手元から再暗号化する。
+workflowがクラスタに接続できない場合は、`cert.pem`を更新するPRをマージした後に次の手順で手元から再暗号化する。
 
 1. `sealed-secrets:reseal`タスクを実行する。
    タスクは`kubernetes/`以下のすべてのSealedSecretを対象にする。
-   このうち`home-iac/cert-sha256`がcontrollerの最新の証明書と一致しないファイルを再暗号化する。
+   このうち`home-iac/cert-sha256`がcontrollerの最新証明書と一致しないファイルを再暗号化する。
    再暗号化はcontrollerが行なうためクラスタへの接続が必要である
 
    ```sh
    mise run sealed-secrets:reseal
    ```
 
-2. 変更したファイルをコミットしmainにマージする
+2. 変更したファイルをコミットし、mainにマージする

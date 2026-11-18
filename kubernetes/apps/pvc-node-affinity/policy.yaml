@@ -13,7 +13,7 @@ spec:
         operations: ["CREATE"]
         resources: ["pods"]
   matchConditions:
-    # NOTE: ephemeralのボリュームはPodの作成時にPVCを作りPVをCephに置くため対象にする
+    # NOTE: ephemeralボリュームはPod作成時にPVCを作ってPVをCeph上に配置するため対象に含める
     - name: uses-pvc
       expression: >-
         has(object.spec.volumes) &&

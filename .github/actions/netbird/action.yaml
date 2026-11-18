@@ -5,9 +5,9 @@ inputs:
     description: CIのピアを登録するephemeralのsetup key
     required: true
   wait-address:
-    description: 接続を確認する、netbird経由で到達する宛先のhost:port
+    description: netbird経由での接続を確認する宛先のhost:port
     required: true
-# NOTE: composite actionにはjobの終了時に実行するpostが無いため、JavaScriptのactionで接続と削除を対にする
+# NOTE: composite actionにはjobの終了時に実行するpostがないため、JavaScriptのactionで接続と削除を対にする
 runs:
   using: node24
   main: main.mjs

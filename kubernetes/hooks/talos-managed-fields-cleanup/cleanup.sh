@@ -37,7 +37,7 @@ resources=$(kubectl get applications.argoproj.io -n argocd -o json \
   | jq -r '.items[].status.resources[]? | [(.group // ""), .kind, (.namespace // ""), .name] | join("|")')
 
 while IFS='|' read -r group kind namespace name; do
-  # NOTE: 空のリソース名でkubectl getを実行しないよう、その行を読み飛ばす
+  # NOTE: 空のリソース名でkubectl getを実行しないよう、空行はスキップする
   if [ -z "${name}" ]; then
     continue
   fi

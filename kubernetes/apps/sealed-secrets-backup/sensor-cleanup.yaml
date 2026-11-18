@@ -52,7 +52,7 @@ spec:
                         image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:6afe8486ce8e10c729b04925c75ebd2e570c694ca516e0bbe096ce614c9d49a0
                         command: [/bin/sh, /opt/sealed-secrets-key-cleanup/cleanup.sh]
                         env:
-                          # NOTE: Sensorのparametersが、イベントが示すSealedSecret名で値を置換
+                          # NOTE: イベントが示すSealedSecret名でSensorのparametersが値を置換
                           - name: TRIGGER_NAME
                             value: ""
                           - name: WORK_DIR
@@ -94,7 +94,7 @@ spec:
                       - name: script
                         configMap:
                           name: sealed-secrets-key-cleanup-script
-                      # NOTE: 秘密鍵をノードのディスクに残さないためのtmpfsの作業用ディレクトリ
+                      # NOTE: 秘密鍵をノードのディスクに残さないための、tmpfsによる作業用ディレクトリ
                       - name: work
                         emptyDir:
                           medium: Memory

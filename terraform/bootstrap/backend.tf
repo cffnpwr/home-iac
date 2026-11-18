@@ -1,10 +1,10 @@
 terraform {
   backend "s3" {
-    # NOTE: main・netbirdのstateと同じバケットに保存する。plan・resealのトークンはこのバケットを読めるがSSE-Cの鍵が無いと取得できない
+    # NOTE: main・netbirdのstateと同じバケットに保存する。plan・resealのトークンはこのバケットを読めるが、SSE-Cの鍵がないと取得できない
     bucket = "home-iac-tfstate"
     key    = "bootstrap.tfstate"
 
-    # NOTE: リージョンはauto固定としAWS向けの検証・チェックサムを無効化
+    # NOTE: リージョンはauto固定とし、AWS向けの検証・チェックサムを無効化
     region                      = "auto"
     skip_credentials_validation = true
     skip_metadata_api_check     = true

@@ -8,6 +8,6 @@ metadata:
   labels:
     # NOTE: istio-cniのhostPathとcapabilityを許可し、istio-cni以外のPodはistio-system-podsで制限
     pod-security.kubernetes.io/enforce: privileged
-    # NOTE: baselineに違反するPodを、作成時の警告と監査ログで検出する
+    # NOTE: baselineに違反するPodを作成時の警告と監査ログで検出する
     pod-security.kubernetes.io/warn: baseline
     pod-security.kubernetes.io/audit: baseline

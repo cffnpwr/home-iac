@@ -1,5 +1,5 @@
 alloy:
-  # NOTE: Grafana Labsへの匿名の利用統計の送信を無効化
+  # NOTE: Grafana Labsへの匿名利用統計の送信を無効化
   #       ref: https://grafana.com/docs/alloy/latest/data-collection/
   enableReporting: false
   configMap:
@@ -13,7 +13,7 @@ alloy:
       prometheus.operator.servicemonitors "default" {
         forward_to = [prometheus.remote_write.mimir.receiver]
 
-        // NOTE: v1のEndpointsのAPIはKubernetes 1.33で非推奨のため、EndpointSliceから収集対象を探す
+        // NOTE: v1のEndpoints APIはKubernetes 1.33で非推奨のため、EndpointSliceから収集対象を検出
         kubernetes_role = "endpointslice"
 
         // NOTE: 収集対象をAlloyのPodで分担するため、clusteringに参加
@@ -21,13 +21,13 @@ alloy:
           enabled = true
         }
 
-        // NOTE: kube-prometheus-stackのPrometheusと同じ間隔で収集するため、Prometheus Operatorの既定のscrape間隔に設定
+        // NOTE: kube-prometheus-stackのPrometheusと同じ間隔で収集するため、Prometheus Operatorにおける既定のscrape間隔に設定
         scrape {
           default_scrape_interval = "30s"
         }
 
         // NOTE: kubelet・kube-apiserver・kube-scheduler・kube-controller-manager・etcdの前に置くkube-rbac-proxyは、
-        //       Service Accountのトークンで認証と認可を行なうため、AlloyのService Accountのトークンを付与
+        //       Service Accountのトークンで認証・認可を行なうため、AlloyのService Accountトークンを付与
         scrape_class {
           name = "service-account-token"
 
@@ -46,7 +46,7 @@ alloy:
           enabled = true
         }
 
-        // NOTE: kube-prometheus-stackのPrometheusと同じ間隔で収集するため、Prometheus Operatorの既定のscrape間隔に設定
+        // NOTE: kube-prometheus-stackのPrometheusと同じ間隔で収集するため、Prometheus Operatorにおける既定のscrape間隔に設定
         scrape {
           default_scrape_interval = "30s"
         }
@@ -83,7 +83,7 @@ controller:
   podDisruptionBudget:
     enabled: true
     maxUnavailable: 1
-  # NOTE: nodeTaintsPolicy: Honorで、Podが許容しないtaintを持つノード（drain中にcordonされたノード等）をskewの計算から除外
+  # NOTE: nodeTaintsPolicy: HonorでPodが許容しないtaintを持つノード（drain中にcordonされたノード等）をskewの計算から除外
   #       StatefulSetのPodはDeploymentが付けるpod-template-hashのラベルを持たないため、matchLabelKeysを指定しない
   topologySpreadConstraints:
     - maxSkew: 1
@@ -95,22 +95,22 @@ controller:
           app.kubernetes.io/instance: alloy
       nodeTaintsPolicy: Honor
 
-# NOTE: chartの既定値は使わないコンポーネントの権限（すべてのnamespaceのSecretの読み取り等）を含むため、使うコンポーネントの権限だけにする
+# NOTE: chartの既定値は使わないコンポーネントの権限（全namespaceのSecret読み取り等）を含むため、使うコンポーネントの権限に限定
 rbac:
   rules:
     # NOTE: prometheus.operator.servicemonitors・podmonitorsがServiceMonitor・PodMonitorを、mimir.rules.kubernetesがPrometheusRuleを読む
     - apiGroups: ["monitoring.coreos.com"]
       resources: ["servicemonitors", "podmonitors", "prometheusrules"]
       verbs: ["get", "list", "watch"]
-    # NOTE: ServiceMonitorの収集対象を、EndpointSlice・Service・Podから探す
+    # NOTE: ServiceMonitorの収集対象をEndpointSliceから検出
     - apiGroups: ["discovery.k8s.io"]
       resources: ["endpointslices"]
       verbs: ["get", "list", "watch"]
-    # NOTE: PodMonitorの収集対象と、ServiceMonitorの収集対象のPod・Serviceのラベルを読む
+    # NOTE: PodMonitorの収集対象と、ServiceMonitorの収集対象であるPod・Serviceのラベルを取得
     - apiGroups: [""]
       resources: ["services", "pods"]
       verbs: ["get", "list", "watch"]
-    # NOTE: kubelet・kube-apiserver・kube-scheduler・kube-controller-managerのServiceMonitorのtlsConfigが参照するkube-root-ca.crtを読む
+    # NOTE: kubelet・kube-apiserver・kube-scheduler・kube-controller-manager用のServiceMonitorでtlsConfigが参照するkube-root-ca.crtを取得
     - apiGroups: [""]
       resources: ["configmaps"]
       verbs: ["get"]

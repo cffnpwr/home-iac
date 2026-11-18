@@ -1,5 +1,5 @@
-# NOTE: Operatorが、この名前のnetbirdのnetworkと、そのルーティングピアのDeploymentを作成
-#       自宅LANのサブネットの宛先は、v1alpha1のNetworkResourceがCIDRを指定できないため、ダッシュボードで追加
+# NOTE: Operatorがこの名前のnetbird networkとルーティングピアのDeploymentを作成
+#       自宅LANサブネットの宛先は、v1alpha1のNetworkResourceでCIDRを指定できないためダッシュボードで追加
 apiVersion: netbird.io/v1alpha1
 kind: NetworkRouter
 metadata:
@@ -16,7 +16,7 @@ spec:
       spec:
         nodeSelector:
           topology.kubernetes.io/zone: home
-        # NOTE: Operatorの既定の配置条件は偏りを許容するため、必須の条件で別々のノードに配置
+        # NOTE: Operatorにおける既定の配置条件は偏りを許容するため、必須条件で別々のノードに配置
         affinity:
           podAntiAffinity:
             requiredDuringSchedulingIgnoredDuringExecution:

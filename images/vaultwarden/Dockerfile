@@ -14,10 +14,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 ADD --checksum=${VAULTWARDEN_COMMIT} https://github.com/dani-garcia/vaultwarden.git#${VAULTWARDEN_VERSION} .
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
-  # NOTE: backendにs3を使用。DBはSQLiteからPostgreSQLへの移行のため両方に対応
+  # NOTE: backendにはs3を使用し、DBはSQLiteからPostgreSQLへの移行のため両方に対応
   VW_VERSION="${VAULTWARDEN_VERSION}" cargo build --locked --features sqlite,postgresql,s3 --release
 
-# NOTE: web-vault・起動スクリプト・ヘルスチェックは、同じバージョンの公式のイメージのものを使う
+# NOTE: web-vault・起動スクリプト・ヘルスチェックには、同じバージョンの公式イメージに含まれるものを使う
 FROM docker.io/vaultwarden/server:1.37.5@sha256:4fe17f415f90087377d37c755e0ea3cf189dcc6794e49cdd2a9adbb4937d9e1f
 
 LABEL org.opencontainers.image.source=https://github.com/cffnpwr/home-iac

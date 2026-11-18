@@ -1,4 +1,4 @@
-# NOTE: Pocket ID・Grafanaが、noreply@cffnpwr.devからメールを送るための送信ドメイン
+# NOTE: Pocket ID・Grafanaがnoreply@cffnpwr.devからメールを送るための送信ドメイン
 resource "cloudflare_email_sending_subdomain" "cffnpwr_dev" {
   zone_id = data.cloudflare_zone.cffnpwr_dev.zone_id
   name    = data.cloudflare_zone.cffnpwr_dev.name

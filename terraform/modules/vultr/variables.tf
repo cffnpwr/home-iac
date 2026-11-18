@@ -56,7 +56,7 @@ variable "region" {
 
 variable "plan" {
   type        = string
-  description = "インスタンスのVultrのプランID"
+  description = "インスタンスに指定するVultrのプランID"
 }
 
 variable "hostname_prefix" {
@@ -66,14 +66,14 @@ variable "hostname_prefix" {
 
 variable "kubeconfig" {
   type        = string
-  description = "Talosのアップグレードの前にノードをdrainするためのkubeconfig"
+  description = "Talosのアップグレード前にノードをdrainするためのkubeconfig"
   sensitive   = true
   ephemeral   = true
 }
 
 variable "talosconfig" {
   type        = string
-  description = "Nodeの待ち合わせと削除で、talos_endpointからkubeconfigを取得するためのtalosconfig"
+  description = "Nodeの待ち合わせと削除でtalos_endpointからkubeconfigを取得するためのtalosconfig"
   sensitive   = true
 }
 

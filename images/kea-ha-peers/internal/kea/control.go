@@ -13,7 +13,7 @@ import (
 
 const (
 	controlTimeout = 30 * time.Second
-	// Keaの制御コマンドの応答で成功を表すresult
+	// Keaの制御コマンド応答で成功を表すresult
 	resultSuccess = 0
 )
 

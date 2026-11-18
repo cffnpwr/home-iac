@@ -2,8 +2,8 @@
 #       netbird.cffnpwr.devはgRPCを受けないためルーティングピアのクライアントが接続するURLはNetworkRouterのpodTemplateで上書き
 managementURL: https://netbird.cffnpwr.dev
 webhook:
-  # NOTE: Pod作成時にsidecarを追加するmutating webhookは無効にできず、failurePolicy: Failのため
-  #       Operatorの停止中にPodを作れなくなる。sidecarを使わないため、どのnamespaceにも一致させない
+  # NOTE: Pod作成時にsidecarを追加するmutating webhookは無効化できず、failurePolicy: FailでOperatorの停止中にPodを作れなくなるため、
+  #       sidecarを使わない構成に合わせてどのnamespaceにも一致させない
   namespaceSelectors:
     - key: kubernetes.io/metadata.name
       operator: In

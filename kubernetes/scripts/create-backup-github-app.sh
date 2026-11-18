@@ -4,7 +4,7 @@ set -eu
 # shellcheck disable=SC3040
 set -o pipefail
 
-# NOTE: 初回の構築ではbootstrapのoutputのsealed_secrets_certを書いたファイルを指定
+# NOTE: 初回構築時はbootstrapが出力したsealed_secrets_certを書いたファイルを指定
 cert=${SEALED_SECRETS_CERT_FILE:-kubernetes/apps/sealed-secrets/cert.pem}
 definition=$(pwd)/.github/apps/backup.yaml
 output=kubernetes/apps/sealed-secrets-backup/sealed-secrets-backup-github-app.yaml
@@ -20,7 +20,7 @@ if [ -f "$output" ] && [ "$is_forced" = false ]; then
   echo "$output already exists; --force overwrites it" >&2
   exit 1
 fi
-# NOTE: 証明書として読めない内容を封入しないため、封入の前に確認
+# NOTE: 証明書として読めない内容を封入しないよう、封入前に検証
 openssl x509 -in "$cert" -noout
 
 work_dir=$(mktemp -d)

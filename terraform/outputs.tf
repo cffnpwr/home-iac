@@ -3,7 +3,7 @@ output "talosconfig" {
   sensitive = true
 }
 
-# NOTE: sealed_secretsの属性名は、各SealedSecretのファイルのパスを、リポジトリルートからの相対パスで表したもの
+# NOTE: sealed_secretsの属性名は、各SealedSecretファイルのパスをリポジトリルートからの相対パスで表したもの
 output "sealed_secrets" {
   value = {
     "kubernetes/apps/sealed-secrets-backup/sealed-secrets-backup-r2.yaml" = {
@@ -11,7 +11,7 @@ output "sealed_secrets" {
       name      = "sealed-secrets-backup-r2"
       data = {
         access-key-id = cloudflare_account_token.sealed_secrets_backup.id
-        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
+        # NOTE: R2のSecret Access Keyには、APIトークンの値をSHA-256でハッシュ化した値を使用
         secret-access-key = sha256(cloudflare_account_token.sealed_secrets_backup.value)
       }
     }
@@ -30,7 +30,7 @@ output "sealed_secrets" {
         access-client-secret = cloudflare_zero_trust_access_application.netbird.saas_app.client_secret
         access-issuer        = "https://${data.cloudflare_zero_trust_organization.this.auth_domain}/cdn-cgi/access/sso/oidc/${cloudflare_zero_trust_access_application.netbird.saas_app.client_id}"
         backup-access-key-id = cloudflare_account_token.netbird_backup.id
-        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
+        # NOTE: R2のSecret Access Keyには、APIトークンの値をSHA-256でハッシュ化した値を使用
         backup-secret-access-key = sha256(cloudflare_account_token.netbird_backup.value)
       }
     }
@@ -39,10 +39,10 @@ output "sealed_secrets" {
       name      = "vaultwarden-r2"
       data = {
         db-access-key-id = cloudflare_account_token.vaultwarden_db.id
-        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
+        # NOTE: R2のSecret Access Keyには、APIトークンの値をSHA-256でハッシュ化した値を使用
         db-secret-access-key = sha256(cloudflare_account_token.vaultwarden_db.value)
         data-access-key-id   = cloudflare_account_token.vaultwarden_data.id
-        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
+        # NOTE: R2のSecret Access Keyには、APIトークンの値をSHA-256でハッシュ化した値を使用
         data-secret-access-key = sha256(cloudflare_account_token.vaultwarden_data.value)
       }
     }
@@ -70,7 +70,7 @@ output "sealed_secrets" {
       data = {
         smtp-password    = cloudflare_account_token.pocket_id_smtp.value
         db-access-key-id = cloudflare_account_token.pocket_id_db.id
-        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
+        # NOTE: R2のSecret Access Keyには、APIトークンの値をSHA-256でハッシュ化した値を使用
         db-secret-access-key = sha256(cloudflare_account_token.pocket_id_db.value)
       }
     }
@@ -88,7 +88,7 @@ output "sealed_secrets" {
       name      = "mimir-r2"
       data = {
         access-key-id = cloudflare_account_token.mimir.id
-        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
+        # NOTE: R2のSecret Access Keyには、APIトークンの値をSHA-256でハッシュ化した値を使用
         secret-access-key = sha256(cloudflare_account_token.mimir.value)
       }
     }
@@ -106,7 +106,7 @@ output "sealed_secrets" {
       name      = "grafana-r2"
       data = {
         db-access-key-id = cloudflare_account_token.grafana_db.id
-        # NOTE: R2のSecret Access Keyは、APIトークンの値をSHA-256でハッシュ化した値を使用
+        # NOTE: R2のSecret Access Keyには、APIトークンの値をSHA-256でハッシュ化した値を使用
         db-secret-access-key = sha256(cloudflare_account_token.grafana_db.value)
       }
     }

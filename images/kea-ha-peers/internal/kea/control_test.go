@@ -23,7 +23,7 @@ func TestCheckResponse(t *testing.T) {
 			wantErr: ErrReload,
 		},
 		{
-			name:    "[negative] resultが無いときErrReloadになる",
+			name:    "[negative] resultがないときErrReloadになる",
 			body:    `{"text":"unexpected"}`,
 			wantErr: ErrReload,
 		},

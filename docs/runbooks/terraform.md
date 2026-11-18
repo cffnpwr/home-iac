@@ -1,6 +1,6 @@
 # Terraformのplan・apply
 
-この手順書はTerraformのplan・applyと、CIが使う認証情報の更新の手順を説明する。
+この手順書はTerraformのplan・applyと、CIが使う認証情報を更新する手順を説明する。
 
 - Terraformのroot
 - CIでのplan・apply
@@ -18,9 +18,9 @@ PRのplan jobに渡る認証情報を減らすため、CIの認証情報とク�
 
 | root | 実行する場所 | 管理するリソース |
 | --- | --- | --- |
-| `terraform/bootstrap/` | 手元 | tfstate用のR2 Bucket・Talosのmachine secrets・Sealed Secretsの初期の鍵とHMACの鍵・Google WorkspaceのAccessのidentity provider・GitHubのenvironmentとCIの認証情報 |
-| `terraform/` | CI（初回は手元） | 各ノードのmachine config・`talos_cluster`・inline manifest・アプリ用のCloudflareのリソース・Pocket IDのidentity provider・`sealed_secrets`のoutput |
-| `terraform/netbird/` | CI | CIのnetbirdのグループ・setup key・ポリシー |
+| `terraform/bootstrap/` | 手元 | tfstate用のR2 Bucket・Talosのmachine secrets・Sealed Secretsの初期鍵とHMAC鍵・Accessで使うGoogle Workspaceのidentity provider・GitHubのenvironmentとCIの認証情報 |
+| `terraform/` | CI（初回は手元） | 各ノードのmachine config・`talos_cluster`・inline manifest・アプリ用のCloudflareリソース・Pocket IDのidentity provider・`sealed_secrets`のoutput |
+| `terraform/netbird/` | CI | CI用のnetbirdグループ・setup key・ポリシー |
 
 `terraform/bootstrap/`のstateは`terraform/`・`terraform/netbird/`と同じR2 Bucket（`home-iac-tfstate`）に保存する。
 bootstrapのstateはSSE-Cで暗号化する。
@@ -38,27 +38,27 @@ CIのjobはこのBucketを読めるがSSE-Cの鍵を渡さないため、bootstr
 
 | 環境変数 | 内容 |
 | --- | --- |
-| `CLOUDFLARE_API_TOKEN` | bootstrap用のCloudflareのアカウントのAPIトークン（[bootstrap用のトークン](#bootstrap用のトークン)） |
-| `VULTR_API_KEY` | VultrのアカウントのAPIキー |
+| `CLOUDFLARE_API_TOKEN` | bootstrap用のCloudflareアカウントAPIトークン（[bootstrap用のトークン](#bootstrap用のトークン)） |
+| `VULTR_API_KEY` | VultrアカウントのAPIキー |
 | `AGE_IDENTITY_FILE` | `sse-customer-key.age`を復号するageのidentityファイルのパス（`AWS_SSE_CUSTOMER_KEY`を設定する場合は不要） |
 | `TF_VAR_cloudflare_api_token_apply` | `terraform-apply`の`CLOUDFLARE_API_TOKEN`に登録する読み書きできるAPIトークン |
-| `TF_VAR_netbird_pat_read_only` | `terraform-plan`の`NB_PAT`に登録する、読み取り専用のサービスユーザーのPAT |
-| `TF_VAR_netbird_pat_read_write` | `terraform-apply`の`NB_PAT`に登録する、管理者のサービスユーザーのPAT |
-| `TF_VAR_google_workspace_access_client_secret` | AccessがGoogle Workspaceにログインするときに使う、OAuthクライアントのシークレット |
-| `TF_VAR_plan_app_client_id` | `terraform-plan`の`PLAN_APP_CLIENT_ID`に登録する、plan用のGitHub AppのClient ID |
-| `TF_VAR_plan_app_private_key` | `terraform-plan`の`PLAN_APP_PRIVATE_KEY`に登録する、plan用のGitHub Appの秘密鍵 |
-| `TF_VAR_apply_app_client_id` | `terraform-apply`の`APPLY_APP_CLIENT_ID`に登録する、apply用のGitHub AppのClient ID |
-| `TF_VAR_apply_app_private_key` | `terraform-apply`の`APPLY_APP_PRIVATE_KEY`に登録する、apply用のGitHub Appの秘密鍵 |
+| `TF_VAR_netbird_pat_read_only` | `terraform-plan`の`NB_PAT`に登録する読み取り専用サービスユーザーのPAT |
+| `TF_VAR_netbird_pat_read_write` | `terraform-apply`の`NB_PAT`に登録する管理者サービスユーザーのPAT |
+| `TF_VAR_google_workspace_access_client_secret` | AccessがGoogle Workspaceにログインするときに使うOAuthクライアントのシークレット |
+| `TF_VAR_plan_app_client_id` | `terraform-plan`の`PLAN_APP_CLIENT_ID`に登録するplan用のGitHub AppのClient ID |
+| `TF_VAR_plan_app_private_key` | `terraform-plan`の`PLAN_APP_PRIVATE_KEY`に登録するplan用のGitHub Appの秘密鍵 |
+| `TF_VAR_apply_app_client_id` | `terraform-apply`の`APPLY_APP_CLIENT_ID`に登録するapply用のGitHub AppのClient ID |
+| `TF_VAR_apply_app_private_key` | `terraform-apply`の`APPLY_APP_PRIVATE_KEY`に登録するapply用のGitHub Appの秘密鍵 |
 
-GitHub providerは`GITHUB_TOKEN`環境変数のトークンを使い未設定なら`gh auth token`のトークンを使う。
+GitHub providerは`GITHUB_TOKEN`環境変数のトークンを使い、未設定なら`gh auth token`のトークンを使う。
 
 #### ageのidentityファイル
 
 `AWS_SSE_CUSTOMER_KEY`が未設定の場合`terraform-bootstrap`は`sse-customer-key.age`からSSE-Cの鍵を復号する。
 `sse-customer-key.age`は`terraform/bootstrap/`にある。
 `sse-customer-key.age`は`kubernetes/apps/sealed-secrets-backup/recipients.yaml`の宛先で暗号化されている。
-宛先は、`recipients.yaml`のConfigMapの`data["recipients.txt"]`に1行ずつ書いてある。
-Sealed Secretsの鍵の退避Job（`kubernetes/apps/sealed-secrets-backup/backup.sh`）も、同じ宛先で鍵を暗号化する。
+宛先は`recipients.yaml`のConfigMapにある`data["recipients.txt"]`へ1行ずつ記載されている。
+Sealed Secretsの鍵を退避するJob（`kubernetes/apps/sealed-secrets-backup/backup.sh`）も同じ宛先で鍵を暗号化する。
 宛先は次の2つで、どちらか1つのidentityがあれば復号できる。
 
 | 宛先の接頭辞 | 鍵の場所 | 手順 |
@@ -66,36 +66,36 @@ Sealed Secretsの鍵の退避Job（`kubernetes/apps/sealed-secrets-backup/backup
 | `age1yubikey1` | YubiKeyのPIVの鍵 | [YubiKeyを使う場合](#yubikeyを使う場合) |
 | `age1tag1` | 鍵を作成したMacのSecure Enclave | [Secure Enclaveを使う場合](#secure-enclaveを使う場合) |
 
-宛先の値は、リポジトリのルートで次のコマンドを実行して表示する。
+宛先の値はリポジトリのルートで次のコマンドを実行して表示する。
 
 ```sh
 yq '.data["recipients.txt"]' kubernetes/apps/sealed-secrets-backup/recipients.yaml
 ```
 
-identityファイルは、YubiKey・Secure Enclaveにある鍵を参照する情報を書いたテキストファイルである。
+identityファイルはYubiKey・Secure Enclaveにある鍵を参照する情報を書いたテキストファイルである。
 identityファイルだけでは復号できず、復号には参照先の鍵が必要である。
 このため、YubiKeyを使う場合は鍵のあるYubiKeyを接続し、Secure Enclaveを使う場合は鍵を作成したMacで実行する。
 
-`AGE_IDENTITY_FILE`は、`mise run tf:bootstrap`を実行するシェルで`export`して設定する。
-次の手順では、identityファイルの絶対パスを設定する。
+`AGE_IDENTITY_FILE`は`mise run tf:bootstrap`を実行するシェルで`export`して設定する。
+次の手順ではidentityファイルの絶対パスを設定する。
 
 ##### YubiKeyを使う場合
 
-1. YubiKeyをMacに接続する。
+1. YubiKeyをMacに接続する
 2. 次のコマンドでidentityファイルを`$HOME/yubikey-identity.txt`に作成する。
-   同じ名前のファイルがある場合は上書きされる。
+   同じ名前のファイルがある場合は上書きされる
 
    ```sh
    age-plugin-yubikey --identity > "$HOME/yubikey-identity.txt"
    ```
 
-3. 次のコマンドでidentityファイルを表示する。
+3. 次のコマンドでidentityファイルを表示する
 
    ```sh
    cat "$HOME/yubikey-identity.txt"
    ```
 
-   identityファイルには、YubiKeyのidentityごとに次の形式の組が並ぶ。
+   identityファイルにはYubiKeyのidentityごとに次の形式の組が並ぶ。
 
    ```text
    #       Serial: <シリアル番号>, Slot: <スロット>
@@ -108,32 +108,32 @@ identityファイルだけでは復号できず、復号には参照先の鍵が
    ```
 
 4. `Recipient:`の値が`recipients.txt`の`age1yubikey1`で始まる宛先と一致する組を探す。
-   一致する組が見つからない場合は、接続したYubiKeyでは復号できない。
-   別のYubiKeyを接続して手順2からやり直すか、[Secure Enclaveを使う場合](#secure-enclaveを使う場合)の手順を使う。
+   一致する組が見つからない場合は接続したYubiKeyでは復号できない。
+   別のYubiKeyを接続して手順2からやり直すか、[Secure Enclaveを使う場合](#secure-enclaveを使う場合)の手順を使う
 5. 一致した組の`PIN policy:`・`Touch policy:`の値を確認する。
-   この2つの値で、復号の操作でPINの入力とタッチが必要かが決まる。
-6. `AGE_IDENTITY_FILE`を設定する。
+   この2つの値によって、復号時にPINの入力やタッチが必要かが決まる
+6. `AGE_IDENTITY_FILE`を設定する
 
    ```sh
    export AGE_IDENTITY_FILE="$HOME/yubikey-identity.txt"
    ```
 
 `mise run tf:bootstrap`を実行すると、`terraform-bootstrap`は`terraform`を実行する前に`sse-customer-key.age`を復号する。
-復号では、`PIN policy:`・`Touch policy:`の値に応じて次の操作を行なう。
+復号では`PIN policy:`・`Touch policy:`の値に応じて次の操作を行なう。
 
 | 値 | 操作 |
 | --- | --- |
 | `PIN policy:`が`Always`・`Once` | `Enter PIN for YubiKey with serial <シリアル番号>`が表示されたら、YubiKeyのPIV PINを入力する。FIDO2のPINではない |
 | `PIN policy:`が`Never` | PINの入力は求められない |
-| `Touch policy:`が`Always`・`Cached` | YubiKeyが点滅したら、点滅している間にYubiKeyへ触れる。タッチを求めるメッセージは端末に表示されない。PINを入力する場合は、PINの入力の後に点滅する |
+| `Touch policy:`が`Always`・`Cached` | YubiKeyが点滅したら、点滅している間にYubiKeyへ触れる。タッチを求めるメッセージは端末に表示されない。PINを入力する場合は、PINの入力後に点滅する |
 | `Touch policy:`が`Never` | タッチは求められない |
 
-YubiKeyに触れないまま時間が経過すると、YubiKeyがタイムアウトして復号は失敗する。
-復号に失敗すると、`terraform-bootstrap`はエラーを表示して終了し、`terraform`を実行しない。
-復号に成功すると、`terraform`の出力が表示される。
+YubiKeyに触れないまま時間が経過するとYubiKeyがタイムアウトして復号は失敗する。
+復号に失敗すると`terraform-bootstrap`はエラーを表示して終了し、`terraform`を実行しない。
+復号に成功すると`terraform`の出力が表示される。
 
 YubiKeyのPIV PINの初期値は`123456`、PUKの初期値は`12345678`である。
-PIV PINを3回続けて間違えると、PIV PINがロックされる。
+PIV PINを3回続けて間違えるとPIV PINがロックされる。
 ロックはPUKとYubiKey Manager（`ykman`）で解除する。
 `ykman`は`mise install`ではインストールされないため、[YubiKey Managerのドキュメント](https://docs.yubico.com/software/yubikey/tools/ykman/)に従ってインストールする。
 
@@ -145,41 +145,41 @@ PUKも3回続けて間違えると、PUKがロックされてPIV PINのロック
 
 ##### Secure Enclaveを使う場合
 
-1. 鍵を作成したMacで、`age-plugin-se keygen -o <ファイル>`で鍵を作成したときの`<ファイル>`を探す。
+1. 鍵を作成したMac上で、`age-plugin-se keygen -o <ファイル>`に指定した出力先の`<ファイル>`を探す。
    このファイルがidentityファイルである。
-   パスが分からない場合は、次のコマンドでホームディレクトリから探す。
+   パスが分からない場合は次のコマンドでホームディレクトリから探す
 
    ```sh
    grep -rls 'AGE-PLUGIN-SE-1' "$HOME"
    ```
 
-   ファイルが見つからない場合は、このMacでは復号できない。
-   [YubiKeyを使う場合](#yubikeyを使う場合)の手順を使う。
-2. 次のコマンドでidentityファイルの宛先を表示する。
+   ファイルが見つからない場合はこのMacでは復号できない。
+   [YubiKeyを使う場合](#yubikeyを使う場合)の手順を使う
+2. 次のコマンドでidentityファイルの宛先を表示する
 
    ```sh
    age-plugin-se recipients --recipient-type tag -i <identityファイルのパス>
    ```
 
-3. 表示された宛先が、`recipients.txt`の`age1tag1`で始まる宛先と一致することを確認する。
-   一致しない場合は、このidentityファイルでは復号できない。
-   [YubiKeyを使う場合](#yubikeyを使う場合)の手順を使う。
-4. `AGE_IDENTITY_FILE`を設定する。
+3. 表示された宛先が`recipients.txt`の`age1tag1`で始まる宛先と一致することを確認する。
+   一致しない場合はこのidentityファイルでは復号できない。
+   [YubiKeyを使う場合](#yubikeyを使う場合)の手順を使う
+4. `AGE_IDENTITY_FILE`を設定する
 
    ```sh
    export AGE_IDENTITY_FILE=<identityファイルの絶対パス>
    ```
 
-リポジトリのディレクトリで`mise run tf:bootstrap`を実行すると、macOSが認証の画面を表示する。
+リポジトリのディレクトリで`mise run tf:bootstrap`を実行すると、macOSが認証画面を表示する。
 画面の指示に従い、Touch IDかMacのパスワードで認証する。
-使える認証の方法は、`age-plugin-se keygen`で`--access-control`に指定した値で決まる。
-identityファイルの`# access control:`の行に、その値が書いてある。
-復号に成功すると、`terraform`の出力が表示される。
+使える認証方法は`age-plugin-se keygen`で`--access-control`に指定した値で決まる。
+identityファイルの`# access control:`の行にその値が書いてある。
+復号に成功すると`terraform`の出力が表示される。
 
 #### bootstrap用のトークン
 
 bootstrap用のトークンはCloudflareのダッシュボードでアカウントのトークン（Account API Tokens）として作成する。
-`terraform-bootstrap`はアカウントのトークンの検証APIでトークンのIDを取得するためユーザーのトークンは使えない。
+`terraform-bootstrap`はアカウントトークンの検証APIでトークンIDを取得するため、ユーザートークンは使えない。
 `terraform/bootstrap/`が管理するリソースに合わせて次の権限を付ける。
 
 | 権限 | 使うリソース |
@@ -199,14 +199,14 @@ bootstrap用のトークンはCloudflareのダッシュボードでアカウン�
 | `AWS_SECRET_ACCESS_KEY` | R2 APIトークンのシークレットアクセスキー（S3バックエンド用） |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare provider用のAPIトークン |
 | `VULTR_API_KEY` | Vultr provider用のAPIキー |
-| `TF_VAR_pocket_id_access_client_secret` | AccessがPocket IDにログインするときに使う、OIDCクライアントのシークレット |
-| `TF_VAR_talos_machine_secrets` | bootstrapのoutputの`talos_machine_secrets` |
-| `TF_VAR_sealed_secrets_private_key` | bootstrapのoutputの`sealed_secrets_private_key` |
-| `TF_VAR_sealed_secrets_cert` | bootstrapのoutputの`sealed_secrets_cert` |
-| `TF_VAR_google_workspace_access_identity_provider_id` | bootstrapのoutputの`google_workspace_access_identity_provider_id` |
+| `TF_VAR_pocket_id_access_client_secret` | AccessがPocket IDにログインするときに使うOIDCクライアントのシークレット |
+| `TF_VAR_talos_machine_secrets` | bootstrapが出力した`talos_machine_secrets` |
+| `TF_VAR_sealed_secrets_private_key` | bootstrapが出力した`sealed_secrets_private_key` |
+| `TF_VAR_sealed_secrets_cert` | bootstrapが出力した`sealed_secrets_cert` |
+| `TF_VAR_google_workspace_access_identity_provider_id` | bootstrapが出力した`google_workspace_access_identity_provider_id` |
 
 bootstrapのoutputの値は次のように設定する。
-objectのoutputは`-json`で取り出し文字列のoutputは`-raw`で取り出す。
+objectのoutputは`-json`で取り出し、文字列のoutputは`-raw`で取り出す。
 `BOOTSTRAP_CLOUDFLARE_API_TOKEN`はbootstrap用のトークンである。
 `terraform/`の`CLOUDFLARE_API_TOKEN`とbootstrap用のトークンは異なるため、bootstrapの実行時だけ`CLOUDFLARE_API_TOKEN`を置き換える。
 
@@ -220,20 +220,20 @@ export TF_VAR_sealed_secrets_cert="$(bootstrap_output -raw sealed_secrets_cert)"
 export TF_VAR_google_workspace_access_identity_provider_id="$(bootstrap_output -raw google_workspace_access_identity_provider_id)"
 ```
 
-netbirdのリソースを管理する`terraform/netbird/`では、次の環境変数も設定する。
+netbirdのリソースを管理する`terraform/netbird/`では次の環境変数も設定する。
 
 | 環境変数 | 内容 |
 | --- | --- |
-| `NB_PAT` | netbird provider用の、管理者のサービスユーザーのPAT |
+| `NB_PAT` | netbird providerが使う管理者サービスユーザーのPAT |
 
 ## CIでのplan・apply
 
 PRでは`.github/workflows/terraform-plan.yaml`のworkflowが`terraform/`・`terraform/netbird/`をplanする。
-mainへのマージでは、`.github/workflows/terraform-apply.yaml`のworkflowが`terraform/`・`terraform/netbird/`の順にapplyする。
-applyの後に、SealedSecretを再暗号化するworkflowを実行する。
-`terraform/bootstrap/`だけを変更した場合どちらのworkflowも実行されない。
+mainへのマージでは`.github/workflows/terraform-apply.yaml`のworkflowが`terraform/`・`terraform/netbird/`の順にapplyする。
+applyの後にSealedSecretを再暗号化するworkflowが実行される。
+`terraform/bootstrap/`だけを変更した場合はどちらのworkflowも実行されない。
 
-CIのjobと鍵の退避Jobは次の4種類のGitHub Appのトークンを使う。
+CIのjobと鍵を退避するJobは、次の4種類のGitHub Appトークンを使う。
 plan用・apply用のGitHub AppはdotfilesのCIと共有する。
 この2つのGitHub Appの定義はcffnpwr/actionsの`modules/github-app/apps/`にある。
 reseal用・backup用のGitHub Appの定義は`.github/apps/`にある。
@@ -251,12 +251,12 @@ TerraformではGitHub Appの作成とインストールを管理できない。
 
 `terraform/`はTalos APIへ接続するクライアント証明書をmachine secretsのCAで発行する。
 証明書の有効期間は1年で、期限の30日前からapplyで更新される。
-`terraform-apply.yaml`は毎週1回scheduleでapplyを実行するため証明書は期限の前に更新される。
+`terraform-apply.yaml`は毎週1回scheduleでapplyを実行するため、証明書は期限の前に更新される。
 
 証明書を更新するとtalosconfigが変わる。
 Vultrのインスタンスの置換と同じapplyで証明書を更新すると、applyはエラーで終了する。
-古いインスタンスを削除する`terminate_node`のactionの設定が、apply中に確定しないためである。
-Vultrのインスタンスを置換する変更はPRのplanに`tls_locally_signed_cert.talos_client`の置換が無いことを確認してからマージする。
+古いインスタンスを削除する`terminate_node`のactionの設定がapply中に確定しないためである。
+Vultrのインスタンスを置換する変更は、PRのplanに`tls_locally_signed_cert.talos_client`の置換がないことを確認してからマージする。
 置換が含まれる場合は先にmainで`terraform-apply.yaml`をworkflow_dispatchで実行して証明書を更新し、PRのplanを再実行して確認する。
 
 ## 手元からのapply
@@ -264,13 +264,13 @@ Vultrのインスタンスを置換する変更はPRのplanに`tls_locally_signe
 CIからクラスタへ接続できない場合と、CIの接続に使うnetbirdのポリシー・setup keyを変更する場合は、手元の端末から次の手順でapplyする。
 `terraform/netbird/`では`mise run tf`の代わりに`mise run tf:netbird`を使う。
 
-1. `terraform plan`で変更内容を確認する。
+1. `terraform plan`で変更内容を確認する
 
    ```sh
    mise run tf plan
    ```
 
-2. `terraform apply`で変更を適用する。
+2. `terraform apply`で変更を適用する
 
    ```sh
    mise run tf apply
@@ -280,32 +280,32 @@ CIからクラスタへ接続できない場合と、CIの接続に使うnetbird
 
 `terraform/bootstrap/`は次の値を更新する場合に手元からapplyする。
 
-- CIの認証情報（netbirdのPAT・`terraform-apply`のCloudflareのAPIトークン・Vultrのservice userのAPIキー）
+- CIの認証情報（netbirdのPAT・`terraform-apply`用のCloudflare APIトークン・Vultrのservice userのAPIキー）
 - Google WorkspaceのOAuthクライアントのシークレット
-- bootstrap用のCloudflareのAPIトークン
+- bootstrap用のCloudflare APIトークン
 
 CIの認証情報とGoogle Workspaceのシークレットは新しい値を[`terraform/bootstrap/`の環境変数](#terraformbootstrapの環境変数)に設定してapplyする。
-bootstrapのすべての変数は必須で変数の値の変更はplanの差分になる。
+bootstrapの変数はすべて必須であり、変数の値を変更するとplanの差分になる。
 
 ```sh
 mise run tf:bootstrap plan
 mise run tf:bootstrap apply
 ```
 
-Vultrのservice userのAPIキーを作り直す場合は対象のservice userに`-replace`を指定してapplyする。
+Vultrのservice userのAPIキーを作り直す場合は、対象のservice userに`-replace`を指定してapplyする。
 
 ```sh
 mise run tf:bootstrap apply -replace='vultr_user.terraform["plan"]'
 ```
 
 `-replace`はservice userを作り直すため、作り直したservice userはどのIPアドレスからもAPIキーを使えない。
-applyの後に[クラスタの初回構築](./initial-setup.md#bootstrapの構築)の手順7で、Any IPv4・Any IPv6を有効にする。
+applyの後に[クラスタの初回構築](./initial-setup.md#bootstrapの構築)の手順7でAny IPv4・Any IPv6を有効にする。
 
-bootstrap用のCloudflareのAPIトークンを更新する場合はダッシュボードで新しいトークンを作成する。
-新しいトークンを`CLOUDFLARE_API_TOKEN`に設定し`plan`で差分が無いことを確認する。
-S3 backendの認証情報はトークンから作るため、新しいトークンにもbootstrapのstateのR2 Bucketを読み書きする権限が必要である。
+bootstrap用のCloudflare APIトークンを更新する場合は、ダッシュボードで新しいトークンを作成する。
+新しいトークンを`CLOUDFLARE_API_TOKEN`に設定し、`plan`で差分がないことを確認する。
+S3 backendの認証情報はトークンから作るため、新しいトークンにもbootstrapのstateを保存するR2 Bucketを読み書きする権限が必要である。
 確認した後に古いトークンをダッシュボードで削除する。
 
 Google WorkspaceのOAuthクライアントのシークレットを更新した後もidentity providerのIDは変わらない。
 identity providerを作り直した場合はbootstrapがvariable`GOOGLE_WORKSPACE_ACCESS_IDENTITY_PROVIDER_ID`を更新する。
-新しいIDをAccessのアプリとポリシーに反映するため`terraform/`をapplyする。
+新しいIDをAccessのアプリとポリシーに反映するため、`terraform/`をapplyする。

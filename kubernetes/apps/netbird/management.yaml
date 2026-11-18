@@ -34,7 +34,7 @@ metadata:
   namespace: netbird
 spec:
   replicas: 1
-  # NOTE: OSS版のmanagementは複数のレプリカに対応しない。更新時の停止を避けるため、新しいPodの準備ができてから古いPodを止める
+  # NOTE: OSS版のmanagementは複数レプリカに対応しないため、更新時は新しいPodの準備ができてから古いPodを止める
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -83,7 +83,7 @@ spec:
                 secretKeyRef:
                   name: netbird-secrets
                   key: placeholder-owner-password-hash
-            # NOTE: management.jsonを介さずmanagementが読む、組み込みIdPのCookieの暗号化鍵
+            # NOTE: management.jsonを介さずにmanagementが読む、組み込みIdP用のCookie暗号化鍵
             - name: NB_IDP_SESSION_COOKIE_ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
@@ -121,7 +121,7 @@ spec:
             limits:
               memory: 512Mi
           volumeMounts:
-            # NOTE: GeoLite2のファイルだけを置く。ファイルが無い場合、managementは起動時にダウンロードする
+            # NOTE: GeoLite2のファイルだけを置く領域で、ファイルがない場合はmanagementが起動時にダウンロードする
             - name: data
               mountPath: /var/lib/netbird
             - name: config

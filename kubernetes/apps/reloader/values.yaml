@@ -16,7 +16,7 @@ reloader:
           - pod-template-hash
         nodeTaintsPolicy: Honor
     resources:
-      # TODO: chartの例の値。実測後に見直す
+      # TODO: chartの例にある値のため、実測後に見直す
       requests:
         cpu: 10m
         memory: 128Mi

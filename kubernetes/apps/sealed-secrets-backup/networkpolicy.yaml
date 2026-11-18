@@ -9,7 +9,7 @@ spec:
       controller: eventbus-controller
       eventbus-name: default
   ingress:
-    # NOTE: 秘密鍵を含むstreamへの接続を、EventSourceとSensorのPodに限定
+    # NOTE: 秘密鍵を含むstreamへの接続をEventSourceとSensorのPodに限定
     - fromEndpoints:
         - matchLabels:
             controller: eventsource-controller
@@ -19,7 +19,7 @@ spec:
         - ports:
             - port: "4222"
               protocol: TCP
-    # NOTE: JetStreamのレプリカ間の通信の許可
+    # NOTE: JetStreamのレプリカ間通信を許可
     - fromEndpoints:
         - matchLabels:
             controller: eventbus-controller

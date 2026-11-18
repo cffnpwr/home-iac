@@ -76,7 +76,7 @@ variable "node_labels" {
 
 variable "kubeconfig" {
   type        = string
-  description = "Talosのアップグレードの前にノードをdrainするためのkubeconfig"
+  description = "Talosのアップグレード前にノードをdrainするためのkubeconfig"
   sensitive   = true
   ephemeral   = true
 }

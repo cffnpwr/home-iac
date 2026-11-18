@@ -7,9 +7,9 @@ spec:
   instances: 3
   inheritedMetadata:
     labels:
-      # NOTE: メッシュ外のCloudNativePGのoperatorが接続するため、sidecarを注入しない
+      # NOTE: メッシュ外にあるCloudNativePGのoperatorが接続するため、sidecarを注入しない
       sidecar.istio.io/inject: "false"
-  # NOTE: Barman Cloud Pluginのsidecarは、minimalのイメージと組み合わせる前提で作られている
+  # NOTE: Barman Cloud Pluginのsidecarはminimalのイメージと組み合わせる前提で作られている
   imageName: ghcr.io/cloudnative-pg/postgresql:17.11-minimal-trixie@sha256:7c680fc840a9ea6bd04399f1aeea06bb3180df3f0969f18833925b6df3d7dc87
   bootstrap:
     initdb:
@@ -42,7 +42,7 @@ metadata:
   namespace: pocket-id
 spec:
   configuration:
-    # NOTE: Barman Cloud Pluginは、Clusterの名前のディレクトリに置く
+    # NOTE: Barman Cloud PluginはCluster名のディレクトリに保存する
     destinationPath: s3://home-iac-pocket-id-db/
     endpointURL: https://086a84b440e09bc83330fe07f1966f5d.r2.cloudflarestorage.com
     s3Credentials:

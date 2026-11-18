@@ -18,7 +18,7 @@ resource "random_id" "hostname_suffix" {
   }
 
   lifecycle {
-    # NOTE: 以前はinstallerもkeepersに含めていた。stateに残るinstallerのkeeperが消えることで、インスタンスを入れ替えないようにする
+    # NOTE: 以前はinstallerもkeepersに含めていたため、stateに残るinstallerのkeeperが消えてもインスタンスを入れ替えないようにする
     ignore_changes = [keepers["installer"]]
   }
 }
@@ -66,7 +66,7 @@ data "talos_machine_configuration" "this" {
   ])
 }
 
-# NOTE: VultrはISOの登録時にImage Factoryのリダイレクトをたどれないためリダイレクト先を渡す
+# NOTE: VultrはISOの登録時にImage Factoryのリダイレクトをたどれないため、リダイレクト先のURLを渡す
 data "external" "iso_url" {
   program = ["go", "run", "-C", "${path.module}/scripts", "./cmd/resolve-redirect"]
   query = {
@@ -115,7 +115,7 @@ resource "vultr_instance" "this" {
   iso_id            = vultr_iso_private.this.id
   firewall_group_id = vultr_firewall_group.this.id
   hostname          = local.hostname
-  # NOTE: user-dataは初回の起動（インストール）でだけ読まれる。参加後の設定更新はtalos_machineが担う
+  # NOTE: user-dataは初回起動時（インストール時）にのみ読まれ、参加後の設定更新はtalos_machineが担う
   user_data = data.talos_machine_configuration.this.machine_configuration
 
   lifecycle {
@@ -139,7 +139,7 @@ resource "talos_machine" "this" {
   # NOTE: Talos APIは公開していないため、control planeのapidがKubeSpan経由で中継する
   endpoint = var.talos_endpoint
   image    = data.talos_image_factory_urls.this.urls.installer
-  # NOTE: Kubernetesのコンポーネントのイメージはtalos_clusterがupgrade-k8sの手順で更新する
+  # NOTE: Kubernetesコンポーネントのイメージはtalos_clusterがupgrade-k8sの手順で更新する
   ignore_kubernetes_upgrade_drift = true
   drain_on_upgrade                = true
   kubeconfig_wo                   = var.kubeconfig
@@ -151,8 +151,8 @@ resource "talos_machine" "this" {
   }
 }
 
-# NOTE: 古いノードのdrainとインスタンスの削除を、新しいノードがReadyになった後に行わせるための待ち合わせ。
-# create_before_destroyにより、古いtalos_machineとvultr_instanceの削除はこのリソースの作成の後になる
+# NOTE: 新しいノードがReadyになった後に、古いノードのdrainとインスタンスの削除を行わせるための待ち合わせ。
+# create_before_destroyにより、古いtalos_machineとvultr_instanceはこのリソースの作成後に削除される
 resource "terraform_data" "node_ready" {
   triggers_replace = vultr_instance.this.id
   input            = vultr_instance.this.hostname
@@ -170,7 +170,7 @@ resource "terraform_data" "node_ready" {
 }
 
 # NOTE: ISOを付けたままのインスタンスは再起動時にISOから起動するため、インストール後のReadyを待ってから外す。
-# 古いノードのdrainをISOを外した後の再起動より後にするため、talos_machineにも依存させる
+# ISOを外した後の再起動が完了してから古いノードをdrainするため、talos_machineにも依存させる
 resource "terraform_data" "iso_detached" {
   triggers_replace = vultr_instance.this.id
   input            = vultr_instance.this.hostname
@@ -215,7 +215,7 @@ action "local_command" "terminate_node" {
   }
 }
 
-# NOTE: Vultr APIのキーは、Terraformの実行環境の環境変数VULTR_API_KEYをスクリプトが読む
+# NOTE: Vultr APIキーはTerraform実行環境の環境変数VULTR_API_KEYからスクリプトが読み取る
 action "local_command" "detach_iso" {
   config {
     command   = "go"

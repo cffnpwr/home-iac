@@ -1,5 +1,5 @@
 locals {
-  # NOTE: CIからTerraformのplan・apply・SealedSecretの再暗号化で接続する、Talos APIとkube-apiserverのポート
+  # NOTE: CIからTerraformのplan・applyやSealedSecretの再暗号化で接続する、Talos APIとkube-apiserverのポート
   ci_cffnpwr_home_lan_ports = ["50000", "6443"]
   ci_environments           = ["terraform-plan", "terraform-apply", "sealed-secrets-reseal"]
 }
@@ -8,7 +8,7 @@ resource "netbird_group" "ci" {
   name = "ci"
 }
 
-# NOTE: jobの終了後にピアが残らないよう、オフラインが10分を超えたピアを削除するephemeralのキー
+# NOTE: jobの終了後にピアが残らないよう、オフライン状態が10分続いたピアを削除するephemeralのキー
 resource "netbird_setup_key" "ci" {
   name        = "ci"
   type        = "reusable"
@@ -16,7 +16,7 @@ resource "netbird_setup_key" "ci" {
   auto_groups = [netbird_group.ci.id]
 }
 
-# NOTE: 自宅LANのサブネットの宛先とそのグループは、OperatorのNetworkResourceがCIDRを指定できないためダッシュボードで作成
+# NOTE: 自宅LANサブネットの宛先とそのグループは、OperatorのNetworkResourceでCIDRを指定できないためダッシュボードで作成
 data "netbird_group" "cffnpwr_home_lan" {
   name = "cffnpwr-home-lan"
 }
@@ -37,7 +37,7 @@ resource "netbird_policy" "ci_cffnpwr_home_lan" {
   }
 }
 
-# NOTE: 手元でapply済みのstateにある、変更前の名前のポリシーを引き継ぐ
+# NOTE: 手元でapply済みのstateにある、名前変更前のポリシーを引き継ぐ
 moved {
   from = netbird_policy.ci_home_lan
   to   = netbird_policy.ci_cffnpwr_home_lan

@@ -18,7 +18,7 @@ for app in kubernetes/apps/*/app.yaml; do
   fi
 
   repo_url=$(yq '.chart.repoURL' "$app")
-  # NOTE: Argo CDの指定方法に合わせ、スキームの無いrepoURLはOCIのリポジトリとして扱う
+  # NOTE: Argo CDの指定方法に合わせ、スキームのないrepoURLはOCIリポジトリとして扱う
   case $repo_url in
     *://*)
       helm pull "$(yq '.chart.name' "$app")" \

@@ -41,7 +41,7 @@ run = "terraform"
 [tasks."tf:bootstrap"]
 description = "terraform/bootstrap/でterraformを実行する"
 dir = "{{config_root}}"
-# NOTE: go runは実行したプログラムの終了ステータスを返さずterraformが0以外で終了すると1で終了する
+# NOTE: go runは実行したプログラムの終了ステータスをそのまま返さず、terraformが0以外で終了すると1を返す
 #       --の後の引数をterraformに渡す
 run = """
 go run github.com/cffnpwr/actions/modules/terraform-r2-backend/cmd/terraform-bootstrap@41c85e705ed527974540a1bb0f9d57d7f7cc5281 \
@@ -51,9 +51,9 @@ go run github.com/cffnpwr/actions/modules/terraform-r2-backend/cmd/terraform-boo
   --"""
 
 [tasks."tf:bootstrap:generate-sse-customer-key"]
-description = "bootstrapのstateのSSE-Cの鍵を生成しageで暗号化してterraform/bootstrap/sse-customer-key.ageに書く"
+description = "bootstrapのstate用にSSE-Cの鍵を生成し、ageで暗号化してterraform/bootstrap/sse-customer-key.ageに書き込む"
 dir = "{{config_root}}"
-# NOTE: Sealed Secretsの鍵の退避Jobと同じ宛先に暗号化
+# NOTE: Sealed Secretsの鍵を退避するJobと同じ宛先で暗号化
 run = """
 go run github.com/cffnpwr/actions/modules/terraform-r2-backend/cmd/generate-sse-customer-key@41c85e705ed527974540a1bb0f9d57d7f7cc5281 \
   --output terraform/bootstrap/sse-customer-key.age \
@@ -66,22 +66,22 @@ dir = "{{config_root}}/terraform/netbird"
 run = "terraform"
 
 [tasks."github:create-app:reseal"]
-description = "SealedSecretの再暗号化のGitHub Appをmanifest flowで作成しClient IDと秘密鍵をenvironmentに登録する"
+description = "SealedSecretを再暗号化するGitHub Appをmanifest flowで作成し、Client IDと秘密鍵をenvironmentに登録する"
 dir = "{{config_root}}"
 run = "go run github.com/cffnpwr/actions/modules/github-app/cmd/create-github-app@41c85e705ed527974540a1bb0f9d57d7f7cc5281 --config .github/apps/reseal.yaml --repo cffnpwr/home-iac"
 
 [tasks."github:create-app:backup"]
-description = "鍵の退避JobのGitHub Appをmanifest flowで作成しClient IDと秘密鍵をSealedSecretに封入する"
+description = "鍵を退避するJob用のGitHub Appをmanifest flowで作成し、Client IDと秘密鍵をSealedSecretに封入する"
 dir = "{{config_root}}"
 env = { CREATE_GITHUB_APP = "github.com/cffnpwr/actions/modules/github-app/cmd/create-github-app@41c85e705ed527974540a1bb0f9d57d7f7cc5281" }
 run = "sh kubernetes/scripts/create-backup-github-app.sh"
 
 [tasks."sealed-secrets:seal-terraform-outputs"]
-description = "Terraformのoutputの値を、cert.pemの証明書でSealedSecretに封入する"
+description = "Terraformのoutputにある値をcert.pemの証明書でSealedSecretに封入する"
 run = "sh kubernetes/scripts/seal-terraform-outputs.sh"
 
 [tasks."sealed-secrets:reseal"]
-description = "SealedSecretを、sealed-secrets controllerの最新の鍵で再暗号化する"
+description = "SealedSecretをsealed-secrets controllerの最新の鍵で再暗号化する"
 run = "sh kubernetes/scripts/reseal-sealed-secrets.sh"
 
 [tasks.lint]
@@ -132,7 +132,7 @@ run = "sh kubernetes/scripts/check-helm-values.sh"
 
 [tasks."lint:shell"]
 description = "シェルスクリプトを検査する"
-# NOTE: gitignoreされた作業用・依存・状態のディレクトリを、shellcheckの対象から除外
+# NOTE: gitignoreされた作業用・依存・状態のディレクトリをshellcheckの対象から除外
 run = "find . \\( -name .git -o -name .jj -o -name .tmp -o -name .terraform \\) -prune -o -name '*.sh' -type f -exec shellcheck {} +"
 
 [tasks."lint:markdown"]
@@ -151,7 +151,7 @@ dir = "{{config_root}}/images/kea-ha-peers"
 run = "golangci-lint run --allow-parallel-runners"
 
 [tasks."lint:go:gopls"]
-description = "goplsの診断でリポジトリのすべてのGoを検査する"
+description = "goplsの診断でリポジトリ内のすべてのGoコードを検査する"
 dir = "{{config_root}}"
 # NOTE: gopls checkは診断があっても終了ステータス0で終了するため、診断を出力した場合に失敗させる
 run = """

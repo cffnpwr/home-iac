@@ -33,7 +33,7 @@ type reconciler struct {
 	logger  *slog.Logger
 	queue   workqueue.TypedRateLimitingInterface[string]
 	watcher *cluster.NodeWatcher
-	// Keaに読み込ませた設定。未適用ならnil
+	// Keaに読み込ませた設定（未適用ならnil）
 	appliedConfig []byte
 }
 

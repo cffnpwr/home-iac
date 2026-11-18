@@ -46,7 +46,7 @@ jobs:
             *) range="" ;;
           esac
 
-          # NOTE: 比較元が無い場合（workflow_dispatch・force push等）とworkflowの変更時は、全イメージをビルドする
+          # NOTE: 比較元がない場合（workflow_dispatch・force push等）やworkflowの変更時は、全イメージをビルドする
           if [[ -n $range ]] && changed=$(git diff --name-only "$range") && ! grep -qxF "$WORKFLOW" <<<"$changed"; then
             mapfile -t names < <(sed -n 's|^images/\([^/]*\)/.*|\1|p' <<<"$changed" | sort -u)
           else

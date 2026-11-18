@@ -33,7 +33,7 @@ func TestToNode(t *testing.T) {
 			},
 		},
 		{
-			name: "[negative] IPv4のアドレスが無いとき空のInternalIPsとゼロ値のCiliumInternalIPになる",
+			name: "[negative] IPv4のアドレスがないとき空のInternalIPsとゼロ値のCiliumInternalIPになる",
 			addresses: []ciliumNodeAddress{
 				{Type: "InternalIP", IP: "fd00::1"},
 				{Type: "CiliumInternalIP", IP: "not an address"},

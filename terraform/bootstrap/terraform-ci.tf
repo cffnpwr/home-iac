@@ -1,6 +1,6 @@
 locals {
   terraform_plan_permission_groups = {
-    # NOTE: stateの読み取りは、Workers R2 Storage Readで許可
+    # NOTE: stateの読み取りはWorkers R2 Storage Readで許可
     account = [
       "Access: Apps Read",
       "Access: Organizations, Identity Providers, and Groups Read",
@@ -43,7 +43,7 @@ data "cloudflare_account_api_token_permission_groups_list" "terraform_plan" {
   name       = urlencode(each.key)
 }
 
-# NOTE: mainのplan jobでS3 backendのstateの読み取りとCloudflare providerに使うトークン
+# NOTE: mainのplan jobでS3 backendからのstate読み取りとCloudflare providerに使うトークン
 resource "cloudflare_account_token" "terraform_plan" {
   account_id = local.cloudflare_account_id
   name       = "${local.cloudflare_account_token_name_prefix}terraform-plan"
@@ -70,7 +70,7 @@ resource "cloudflare_account_token" "terraform_plan" {
   ]
 }
 
-# NOTE: netbirdplan jobでS3 backendのstateの読み書きに使うトークン
+# NOTE: netbirdのplan・apply jobでS3 backendのstateを読み書きするトークン
 resource "cloudflare_account_token" "terraform_netbird" {
   for_each = local.terraform_netbird_permission_groups
 

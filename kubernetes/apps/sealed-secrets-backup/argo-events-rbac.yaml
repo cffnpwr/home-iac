@@ -13,7 +13,7 @@ rules:
   - apiGroups: [""]
     resources: [secrets]
     verbs: [get, list, watch]
-  # NOTE: events.argoproj.io/leader-election: k8sのleaderの選出に使うLease
+  # NOTE: events.argoproj.io/leader-election: k8sによるleader選出に使うLease
   - apiGroups: [coordination.k8s.io]
     resources: [leases]
     verbs: [get, create, update]
@@ -69,7 +69,7 @@ rules:
   - apiGroups: [batch]
     resources: [jobs]
     verbs: [create]
-  # NOTE: events.argoproj.io/leader-election: k8sのleaderの選出に使うLease
+  # NOTE: events.argoproj.io/leader-election: k8sによるleader選出に使うLease
   - apiGroups: [coordination.k8s.io]
     resources: [leases]
     verbs: [get, create, update]

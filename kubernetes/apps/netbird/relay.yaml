@@ -12,7 +12,7 @@ spec:
       targetPort: http
       appProtocol: kubernetes.io/ws
 ---
-# NOTE: STUNはHTTPのリバースプロキシを経由できないため、CiliumのNode IPAMでVultrノードのIPアドレスで直接受ける
+# NOTE: STUNはHTTPのリバースプロキシを経由できないため、CiliumのNode IPAMを使いVultrノードのIPアドレスで直接受ける
 apiVersion: v1
 kind: Service
 metadata:

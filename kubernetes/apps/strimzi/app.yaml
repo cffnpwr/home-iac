@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=../../schemas/app.schema.json
-# NOTE: Kafka・KafkaNodePool・KafkaTopicは、kafkaのApplicationが同じnamespaceに作成
+# NOTE: Kafka・KafkaNodePool・KafkaTopicはkafkaのApplicationが同じnamespaceに作成
 namespace: kafka
 chart:
-  # NOTE: OCIのリポジトリは、Argo CDの指定方法に合わせて`oci://`を付けない
+  # NOTE: OCIリポジトリにはArgo CDの指定方法に合わせて`oci://`を付けない
   repoURL: quay.io/strimzi-helm
   name: strimzi-kafka-operator
   version: 1.3.1

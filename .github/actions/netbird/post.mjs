@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 
-// NOTE: ephemeralのピアはオフラインが10分を超えるまで残るため、jobの終了時に削除
+// NOTE: ephemeralのピアはオフライン状態が10分続くまで残るため、jobの終了時に削除
 //       mainがnetbirdのサービスを起動する前に失敗した場合、STATE_netbirdは設定されない
 const netbird = process.env.STATE_netbird;
 if (netbird) {

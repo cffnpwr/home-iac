@@ -32,7 +32,7 @@ spec:
       app.kubernetes.io/instance: mimir
       app.kubernetes.io/component: ruler
   ingress:
-    # NOTE: Alloyのmimir.rules.kubernetesが、PrometheusRuleのruleをrulerのAPIで登録するためAlloyからの接続を許可
+    # NOTE: Alloyのmimir.rules.kubernetesがPrometheusRuleのルールをruler APIで登録するため、Alloyからの接続を許可
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: monitoring
@@ -74,10 +74,10 @@ spec:
       app.kubernetes.io/name: rollout-operator
       app.kubernetes.io/instance: mimir
   ingress:
-    # NOTE: kube-apiserverがPodのeviction・StatefulSetの更新のときにrollout-operatorのAdmission Webhookを呼ぶため接続を許可
+    # NOTE: PodのevictionやStatefulSetの更新時にkube-apiserverがrollout-operatorのAdmission Webhookを呼ぶため接続を許可
     #       webhookのServiceの443は、Podの8443に転送される
     - fromEntities:
-        # NOTE: 別のノードのkube-apiserverからの通信のidentityはremote-nodeとなる
+        # NOTE: 別ノードのkube-apiserverからの通信はidentityがremote-nodeとなる
         - remote-node
       toPorts:
         - ports:

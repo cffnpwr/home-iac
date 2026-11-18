@@ -1,7 +1,7 @@
 global:
-  # NOTE: mimir.structuredConfigのR2の認証情報は、Secretのmimir-r2から渡す環境変数で展開するため指定
+  # NOTE: mimir.structuredConfigにおけるR2の認証情報を、Secret（mimir-r2）から渡す環境変数で展開するため指定
   #       chartはすべてのコンポーネントを-config.expand-env=trueで起動する
-  #       mimir-r2は、CIがTerraformのoutputからSealedSecretとして作る
+  #       mimir-r2はCIがTerraformのoutputからSealedSecretとして作成する
   extraEnv:
     - name: R2_ACCESS_KEY_ID
       valueFrom:
@@ -34,9 +34,9 @@ mimir:
       storage_prefix: ruler
     ingest_storage:
       kafka:
-        # NOTE: chartはkafka.enabledが真のときだけaddressを描画するため、Strimziのbootstrapのアドレスを指定
+        # NOTE: chartはkafka.enabledがtrueのときだけaddressを描画するため、Strimziのbootstrapアドレスを直接指定
         address: kafka-kafka-bootstrap.kafka.svc.cluster.local:9092
-        # NOTE: kafkaのApplicationのKafkaTopicと同じ名前にするため明示
+        # NOTE: kafka ApplicationのKafkaTopicと同じ名前にするため明示
         topic: mimir-ingest
         # NOTE: トピックはKafkaTopicで事前に作るため、Mimirによる作成を無効化
         auto_create_topic_enabled: false
@@ -176,7 +176,7 @@ query_frontend:
     limits:
       memory: 512Mi
 
-# NOTE: Mimir 3.0から、query-frontendとquerierはquery-schedulerを必ず経由するため有効化
+# NOTE: Mimir 3.0以降、query-frontendとquerierはquery-schedulerを経由する仕様のため有効化
 #       ref: https://github.com/grafana/mimir/blob/mimir-3.2.3/CHANGELOG.md
 query_scheduler:
   enabled: true
@@ -209,7 +209,7 @@ ruler:
     matchLabelKeys:
       - pod-template-hash
     nodeTaintsPolicy: Honor
-  # NOTE: GoのGCの目標のヒープはballastを含む生存ヒープに比例し、chartの既定の1GiBのballastではballast以外の確保がlimitsの1Giを超えうるため無効化
+  # NOTE: GoにおけるGCの目標ヒープはballastを含む生存ヒープに比例し、既定の1GiB ballastではメモリ使用量がlimitsの1Giを超えうるため無効化
   #       ref: https://go.dev/doc/gc-guide
   memBallastSizeBytes: 0
   resources:

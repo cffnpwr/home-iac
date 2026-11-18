@@ -30,7 +30,7 @@ type Client struct {
 }
 
 func NewClient(apiKey string) *Client {
-	// NOTE: govultrはAPIキーを付けるhttp.Clientを受け取る。golang.org/x/oauth2でAuthorizationヘッダーにBearerトークンとして付ける
+	// NOTE: govultrはAPIキーを付与するhttp.Clientを受け取り、golang.org/x/oauth2でAuthorizationヘッダーにBearerトークンを設定
 	//       https://github.com/vultr/govultr#authentication
 	client := govultr.NewClient(&http.Client{
 		Transport: &oauth2.Transport{
@@ -38,7 +38,7 @@ func NewClient(apiKey string) *Client {
 		},
 		Timeout: requestTimeout / maxRetries,
 	})
-	// NOTE: govultrは既定で失敗したリクエストを3回まで再試行する。requestTimeoutを1回の呼び出し全体の上限に保つため再試行しない
+	// NOTE: govultrは既定で失敗したリクエストを3回まで再試行するが、requestTimeoutを呼び出し全体の上限に保つため再試行しない
 	client.SetRetryLimit(maxRetries)
 
 	return &Client{client: client}

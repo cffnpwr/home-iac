@@ -51,7 +51,7 @@ spec:
                         image: ghcr.io/cffnpwr/home-iac/sealed-secrets-backup:main@sha256:6afe8486ce8e10c729b04925c75ebd2e570c694ca516e0bbe096ce614c9d49a0
                         command: [/bin/sh, /opt/sealed-secrets-backup/backup.sh]
                         env:
-                          # NOTE: Sensorのparametersが、イベントが示す鍵のSecret名で値を置換
+                          # NOTE: イベントが示す鍵のSecret名でSensorのparametersが値を置換
                           - name: TRIGGER_NAME
                             value: ""
                           - name: RECIPIENTS_FILE
@@ -117,11 +117,11 @@ spec:
                           items:
                             - key: private-key
                               path: private-key
-                      # NOTE: GitHubのトークンをノードのディスクに残さないためのtmpfsの作業用ディレクトリ
+                      # NOTE: GitHubのトークンをノードのディスクに残さないための、tmpfsによる作業用ディレクトリ
                       - name: work
                         emptyDir:
                           medium: Memory
-          # NOTE: Jobに鍵の内容を渡さないための鍵のSecret名だけを受け渡す
+          # NOTE: Jobに鍵の内容を渡さないよう、鍵のSecret名だけを受け渡す
           parameters:
             - src:
                 dependencyName: key-added

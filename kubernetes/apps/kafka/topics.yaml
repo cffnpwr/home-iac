@@ -6,7 +6,7 @@ metadata:
   labels:
     strimzi.io/cluster: kafka
 spec:
-  # NOTE: パーティション数は1ゾーンあたりのingesterの数以上にする。ingesterは1ゾーンに1台のため1にする
+  # NOTE: パーティション数は1ゾーンあたりのingester数以上とするため、1ゾーン1台の構成に合わせて1を設定
   #       ref: https://github.com/grafana/mimir/blob/mimir-3.2.3/docs/sources/mimir/configure/configure-kafka-backend.md
   partitions: 1
   # NOTE: Strimziの推奨に従い、3台のブローカーに複製し、2つのレプリカへの書き込みで成功とする
@@ -15,7 +15,7 @@ spec:
   replicas: 3
   config:
     min.insync.replicas: 2
-    # NOTE: ingesterは停止中に書き込まれたレコードを、起動後にKafkaから読み出す。そのため保持期間がingesterの停止を許容できる時間になる
+    # NOTE: ingesterは停止中に書き込まれたレコードを起動後にKafkaから読み出すため、保持期間がingesterの停止を許容できる時間になる
     #       mimir-distributedのchartが作るKafkaの保持期間を設定
     #       ref: https://github.com/grafana/mimir/blob/mimir-3.2.3/docs/sources/mimir/get-started/about-grafana-mimir-architecture/about-ingest-storage-architecture/index.md
     #       ref: https://github.com/grafana/mimir/blob/mimir-distributed-6.2.2/operations/helm/charts/mimir-distributed/values.yaml#L3204

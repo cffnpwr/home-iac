@@ -1,4 +1,4 @@
-# NOTE: ApplicationSetがtalosBootstrapのApplicationに、namePrefixとnamespaceを指定して追加
+# NOTE: ApplicationSetがtalosBootstrap有効のApplicationにnamePrefixとnamespaceを指定して追加
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
