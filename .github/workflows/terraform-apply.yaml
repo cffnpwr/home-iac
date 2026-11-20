@@ -59,12 +59,12 @@ jobs:
       # NOTE: S3 backendの認証情報はCLOUDFLARE_API_TOKENから作成する
       #       認証情報をマスクしてstepのoutputに書き込み、クラスタのrootをapplyするstepにだけ渡す
       - id: r2-credentials
-        uses: cffnpwr/actions/.github/actions/r2-credentials@88085acca51e69d57d9be1117c49a5ade952d72a # main
+        uses: cffnpwr/actions/.github/actions/r2-credentials@d8d6d381bb69a42387cc433c761e1c49ea228eab # main
         with:
           account-id: 086a84b440e09bc83330fe07f1966f5d
           api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Apply terraform
-        uses: cffnpwr/actions/.github/actions/terraform-apply@88085acca51e69d57d9be1117c49a5ade952d72a # main
+        uses: cffnpwr/actions/.github/actions/terraform-apply@d8d6d381bb69a42387cc433c761e1c49ea228eab # main
         with:
           root: terraform
         env:
@@ -82,7 +82,7 @@ jobs:
       #       2つのrootは独立しているため、クラスタのrootの成否に関係なく実行
       - name: Apply terraform/netbird
         if: ${{ !cancelled() && steps.app-token.outcome == 'success' }}
-        uses: cffnpwr/actions/.github/actions/terraform-apply@88085acca51e69d57d9be1117c49a5ade952d72a # main
+        uses: cffnpwr/actions/.github/actions/terraform-apply@d8d6d381bb69a42387cc433c761e1c49ea228eab # main
         with:
           root: terraform/netbird
         env:
