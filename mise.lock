@@ -76,26 +76,26 @@ url = "https://github.com/sharkdp/fd/releases/download/v10.5.2/fd-v10.5.2-aarch6
 url_api = "https://api.github.com/repos/sharkdp/fd/releases/assets/719971048"
 
 [[tools."aqua:suzuki-shunsuke/tfcmt"]]
-version = "4.14.20"
+version = "4.14.21"
 backend = "aqua:suzuki-shunsuke/tfcmt"
-specifiers = ["4.14.20"]
+specifiers = ["4.14.21"]
 
 [tools."aqua:suzuki-shunsuke/tfcmt"."platforms.linux-arm64"]
-checksum = "sha256:e972bfdf322f036d927c5ddb26e8c7508e1cd28d7778ee96437cd48bb44f4381"
-url = "https://github.com/suzuki-shunsuke/tfcmt/releases/download/v4.14.20/tfcmt_linux_arm64.tar.gz"
-url_api = "https://api.github.com/repos/suzuki-shunsuke/tfcmt/releases/assets/681409112"
+checksum = "sha256:4fd9d2b58dafe2d071d21f432a773b813366a67a1dc302c184ce77ce54908215"
+url = "https://github.com/suzuki-shunsuke/tfcmt/releases/download/v4.14.21/tfcmt_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/suzuki-shunsuke/tfcmt/releases/assets/756921863"
 provenance = "github-attestations"
 
 [tools."aqua:suzuki-shunsuke/tfcmt"."platforms.linux-x64"]
-checksum = "sha256:37b6ae180e49e43005c19c91ad35e0d696f991973eb77e0c76ee6ea15c57c3bf"
-url = "https://github.com/suzuki-shunsuke/tfcmt/releases/download/v4.14.20/tfcmt_linux_amd64.tar.gz"
-url_api = "https://api.github.com/repos/suzuki-shunsuke/tfcmt/releases/assets/681409104"
+checksum = "sha256:9e1b5cabdc0c2a203b39c7451dca8a132e6a4ac6bfe1514c12a54a9aa89bb965"
+url = "https://github.com/suzuki-shunsuke/tfcmt/releases/download/v4.14.21/tfcmt_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/suzuki-shunsuke/tfcmt/releases/assets/756921855"
 provenance = "github-attestations"
 
 [tools."aqua:suzuki-shunsuke/tfcmt"."platforms.macos-arm64"]
-checksum = "sha256:e30a11dd32de0171851c013bd1e86a205b4fc21a3a25ebf26088766c6420c373"
-url = "https://github.com/suzuki-shunsuke/tfcmt/releases/download/v4.14.20/tfcmt_darwin_arm64.tar.gz"
-url_api = "https://api.github.com/repos/suzuki-shunsuke/tfcmt/releases/assets/681409102"
+checksum = "sha256:5c29cba00361b4ee70c999e780e8cb5cad603e99ecbc7234e96af276b97a2940"
+url = "https://github.com/suzuki-shunsuke/tfcmt/releases/download/v4.14.21/tfcmt_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/suzuki-shunsuke/tfcmt/releases/assets/756921845"
 provenance = "github-attestations"
 
 [[tools."github:netbirdio/netbird"]]
