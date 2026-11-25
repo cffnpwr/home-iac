@@ -4,7 +4,7 @@ namespace: argocd
 chart:
   repoURL: https://argoproj.github.io/argo-helm
   name: argo-cd
-  version: 10.18.0
+  version: 10.18.2
   # NOTE: Terraformが初回導入時のhelm_templateでリリース名として参照するため明示
   releaseName: argocd
 talosBootstrap: true
