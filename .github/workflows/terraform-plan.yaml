@@ -59,7 +59,7 @@ jobs:
           setup-key: ${{ secrets.NETBIRD_SETUP_KEY }}
           wait-address: 192.168.0.129:50000
       - if: matrix.root == 'terraform'
-        uses: cffnpwr/actions/.github/actions/terraform-plan@d46095c8d1711090a6e16c94b00ae8a22ffab63e # main
+        uses: cffnpwr/actions/.github/actions/terraform-plan@73990d9363bcfb7c1037c5fbfed1b5f3eac97fb5 # main
         with:
           root: ${{ matrix.root }}
         env:
@@ -74,7 +74,7 @@ jobs:
           TF_VAR_sealed_secrets_cert: ${{ vars.SEALED_SECRETS_CERT }}
           TF_VAR_google_workspace_access_identity_provider_id: ${{ vars.GOOGLE_WORKSPACE_ACCESS_IDENTITY_PROVIDER_ID }}
       - if: matrix.root == 'terraform/netbird'
-        uses: cffnpwr/actions/.github/actions/terraform-plan@d46095c8d1711090a6e16c94b00ae8a22ffab63e # main
+        uses: cffnpwr/actions/.github/actions/terraform-plan@73990d9363bcfb7c1037c5fbfed1b5f3eac97fb5 # main
         with:
           root: ${{ matrix.root }}
         env:
