@@ -4,7 +4,7 @@ namespace: monitoring
 chart:
   repoURL: https://prometheus-community.github.io/helm-charts
   name: kube-prometheus-stack
-  version: 93.3.0
+  version: 93.11.0
 syncOptions:
   - CreateNamespace=true
 manifests: true
