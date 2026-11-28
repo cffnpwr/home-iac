@@ -4,7 +4,7 @@ go 1.27.4
 
 require (
 	github.com/go-playground/validator/v10 v10.30.6
-	github.com/siderolabs/talos/pkg/machinery v1.14.6
+	github.com/siderolabs/talos/pkg/machinery v1.14.7
 	github.com/vultr/govultr/v3 v3.34.0
 	golang.org/x/oauth2 v0.38.0
 	k8s.io/api v0.37.2
